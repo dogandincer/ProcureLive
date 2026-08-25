@@ -19,6 +19,7 @@ const declineReason = ref("");
 const showDecline = ref(false);
 const flashItem = ref<string | null>(null);
 const actionError = ref("");
+const accessDenied = ref(false);
 
 const myInvitation = computed(() =>
   auction.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId) ?? null,
@@ -43,8 +44,17 @@ const isUrgent = computed(() => {
 
 async function load() {
   loading.value = true;
-  auction.value = await api.get<AuctionDetailDto>(`/api/auctions/${auctionId}`);
-  loading.value = false;
+  try {
+    auction.value = await api.get<AuctionDetailDto>(`/api/auctions/${auctionId}`);
+  } catch (error: any) {
+    if (error?.response?.status === 403) {
+      accessDenied.value = true;
+    } else {
+      throw error;
+    }
+  } finally {
+    loading.value = false;
+  }
 }
 
 async function accept() {
@@ -106,6 +116,7 @@ let ticker: ReturnType<typeof setInterval> | null = null;
 
 onMounted(async () => {
   await load();
+  if (accessDenied.value) return;
 
   ticker = setInterval(() => {
     now.value = Date.now();
@@ -146,7 +157,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="auction" class="space-y-6">
+  <div v-if="accessDenied" class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+    <p class="text-sm font-medium text-slate-600">Bu ihaleye erişiminiz yok. Daveti reddetmiş olabilirsiniz.</p>
+  </div>
+
+  <div v-else-if="auction" class="space-y-6">
     <div class="flex items-start justify-between">
       <div>
         <h1 class="text-xl font-bold text-slate-800">{{ auction.title }}</h1>

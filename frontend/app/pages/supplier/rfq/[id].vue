@@ -14,6 +14,7 @@ const lines = reactive<Record<string, { unitPrice: number | null; currencyId: st
 const submitting = ref(false);
 const submitted = ref(false);
 const actionError = ref("");
+const accessDenied = ref(false);
 
 const myInvitation = computed(() =>
   process.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId) ?? null,
@@ -22,15 +23,23 @@ const myInvitation = computed(() =>
 const canQuote = computed(() => myInvitation.value && ["Accepted", "Participating"].includes(myInvitation.value.status));
 
 async function load() {
-  const [detail, currencyList] = await Promise.all([
-    api.get<RfqProcessDetailDto>(`/api/rfq/processes/${processId}`),
-    api.get<CurrencyDto[]>("/api/currencies"),
-  ]);
-  process.value = detail;
-  currencies.value = currencyList;
+  try {
+    const [detail, currencyList] = await Promise.all([
+      api.get<RfqProcessDetailDto>(`/api/rfq/processes/${processId}`),
+      api.get<CurrencyDto[]>("/api/currencies"),
+    ]);
+    process.value = detail;
+    currencies.value = currencyList;
 
-  for (const li of detail.lineItems) {
-    lines[li.id] ??= { unitPrice: null, currencyId: detail.currencyId, leadTimeDays: null };
+    for (const li of detail.lineItems) {
+      lines[li.id] ??= { unitPrice: null, currencyId: detail.currencyId, leadTimeDays: null };
+    }
+  } catch (error: any) {
+    if (error?.response?.status === 403) {
+      accessDenied.value = true;
+    } else {
+      throw error;
+    }
   }
 }
 
@@ -89,7 +98,11 @@ onMounted(load);
 </script>
 
 <template>
-  <div v-if="process" class="space-y-6">
+  <div v-if="accessDenied" class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+    <p class="text-sm font-medium text-slate-600">Bu RFQ sürecine erişiminiz yok. Daveti reddetmiş olabilirsiniz.</p>
+  </div>
+
+  <div v-else-if="process" class="space-y-6">
     <div>
       <h1 class="text-xl font-bold text-slate-800">{{ process.title }}</h1>
       <p class="text-sm text-slate-500">Son Tarih: {{ new Date(process.dueDate).toLocaleDateString("tr-TR") }}</p>
@@ -104,7 +117,7 @@ onMounted(load);
       <p class="text-sm font-medium text-slate-600">Bu RFQ davetini reddettiniz. Bu sürece artık erişiminiz yok.</p>
     </div>
 
-    <div v-if="myInvitation?.status === 'Invited'" class="rounded-xl border border-amber-200 bg-amber-50 p-5">
+    <div v-else-if="myInvitation?.status === 'Invited'" class="rounded-xl border border-amber-200 bg-amber-50 p-5">
       <p class="text-sm font-medium text-amber-800">Bu RFQ sürecine davetlisiniz.</p>
       <div class="mt-3 flex gap-2">
         <button class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white" @click="accept">Kabul Et</button>

@@ -25,6 +25,16 @@ const comparisons = reactive<Record<string, BidComparisonDto[]>>({});
 const inviteCompanyId = ref("");
 const newItem = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece", targetPrice: null as number | null });
 const extendMinutes = ref(5);
+const actionError = ref("");
+
+async function runAction(action: () => Promise<void>) {
+  actionError.value = "";
+  try {
+    await action();
+  } catch (error: any) {
+    actionError.value = error?.data?.title ?? error?.data?.detail ?? "İşlem gerçekleştirilemedi.";
+  }
+}
 
 const statusBadge: Record<string, string> = {
   Draft: "bg-slate-100 text-slate-600",
@@ -59,53 +69,67 @@ async function load() {
 }
 
 async function addItem() {
-  await api.post(`/api/auctions/${auctionId}/items`, {
-    productId: null,
-    description: newItem.description,
-    quantity: newItem.quantity,
-    unitOfMeasure: newItem.unitOfMeasure,
-    targetPrice: newItem.targetPrice,
-    sortOrder: (auction.value?.items.length ?? 0) + 1,
+  await runAction(async () => {
+    await api.post(`/api/auctions/${auctionId}/items`, {
+      productId: null,
+      description: newItem.description,
+      quantity: newItem.quantity,
+      unitOfMeasure: newItem.unitOfMeasure,
+      targetPrice: newItem.targetPrice,
+      sortOrder: (auction.value?.items.length ?? 0) + 1,
+    });
+    newItem.description = "";
+    await load();
   });
-  newItem.description = "";
-  await load();
 }
 
 async function invite() {
   if (!inviteCompanyId.value) return;
-  await api.post(`/api/auctions/${auctionId}/invitations`, { companyIds: [inviteCompanyId.value] });
-  inviteCompanyId.value = "";
-  await load();
+  await runAction(async () => {
+    await api.post(`/api/auctions/${auctionId}/invitations`, { companyIds: [inviteCompanyId.value] });
+    inviteCompanyId.value = "";
+    await load();
+  });
 }
 
 async function publish() {
-  await api.post(`/api/auctions/${auctionId}/publish`);
-  await load();
+  await runAction(async () => {
+    await api.post(`/api/auctions/${auctionId}/publish`);
+    await load();
+  });
 }
 
 async function cancelAuction() {
-  await api.post(`/api/auctions/${auctionId}/cancel`, "Admin tarafından iptal edildi");
-  await load();
+  await runAction(async () => {
+    await api.post(`/api/auctions/${auctionId}/cancel`, "Admin tarafından iptal edildi");
+    await load();
+  });
 }
 
 async function extend() {
   if (!auction.value) return;
-  const newEndAt = new Date(new Date(auction.value.endAt).getTime() + extendMinutes.value * 60_000).toISOString();
-  await api.post(`/api/auctions/${auctionId}/extend`, {
-    newEndAt,
-    reason: `Admin manuel süre uzatma (+${extendMinutes.value} dk)`,
+  await runAction(async () => {
+    const newEndAt = new Date(new Date(auction.value!.endAt).getTime() + extendMinutes.value * 60_000).toISOString();
+    await api.post(`/api/auctions/${auctionId}/extend`, {
+      newEndAt,
+      reason: `Admin manuel süre uzatma (+${extendMinutes.value} dk)`,
+    });
+    await load();
   });
-  await load();
 }
 
 async function loadComparison(itemId: string) {
-  comparisons[itemId] = await api.get<BidComparisonDto[]>(`/api/auctions/${auctionId}/items/${itemId}/bids/compare`);
+  await runAction(async () => {
+    comparisons[itemId] = await api.get<BidComparisonDto[]>(`/api/auctions/${auctionId}/items/${itemId}/bids/compare`);
+  });
 }
 
 async function award(itemId: string, bidId: string) {
-  await api.post(`/api/auctions/${auctionId}/items/${itemId}/award`, { winningBidId: bidId, notes: null });
-  await load();
-  await loadComparison(itemId);
+  await runAction(async () => {
+    await api.post(`/api/auctions/${auctionId}/items/${itemId}/award`, { winningBidId: bidId, notes: null });
+    await load();
+    await loadComparison(itemId);
+  });
 }
 
 let ticker: ReturnType<typeof setInterval> | null = null;
@@ -159,6 +183,11 @@ onBeforeUnmount(() => {
         <p class="mt-1 text-sm text-slate-500">{{ auction.description }}</p>
       </div>
       <span class="rounded px-3 py-1 text-sm font-medium" :class="statusBadge[auction.status]">{{ auction.status }}</span>
+    </div>
+
+    <div v-if="actionError" class="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+      <span>{{ actionError }}</span>
+      <button class="font-semibold" @click="actionError = ''">Kapat</button>
     </div>
 
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">

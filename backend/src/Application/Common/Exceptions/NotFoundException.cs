@@ -1,0 +1,9 @@
+namespace ProcureLive.Application.Common.Exceptions;
+
+public sealed class NotFoundException : Exception
+{
+    public NotFoundException(string entityName, object key)
+        : base($"Entity \"{entityName}\" ({key}) bulunamadı.")
+    {
+    }
+}

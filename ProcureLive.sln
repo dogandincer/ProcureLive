@@ -1,0 +1,82 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{19AE454B-74A8-4BB1-BA7C-8E1CBA352D2D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1850EA78-51B6-4005-BBA0-B481817A02C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcureLive.Domain", "backend\src\Domain\ProcureLive.Domain.csproj", "{BDCC9525-60F9-4AA8-BEDC-5BA3F6AB60BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcureLive.Contracts", "backend\src\Contracts\ProcureLive.Contracts.csproj", "{E320F30D-E3EB-4192-BF1B-2B20FD3AE80C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcureLive.Application", "backend\src\Application\ProcureLive.Application.csproj", "{CEA69C8F-B577-4730-BA0D-CBFA6408BE18}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcureLive.Infrastructure", "backend\src\Infrastructure\ProcureLive.Infrastructure.csproj", "{446430F8-299F-4E21-956A-EE6232AC0E8D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcureLive.WebApi", "backend\src\WebApi\ProcureLive.WebApi.csproj", "{7B49881E-7C69-4F3F-BAA8-0B3F76257E0E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{A1655EF9-1EA8-4B79-A841-1F6318AEEBA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcureLive.Domain.UnitTests", "backend\tests\ProcureLive.Domain.UnitTests\ProcureLive.Domain.UnitTests.csproj", "{EC839BC1-2BEE-4526-BB4E-5586E529CF9E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcureLive.Application.UnitTests", "backend\tests\ProcureLive.Application.UnitTests\ProcureLive.Application.UnitTests.csproj", "{DC53CB65-DBA4-48B5-AD24-9CE9FA32E6B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcureLive.WebApi.IntegrationTests", "backend\tests\ProcureLive.WebApi.IntegrationTests\ProcureLive.WebApi.IntegrationTests.csproj", "{96C98243-3780-44B5-80E9-5806278D157F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BDCC9525-60F9-4AA8-BEDC-5BA3F6AB60BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDCC9525-60F9-4AA8-BEDC-5BA3F6AB60BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDCC9525-60F9-4AA8-BEDC-5BA3F6AB60BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDCC9525-60F9-4AA8-BEDC-5BA3F6AB60BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E320F30D-E3EB-4192-BF1B-2B20FD3AE80C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E320F30D-E3EB-4192-BF1B-2B20FD3AE80C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E320F30D-E3EB-4192-BF1B-2B20FD3AE80C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E320F30D-E3EB-4192-BF1B-2B20FD3AE80C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEA69C8F-B577-4730-BA0D-CBFA6408BE18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEA69C8F-B577-4730-BA0D-CBFA6408BE18}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEA69C8F-B577-4730-BA0D-CBFA6408BE18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEA69C8F-B577-4730-BA0D-CBFA6408BE18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{446430F8-299F-4E21-956A-EE6232AC0E8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{446430F8-299F-4E21-956A-EE6232AC0E8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{446430F8-299F-4E21-956A-EE6232AC0E8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{446430F8-299F-4E21-956A-EE6232AC0E8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B49881E-7C69-4F3F-BAA8-0B3F76257E0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B49881E-7C69-4F3F-BAA8-0B3F76257E0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B49881E-7C69-4F3F-BAA8-0B3F76257E0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B49881E-7C69-4F3F-BAA8-0B3F76257E0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC839BC1-2BEE-4526-BB4E-5586E529CF9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC839BC1-2BEE-4526-BB4E-5586E529CF9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC839BC1-2BEE-4526-BB4E-5586E529CF9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC839BC1-2BEE-4526-BB4E-5586E529CF9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC53CB65-DBA4-48B5-AD24-9CE9FA32E6B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC53CB65-DBA4-48B5-AD24-9CE9FA32E6B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC53CB65-DBA4-48B5-AD24-9CE9FA32E6B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC53CB65-DBA4-48B5-AD24-9CE9FA32E6B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96C98243-3780-44B5-80E9-5806278D157F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96C98243-3780-44B5-80E9-5806278D157F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96C98243-3780-44B5-80E9-5806278D157F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96C98243-3780-44B5-80E9-5806278D157F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1850EA78-51B6-4005-BBA0-B481817A02C2} = {19AE454B-74A8-4BB1-BA7C-8E1CBA352D2D}
+		{BDCC9525-60F9-4AA8-BEDC-5BA3F6AB60BA} = {1850EA78-51B6-4005-BBA0-B481817A02C2}
+		{E320F30D-E3EB-4192-BF1B-2B20FD3AE80C} = {1850EA78-51B6-4005-BBA0-B481817A02C2}
+		{CEA69C8F-B577-4730-BA0D-CBFA6408BE18} = {1850EA78-51B6-4005-BBA0-B481817A02C2}
+		{446430F8-299F-4E21-956A-EE6232AC0E8D} = {1850EA78-51B6-4005-BBA0-B481817A02C2}
+		{7B49881E-7C69-4F3F-BAA8-0B3F76257E0E} = {1850EA78-51B6-4005-BBA0-B481817A02C2}
+		{A1655EF9-1EA8-4B79-A841-1F6318AEEBA5} = {19AE454B-74A8-4BB1-BA7C-8E1CBA352D2D}
+		{EC839BC1-2BEE-4526-BB4E-5586E529CF9E} = {A1655EF9-1EA8-4B79-A841-1F6318AEEBA5}
+		{DC53CB65-DBA4-48B5-AD24-9CE9FA32E6B5} = {A1655EF9-1EA8-4B79-A841-1F6318AEEBA5}
+		{96C98243-3780-44B5-80E9-5806278D157F} = {A1655EF9-1EA8-4B79-A841-1F6318AEEBA5}
+	EndGlobalSection
+EndGlobal

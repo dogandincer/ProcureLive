@@ -10,6 +10,16 @@ const companies = ref<CompanyDto[]>([]);
 const matrix = ref<RfqComparisonRowDto[]>([]);
 const inviteCompanyId = ref("");
 const newLine = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece" });
+const actionError = ref("");
+
+async function runAction(action: () => Promise<void>) {
+  actionError.value = "";
+  try {
+    await action();
+  } catch (error: any) {
+    actionError.value = error?.data?.title ?? error?.data?.detail ?? "İşlem gerçekleştirilemedi.";
+  }
+}
 
 const unitOfMeasures = ["Piece", "Kilogram", "Gram", "Liter", "Meter", "SquareMeter", "CubicMeter", "Box", "Pallet", "Hour", "Service"];
 
@@ -36,32 +46,40 @@ async function loadMatrix() {
 }
 
 async function addLine() {
-  await api.post(`/api/rfq/processes/${processId}/line-items`, {
-    productId: null,
-    description: newLine.description,
-    quantity: newLine.quantity,
-    unitOfMeasure: newLine.unitOfMeasure,
-    sortOrder: (process.value?.lineItems.length ?? 0) + 1,
+  await runAction(async () => {
+    await api.post(`/api/rfq/processes/${processId}/line-items`, {
+      productId: null,
+      description: newLine.description,
+      quantity: newLine.quantity,
+      unitOfMeasure: newLine.unitOfMeasure,
+      sortOrder: (process.value?.lineItems.length ?? 0) + 1,
+    });
+    newLine.description = "";
+    await load();
   });
-  newLine.description = "";
-  await load();
 }
 
 async function invite() {
   if (!inviteCompanyId.value) return;
-  await api.post(`/api/rfq/processes/${processId}/invitations`, { companyIds: [inviteCompanyId.value] });
-  inviteCompanyId.value = "";
-  await load();
+  await runAction(async () => {
+    await api.post(`/api/rfq/processes/${processId}/invitations`, { companyIds: [inviteCompanyId.value] });
+    inviteCompanyId.value = "";
+    await load();
+  });
 }
 
 async function publish() {
-  await api.post(`/api/rfq/processes/${processId}/publish`);
-  await load();
+  await runAction(async () => {
+    await api.post(`/api/rfq/processes/${processId}/publish`);
+    await load();
+  });
 }
 
 async function close() {
-  await api.post(`/api/rfq/processes/${processId}/close`);
-  await load();
+  await runAction(async () => {
+    await api.post(`/api/rfq/processes/${processId}/close`);
+    await load();
+  });
 }
 
 onMounted(async () => {
@@ -85,6 +103,11 @@ onMounted(async () => {
           Süreci Kapat
         </button>
       </div>
+    </div>
+
+    <div v-if="actionError" class="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+      <span>{{ actionError }}</span>
+      <button class="font-semibold" @click="actionError = ''">Kapat</button>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">

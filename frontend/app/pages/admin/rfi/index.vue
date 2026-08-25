@@ -10,6 +10,16 @@ const showTemplateForm = ref(false);
 const showProcessForm = ref(false);
 const templateForm = reactive({ name: "", description: "" });
 const processForm = reactive({ rfiTemplateId: "", title: "", ownerCompanyId: "", dueDate: "" });
+const actionError = ref("");
+
+async function runAction(action: () => Promise<void>) {
+  actionError.value = "";
+  try {
+    await action();
+  } catch (error: any) {
+    actionError.value = error?.data?.title ?? error?.data?.detail ?? "İşlem gerçekleştirilemedi.";
+  }
+}
 
 const statusBadge: Record<string, string> = {
   Draft: "bg-slate-100 text-slate-600",
@@ -36,21 +46,25 @@ async function load() {
 }
 
 async function createTemplate() {
-  await api.post("/api/rfi/templates", { name: templateForm.name, description: templateForm.description || null, categoryId: null });
-  Object.assign(templateForm, { name: "", description: "" });
-  showTemplateForm.value = false;
-  await load();
+  await runAction(async () => {
+    await api.post("/api/rfi/templates", { name: templateForm.name, description: templateForm.description || null, categoryId: null });
+    Object.assign(templateForm, { name: "", description: "" });
+    showTemplateForm.value = false;
+    await load();
+  });
 }
 
 async function createProcess() {
-  const id = await api.post<string>("/api/rfi/processes", {
-    rfiTemplateId: processForm.rfiTemplateId,
-    title: processForm.title,
-    ownerCompanyId: processForm.ownerCompanyId,
-    dueDate: new Date(processForm.dueDate).toISOString(),
+  await runAction(async () => {
+    const id = await api.post<string>("/api/rfi/processes", {
+      rfiTemplateId: processForm.rfiTemplateId,
+      title: processForm.title,
+      ownerCompanyId: processForm.ownerCompanyId,
+      dueDate: new Date(processForm.dueDate).toISOString(),
+    });
+    showProcessForm.value = false;
+    await navigateTo(`/admin/rfi/${id}`);
   });
-  showProcessForm.value = false;
-  await navigateTo(`/admin/rfi/${id}`);
 }
 
 onMounted(load);
@@ -68,6 +82,11 @@ onMounted(load);
           + Yeni RFI Süreci
         </button>
       </div>
+    </div>
+
+    <div v-if="actionError" class="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+      <span>{{ actionError }}</span>
+      <button class="font-semibold" @click="actionError = ''">Kapat</button>
     </div>
 
     <form v-if="showTemplateForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="createTemplate">

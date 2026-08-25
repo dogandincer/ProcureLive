@@ -11,6 +11,16 @@ const responses = ref<RfiResponseDto[]>([]);
 const evaluations = ref<SupplierEvaluationDto[]>([]);
 const inviteCompanyId = ref("");
 const evalForm = reactive({ companyId: "", totalScore: 0, comments: "" });
+const actionError = ref("");
+
+async function runAction(action: () => Promise<void>) {
+  actionError.value = "";
+  try {
+    await action();
+  } catch (error: any) {
+    actionError.value = error?.data?.title ?? error?.data?.detail ?? "İşlem gerçekleştirilemedi.";
+  }
+}
 
 async function load() {
   const [detail, companyPage, evalList] = await Promise.all([
@@ -29,24 +39,30 @@ async function loadResponses() {
 
 async function invite() {
   if (!inviteCompanyId.value) return;
-  await api.post(`/api/rfi/processes/${processId}/invitations`, { companyIds: [inviteCompanyId.value] });
-  inviteCompanyId.value = "";
-  await load();
+  await runAction(async () => {
+    await api.post(`/api/rfi/processes/${processId}/invitations`, { companyIds: [inviteCompanyId.value] });
+    inviteCompanyId.value = "";
+    await load();
+  });
 }
 
 async function submitEvaluation() {
   if (!evalForm.companyId) return;
-  await api.post(`/api/rfi/processes/${processId}/evaluations`, {
-    companyId: evalForm.companyId,
-    totalScore: evalForm.totalScore,
-    comments: evalForm.comments || null,
+  await runAction(async () => {
+    await api.post(`/api/rfi/processes/${processId}/evaluations`, {
+      companyId: evalForm.companyId,
+      totalScore: evalForm.totalScore,
+      comments: evalForm.comments || null,
+    });
+    await load();
   });
-  await load();
 }
 
 async function close() {
-  await api.post(`/api/rfi/processes/${processId}/close`);
-  await load();
+  await runAction(async () => {
+    await api.post(`/api/rfi/processes/${processId}/close`);
+    await load();
+  });
 }
 
 onMounted(async () => {
@@ -65,6 +81,11 @@ onMounted(async () => {
       <button v-if="!['Closed', 'Evaluated'].includes(process.status)" class="rounded-md bg-slate-700 px-4 py-2 text-sm font-semibold text-white" @click="close">
         Süreci Kapat
       </button>
+    </div>
+
+    <div v-if="actionError" class="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+      <span>{{ actionError }}</span>
+      <button class="font-semibold" @click="actionError = ''">Kapat</button>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">

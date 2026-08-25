@@ -8,6 +8,7 @@ const currencies = ref<CurrencyDto[]>([]);
 const showForm = ref(false);
 
 const form = reactive({ title: "", ownerCompanyId: "", currencyId: "", dueDate: "" });
+const actionError = ref("");
 
 const statusBadge: Record<string, string> = {
   Draft: "bg-slate-100 text-slate-600",
@@ -36,14 +37,19 @@ async function load() {
 }
 
 async function create() {
-  const id = await api.post<string>("/api/rfq/processes", {
-    title: form.title,
-    ownerCompanyId: form.ownerCompanyId,
-    currencyId: form.currencyId,
-    dueDate: new Date(form.dueDate).toISOString(),
-  });
-  showForm.value = false;
-  await navigateTo(`/admin/rfq/${id}`);
+  actionError.value = "";
+  try {
+    const id = await api.post<string>("/api/rfq/processes", {
+      title: form.title,
+      ownerCompanyId: form.ownerCompanyId,
+      currencyId: form.currencyId,
+      dueDate: new Date(form.dueDate).toISOString(),
+    });
+    showForm.value = false;
+    await navigateTo(`/admin/rfq/${id}`);
+  } catch (error: any) {
+    actionError.value = error?.data?.title ?? error?.data?.detail ?? "İşlem gerçekleştirilemedi.";
+  }
 }
 
 onMounted(load);
@@ -56,6 +62,11 @@ onMounted(load);
       <button class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white" @click="showForm = !showForm">
         {{ showForm ? "Vazgeç" : "+ Yeni RFQ (Adım 1/4)" }}
       </button>
+    </div>
+
+    <div v-if="actionError" class="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+      <span>{{ actionError }}</span>
+      <button class="font-semibold" @click="actionError = ''">Kapat</button>
     </div>
 
     <form v-if="showForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="create">

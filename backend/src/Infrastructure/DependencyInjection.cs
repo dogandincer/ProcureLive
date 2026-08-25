@@ -69,6 +69,7 @@ public static class DependencyInjection
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IAuctionCacheService, AuctionCacheService>();
+        services.AddScoped<IEmailSender, LoggingEmailSender>();
 
         return services;
     }

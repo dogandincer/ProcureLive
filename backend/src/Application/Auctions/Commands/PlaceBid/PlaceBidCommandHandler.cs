@@ -1,6 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using ProcureLive.Application.Auctions.Common;
+using ProcureLive.Application.Common.Currencies;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Contracts.Auctions;
@@ -92,12 +92,12 @@ public sealed class PlaceBidCommandHandler : IRequestHandler<PlaceBidCommand, Bi
         Bid? currentWinningBid = await _context.Bids
             .FirstOrDefaultAsync(b => b.AuctionItemId == item.Id && b.Status == BidStatus.Winning, cancellationToken);
 
-        decimal normalizedNewAmount = await BidCurrencyNormalizer.NormalizeToBaseCurrencyAsync(
+        decimal normalizedNewAmount = await CurrencyNormalizer.NormalizeToBaseCurrencyAsync(
             _context, request.Amount, request.CurrencyId, cancellationToken);
 
         if (currentWinningBid is not null && auction.AuctionType != AuctionType.SealedBid)
         {
-            decimal normalizedCurrentBest = await BidCurrencyNormalizer.NormalizeToBaseCurrencyAsync(
+            decimal normalizedCurrentBest = await CurrencyNormalizer.NormalizeToBaseCurrencyAsync(
                 _context, currentWinningBid.Amount.Amount, currentWinningBid.Amount.CurrencyId, cancellationToken);
 
             bool beatsCurrentBest = auction.AuctionType == AuctionType.English

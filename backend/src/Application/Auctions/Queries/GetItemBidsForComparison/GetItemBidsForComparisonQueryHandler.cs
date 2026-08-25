@@ -1,6 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using ProcureLive.Application.Auctions.Common;
+using ProcureLive.Application.Common.Currencies;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Contracts.Auctions;
 using ProcureLive.Domain.Entities.Auctions;
@@ -31,7 +31,7 @@ public sealed class GetItemBidsForComparisonQueryHandler
 
         foreach (Bid bid in bids)
         {
-            decimal normalized = await BidCurrencyNormalizer.NormalizeToBaseCurrencyAsync(
+            decimal normalized = await CurrencyNormalizer.NormalizeToBaseCurrencyAsync(
                 _context, bid.Amount.Amount, bid.Amount.CurrencyId, cancellationToken);
 
             string currencyCode = await _context.Currencies

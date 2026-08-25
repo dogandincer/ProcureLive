@@ -3,14 +3,15 @@ using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Domain.Entities.Finance;
 
-namespace ProcureLive.Application.Auctions.Common;
+namespace ProcureLive.Application.Common.Currencies;
 
 /// <summary>
-/// Auctions allow bids in different currencies ("farklı para birimleriyle verilmiş olsa bile
-/// kıyaslanabilir"); every comparison — beating the current best bid, or the admin evaluation
-/// screen — normalizes amounts to the system base currency using the latest known exchange rate.
+/// Shared cross-currency comparison helper. Used wherever amounts placed in different currencies
+/// must be compared side by side: Auction bids ("farklı para birimleriyle verilmiş olsa bile
+/// kıyaslanabilir") and RFQ quotes ("çoklu para biriminde teklif toplayabilme"). Normalizes to the
+/// system base currency using the latest known exchange rate.
 /// </summary>
-public static class BidCurrencyNormalizer
+public static class CurrencyNormalizer
 {
     public static async Task<decimal> NormalizeToBaseCurrencyAsync(
         IApplicationDbContext context,

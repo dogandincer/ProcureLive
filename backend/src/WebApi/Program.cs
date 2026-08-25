@@ -144,6 +144,11 @@ builder.Services
 builder.Services.AddScoped<IAuctionNotificationService, SignalRAuctionNotificationService>();
 builder.Services.AddHostedService<AuctionLifecycleHostedService>();
 
+// Faz 3: bildirim merkezi — anlık SignalR push (NotificationCreator içinde senkron tetiklenir) +
+// e-posta kanalını arka planda dağıtan servis (henüz gerçek SMTP yok, LoggingEmailSender stub'ı kullanılıyor).
+builder.Services.AddScoped<INotificationRealtimeService, SignalRNotificationRealtimeService>();
+builder.Services.AddHostedService<NotificationEmailDispatchHostedService>();
+
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
@@ -166,6 +171,7 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health");
 app.MapHub<AuctionHub>("/hubs/auction");
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 using (IServiceScope scope = app.Services.CreateScope())
 {

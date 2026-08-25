@@ -45,9 +45,13 @@ async function markRead(notification: NotificationDto) {
   if (notification.isRead) {
     return;
   }
-  await api.post(`/api/notifications/${notification.id}/read`);
-  notification.isRead = true;
-  unreadCount.value = Math.max(0, unreadCount.value - 1);
+  try {
+    await api.post(`/api/notifications/${notification.id}/read`);
+    notification.isRead = true;
+    unreadCount.value = Math.max(0, unreadCount.value - 1);
+  } catch {
+    // best-effort: leave the notification marked unread so the user can retry by clicking again
+  }
 }
 
 onMounted(async () => {

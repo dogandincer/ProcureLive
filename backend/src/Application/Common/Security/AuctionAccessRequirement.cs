@@ -10,14 +10,18 @@ public sealed class AuctionAccessRequirement : IAuthorizationRequirement
 }
 
 /// <summary>
-/// Admin/Buyer always pass. A Supplier user may only access an auction they were invited to
-/// and have accepted/are participating in (or have already won/lost) — never a raw invite they declined.
+/// Admin/Buyer always pass. A Supplier user may *view* an auction they were invited to regardless of
+/// whether they have responded yet — Invited is allowed here so a supplier can see what they're being
+/// asked to join before deciding. Declined is excluded ("reddedenlerin ihaleye girişleri engellenecek").
+/// Bidding itself is gated separately and more strictly (PlaceBidCommandHandler requires
+/// Accepted/Participating) — this policy only controls read access to the auction detail.
 /// </summary>
 public sealed class AuctionAccessHandler : AuthorizationHandler<AuctionAccessRequirement, Auction>
 {
     private static readonly InvitationStatus[] AllowedStatuses =
     {
-        InvitationStatus.Accepted, InvitationStatus.Participating, InvitationStatus.Won, InvitationStatus.Lost
+        InvitationStatus.Invited, InvitationStatus.Accepted, InvitationStatus.Participating,
+        InvitationStatus.Won, InvitationStatus.Lost
     };
 
     protected override Task HandleRequirementAsync(

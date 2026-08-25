@@ -1,0 +1,294 @@
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface AuthResult {
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  roles: string[];
+  companyId: string | null;
+  accessToken: string;
+  accessTokenExpiresAt: string;
+  refreshToken: string;
+}
+
+export interface CurrentUser {
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  roles: string[];
+  companyId: string | null;
+}
+
+export interface CompanyDto {
+  id: string;
+  name: string;
+  taxNumber: string;
+  taxOffice: string;
+  companyType: string;
+  status: string;
+  website: string | null;
+  createdAt: string;
+}
+
+export interface ProductDto {
+  id: string;
+  sku: string;
+  name: string;
+  description: string | null;
+  categoryId: string;
+  categoryName: string;
+  unitOfMeasure: string;
+  brand: string | null;
+  isActive: boolean;
+}
+
+export interface CategoryDto {
+  id: string;
+  name: string;
+  code: string;
+  parentCategoryId: string | null;
+  children: CategoryDto[];
+}
+
+export interface CurrencyDto {
+  id: string;
+  code: string;
+  name: string;
+  symbol: string;
+  isBaseCurrency: boolean;
+}
+
+export interface AuctionDto {
+  id: string;
+  title: string;
+  description: string | null;
+  auctionType: string;
+  status: string;
+  ownerCompanyId: string;
+  ownerCompanyName: string;
+  currencyId: string;
+  currencyCode: string;
+  startAt: string;
+  endAt: string;
+  actualStartAt: string | null;
+  actualEndAt: string | null;
+  reservePrice: number | null;
+  extensionRuleMinutes: number;
+  itemCount: number;
+  invitationCount: number;
+  createdAt: string;
+}
+
+export interface AuctionItemDto {
+  id: string;
+  productId: string | null;
+  description: string;
+  quantity: number;
+  unitOfMeasure: string;
+  targetPrice: number | null;
+  sortOrder: number;
+  currentBestAmount: number | null;
+  bidCount: number;
+}
+
+export interface AuctionInvitationDto {
+  id: string;
+  companyId: string;
+  companyName: string;
+  status: string;
+  invitedAt: string;
+  respondedAt: string | null;
+}
+
+export interface AuctionDetailDto {
+  id: string;
+  title: string;
+  description: string | null;
+  auctionType: string;
+  status: string;
+  ownerCompanyId: string;
+  ownerCompanyName: string;
+  currencyId: string;
+  currencyCode: string;
+  startAt: string;
+  endAt: string;
+  actualStartAt: string | null;
+  actualEndAt: string | null;
+  reservePrice: number | null;
+  minDecrementAmount: number | null;
+  minDecrementPercentage: number | null;
+  extensionRuleMinutes: number;
+  items: AuctionItemDto[];
+  invitations: AuctionInvitationDto[];
+}
+
+export interface BidDto {
+  id: string;
+  auctionItemId: string;
+  companyId: string;
+  companyName: string;
+  amount: number;
+  currencyId: string;
+  bidTime: string;
+  status: string;
+  isMine: boolean;
+}
+
+export interface BidComparisonDto {
+  bidId: string;
+  companyId: string;
+  companyName: string;
+  amount: number;
+  currencyCode: string;
+  normalizedAmountInBaseCurrency: number;
+  bidTime: string;
+  status: string;
+}
+
+export interface NotificationDto {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  relatedEntityType: string | null;
+  relatedEntityId: string | null;
+  isRead: boolean;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface RfiTemplateDto {
+  id: string;
+  name: string;
+  description: string | null;
+  categoryId: string | null;
+  isActive: boolean;
+  questions: RfiQuestionDto[];
+}
+
+export interface RfiQuestionDto {
+  id: string;
+  questionText: string;
+  questionType: string;
+  isRequired: boolean;
+  sortOrder: number;
+  weight: number;
+  options: RfiQuestionOptionDto[];
+}
+
+export interface RfiQuestionOptionDto {
+  id: string;
+  optionText: string;
+  scoreValue: number;
+}
+
+export interface RfiProcessDto {
+  id: string;
+  rfiTemplateId: string;
+  templateName: string;
+  title: string;
+  ownerCompanyId: string;
+  ownerCompanyName: string;
+  status: string;
+  dueDate: string;
+  invitationCount: number;
+  responseCount: number;
+  createdAt: string;
+}
+
+export interface RfiProcessDetailDto {
+  id: string;
+  rfiTemplateId: string;
+  templateName: string;
+  title: string;
+  ownerCompanyId: string;
+  ownerCompanyName: string;
+  status: string;
+  dueDate: string;
+  questions: RfiQuestionDto[];
+  invitations: AuctionInvitationDto[];
+}
+
+export interface RfiResponseDto {
+  rfiQuestionId: string;
+  questionText: string;
+  companyId: string;
+  companyName: string;
+  answerText: string | null;
+  answerNumber: number | null;
+  answerBool: boolean | null;
+  selectedOptionText: string | null;
+  attachmentUrl: string | null;
+}
+
+export interface SupplierEvaluationDto {
+  id: string;
+  companyId: string;
+  companyName: string;
+  totalScore: number;
+  comments: string | null;
+  evaluatedAt: string;
+}
+
+export interface RfqProcessDto {
+  id: string;
+  title: string;
+  ownerCompanyId: string;
+  ownerCompanyName: string;
+  currencyId: string;
+  currencyCode: string;
+  status: string;
+  dueDate: string;
+  lineItemCount: number;
+  invitationCount: number;
+  quoteCount: number;
+  createdAt: string;
+}
+
+export interface RfqLineItemDto {
+  id: string;
+  productId: string | null;
+  description: string;
+  quantity: number;
+  unitOfMeasure: string;
+  sortOrder: number;
+}
+
+export interface RfqProcessDetailDto {
+  id: string;
+  title: string;
+  ownerCompanyId: string;
+  ownerCompanyName: string;
+  currencyId: string;
+  currencyCode: string;
+  status: string;
+  dueDate: string;
+  lineItems: RfqLineItemDto[];
+  invitations: AuctionInvitationDto[];
+}
+
+export interface RfqComparisonRowDto {
+  rfqLineItemId: string;
+  lineItemDescription: string;
+  companyId: string;
+  companyName: string;
+  unitPrice: number;
+  currencyCode: string;
+  normalizedUnitPriceInBaseCurrency: number;
+  leadTimeDays: number | null;
+}
+
+export interface AuctionModelRecommendationDto {
+  recommendedAuctionType: string;
+  confidenceScore: number;
+  rationale: string;
+  featuresUsed: Record<string, unknown>;
+}

@@ -36,7 +36,8 @@ public sealed class GetAuctionsListQueryHandler : IRequestHandler<GetAuctionsLis
             Guid companyId = _currentUserService.CompanyId ?? Guid.Empty;
             query = query.Where(a => a.Invitations.Any(i =>
                 i.CompanyId == companyId
-                && (i.Status == InvitationStatus.Accepted
+                && (i.Status == InvitationStatus.Invited
+                    || i.Status == InvitationStatus.Accepted
                     || i.Status == InvitationStatus.Participating
                     || i.Status == InvitationStatus.Won
                     || i.Status == InvitationStatus.Lost)));

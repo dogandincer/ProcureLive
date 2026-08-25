@@ -1,0 +1,45 @@
+using Microsoft.EntityFrameworkCore;
+using ProcureLive.Application.Common.Exceptions;
+using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Domain.Entities.Finance;
+
+namespace ProcureLive.Application.Auctions.Common;
+
+/// <summary>
+/// Auctions allow bids in different currencies ("farklı para birimleriyle verilmiş olsa bile
+/// kıyaslanabilir"); every comparison — beating the current best bid, or the admin evaluation
+/// screen — normalizes amounts to the system base currency using the latest known exchange rate.
+/// </summary>
+public static class BidCurrencyNormalizer
+{
+    public static async Task<decimal> NormalizeToBaseCurrencyAsync(
+        IApplicationDbContext context,
+        decimal amount,
+        Guid currencyId,
+        CancellationToken cancellationToken)
+    {
+        Currency? currency = await context.Currencies.FirstOrDefaultAsync(c => c.Id == currencyId, cancellationToken);
+
+        if (currency is null)
+        {
+            throw new NotFoundException(nameof(Currency), currencyId);
+        }
+
+        if (currency.IsBaseCurrency)
+        {
+            return amount;
+        }
+
+        ExchangeRate? latestRate = await context.ExchangeRates
+            .Where(r => r.CurrencyId == currencyId)
+            .OrderByDescending(r => r.RateDate)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (latestRate is null)
+        {
+            throw new ConflictException($"'{currency.Code}' para birimi için güncel bir kur tanımlı değil.");
+        }
+
+        return amount * latestRate.RateToBase;
+    }
+}

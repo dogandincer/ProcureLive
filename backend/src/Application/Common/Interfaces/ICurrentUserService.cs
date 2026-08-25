@@ -16,5 +16,7 @@ public interface ICurrentUserService
 
     ClaimsPrincipal? Principal { get; }
 
+    string? IpAddress { get; }
+
     bool IsInRole(string role);
 }

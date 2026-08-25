@@ -49,5 +49,7 @@ public sealed class CurrentUserService : ICurrentUserService
     public IReadOnlyCollection<string> Roles =>
         Principal?.FindAll(ClaimTypes.Role).Select(c => c.Value).ToArray() ?? Array.Empty<string>();
 
+    public string? IpAddress => _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+
     public bool IsInRole(string role) => Principal?.IsInRole(role) ?? false;
 }

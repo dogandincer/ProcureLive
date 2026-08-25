@@ -101,6 +101,11 @@ public class ApplicationDbContext
 
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
+    public Task ExecuteRawSqlAsync(string sql, object[] parameters, CancellationToken cancellationToken)
+    {
+        return Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
+    }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

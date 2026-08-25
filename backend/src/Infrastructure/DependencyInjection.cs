@@ -68,6 +68,7 @@ public static class DependencyInjection
         services.AddSingleton<IDateTime, DateTimeService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IIdentityService, IdentityService>();
+        services.AddScoped<IAuctionCacheService, AuctionCacheService>();
 
         return services;
     }

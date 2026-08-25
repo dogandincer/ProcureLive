@@ -3,9 +3,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using ProcureLive.Application;
+using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Security;
 using ProcureLive.Infrastructure;
 using ProcureLive.Infrastructure.Settings;
+using ProcureLive.WebApi.HostedServices;
+using ProcureLive.WebApi.Hubs;
 using ProcureLive.WebApi.Middleware;
 using Serilog;
 
@@ -99,9 +102,11 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy(Policies.RequireBuyer, policy => policy.RequireRole(Roles.Buyer))
     .AddPolicy(Policies.RequireSupplier, policy => policy.RequireRole(Roles.Supplier))
     .AddPolicy(Policies.RequireInternalUser, policy => policy.RequireRole(Roles.Admin, Roles.Buyer))
-    .AddPolicy(Policies.CompanyAccess, policy => policy.Requirements.Add(new CompanyAccessRequirement()));
+    .AddPolicy(Policies.CompanyAccess, policy => policy.Requirements.Add(new CompanyAccessRequirement()))
+    .AddPolicy(Policies.AuctionAccess, policy => policy.Requirements.Add(new AuctionAccessRequirement()));
 
 builder.Services.AddScoped<IAuthorizationHandler, CompanyAccessHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, AuctionAccessHandler>();
 
 const string CorsPolicyName = "ProcureLiveCors";
 string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
@@ -124,6 +129,21 @@ builder.Services.AddHealthChecks()
     .AddRedis(builder.Configuration.GetConnectionString("Redis")
         ?? throw new InvalidOperationException("ConnectionStrings:Redis eksik."));
 
+string redisConnectionString = builder.Configuration.GetConnectionString("Redis")
+    ?? throw new InvalidOperationException("ConnectionStrings:Redis eksik.");
+
+// Faz 2: canlı ihale altyapısı — SignalR (Redis backplane ile çoklu instance desteği), hub bildirim
+// servisi, ve ihale yaşam döngüsünü (Scheduled->Live->Ended) otomatik ilerleten arka plan servisi.
+builder.Services
+    .AddSignalR()
+    .AddStackExchangeRedis(redisConnectionString, options =>
+    {
+        options.Configuration.ChannelPrefix = StackExchange.Redis.RedisChannel.Literal("ProcureLive");
+    });
+
+builder.Services.AddScoped<IAuctionNotificationService, SignalRAuctionNotificationService>();
+builder.Services.AddHostedService<AuctionLifecycleHostedService>();
+
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
@@ -145,6 +165,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHealthChecks("/health");
+app.MapHub<AuctionHub>("/hubs/auction");
 
 using (IServiceScope scope = app.Services.CreateScope())
 {

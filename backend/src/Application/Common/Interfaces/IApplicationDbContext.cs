@@ -91,4 +91,10 @@ public interface IApplicationDbContext
     DbSet<RolePermission> RolePermissions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Executes a raw SQL statement (e.g. "SELECT 1 FROM ... FOR UPDATE" row locks) against the
+    /// current ambient transaction. Parameters are positional ({0}, {1}, ...).
+    /// </summary>
+    Task ExecuteRawSqlAsync(string sql, object[] parameters, CancellationToken cancellationToken);
 }

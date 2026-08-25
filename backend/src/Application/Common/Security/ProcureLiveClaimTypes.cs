@@ -20,4 +20,5 @@ public static class Policies
     public const string RequireSupplier = "RequireSupplier";
     public const string RequireInternalUser = "RequireInternalUser";
     public const string CompanyAccess = "CompanyAccess";
+    public const string AuctionAccess = "AuctionAccess";
 }

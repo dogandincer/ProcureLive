@@ -8,6 +8,7 @@ const auctions = ref<AuctionDto[]>([]);
 const myInvitationStatus = reactive<Record<string, string>>({});
 const declineReason = reactive<Record<string, string>>({});
 const showDeclineFor = ref<string | null>(null);
+const actionError = ref("");
 
 const statusBadge: Record<string, string> = {
   Draft: "bg-slate-100 text-slate-600",
@@ -34,17 +35,29 @@ async function load() {
 }
 
 async function accept(auctionId: string) {
-  await api.post(`/api/auctions/${auctionId}/invitations/respond`, { accept: true, declineReason: null });
-  await load();
+  actionError.value = "";
+  try {
+    await api.post(`/api/auctions/${auctionId}/invitations/respond`, { accept: true, declineReason: null });
+    await load();
+  } catch (error: any) {
+    actionError.value = error?.data?.title ?? "İşlem gerçekleştirilemedi.";
+  }
 }
 
 async function decline(auctionId: string) {
-  await api.post(`/api/auctions/${auctionId}/invitations/respond`, {
-    accept: false,
-    declineReason: declineReason[auctionId] || "Belirtilmedi",
-  });
-  showDeclineFor.value = null;
-  await load();
+  actionError.value = "";
+  try {
+    await api.post(`/api/auctions/${auctionId}/invitations/respond`, {
+      accept: false,
+      declineReason: declineReason[auctionId] || "Belirtilmedi",
+    });
+    showDeclineFor.value = null;
+    // Declining revokes list visibility for this auction (server-side); update locally instead of
+    // reloading, so the row doesn't just vanish without explanation.
+    myInvitationStatus[auctionId] = "Declined";
+  } catch (error: any) {
+    actionError.value = error?.data?.title ?? "İşlem gerçekleştirilemedi.";
+  }
 }
 
 onMounted(load);
@@ -53,6 +66,11 @@ onMounted(load);
 <template>
   <div class="space-y-6">
     <h1 class="text-xl font-bold text-slate-800">İhale Davetlerim</h1>
+
+    <div v-if="actionError" class="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+      <span>{{ actionError }}</span>
+      <button class="font-semibold" @click="actionError = ''">Kapat</button>
+    </div>
 
     <div class="rounded-xl border border-slate-200 bg-white p-5">
       <table class="w-full text-sm">
@@ -80,6 +98,7 @@ onMounted(load);
                 <button class="rounded bg-emerald-600 px-2 py-1 text-xs font-semibold text-white" @click="accept(a.id)">Kabul Et</button>
                 <button class="rounded bg-rose-600 px-2 py-1 text-xs font-semibold text-white" @click="showDeclineFor = a.id">Reddet</button>
               </div>
+              <span v-if="myInvitationStatus[a.id] === 'Declined'" class="text-xs text-slate-400">Reddedildi</span>
               <NuxtLink v-else :to="`/supplier/auctions/${a.id}`" class="text-indigo-600 hover:underline">Detay</NuxtLink>
 
               <div v-if="showDeclineFor === a.id" class="mt-2 flex justify-end gap-2">

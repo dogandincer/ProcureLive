@@ -13,6 +13,7 @@ const showDecline = ref(false);
 const lines = reactive<Record<string, { unitPrice: number | null; currencyId: string; leadTimeDays: number | null }>>({});
 const submitting = ref(false);
 const submitted = ref(false);
+const actionError = ref("");
 
 const myInvitation = computed(() =>
   process.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId) ?? null,
@@ -34,22 +35,35 @@ async function load() {
 }
 
 async function accept() {
-  await api.post(`/api/rfq/processes/${processId}/invitations/respond`, { accept: true, declineReason: null });
-  await load();
+  actionError.value = "";
+  try {
+    await api.post(`/api/rfq/processes/${processId}/invitations/respond`, { accept: true, declineReason: null });
+    await load();
+  } catch (error: any) {
+    actionError.value = error?.data?.title ?? "İşlem gerçekleştirilemedi.";
+  }
 }
 
 async function decline() {
-  await api.post(`/api/rfq/processes/${processId}/invitations/respond`, {
-    accept: false,
-    declineReason: declineReason.value || "Belirtilmedi",
-  });
-  showDecline.value = false;
-  await load();
+  actionError.value = "";
+  try {
+    await api.post(`/api/rfq/processes/${processId}/invitations/respond`, {
+      accept: false,
+      declineReason: declineReason.value || "Belirtilmedi",
+    });
+    showDecline.value = false;
+    // Declining revokes read access to this process (server-side), so re-fetching would 403.
+    const invitation = process.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId);
+    if (invitation) invitation.status = "Declined";
+  } catch (error: any) {
+    actionError.value = error?.data?.title ?? "İşlem gerçekleştirilemedi.";
+  }
 }
 
 async function submitQuote() {
   if (!process.value) return;
   submitting.value = true;
+  actionError.value = "";
   try {
     await api.post(`/api/rfq/processes/${processId}/quotes`, {
       validUntil: null,
@@ -64,6 +78,8 @@ async function submitQuote() {
     });
     submitted.value = true;
     await load();
+  } catch (error: any) {
+    actionError.value = error?.data?.title ?? "İşlem gerçekleştirilemedi.";
   } finally {
     submitting.value = false;
   }
@@ -77,6 +93,15 @@ onMounted(load);
     <div>
       <h1 class="text-xl font-bold text-slate-800">{{ process.title }}</h1>
       <p class="text-sm text-slate-500">Son Tarih: {{ new Date(process.dueDate).toLocaleDateString("tr-TR") }}</p>
+    </div>
+
+    <div v-if="actionError" class="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+      <span>{{ actionError }}</span>
+      <button class="font-semibold" @click="actionError = ''">Kapat</button>
+    </div>
+
+    <div v-if="myInvitation?.status === 'Declined'" class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+      <p class="text-sm font-medium text-slate-600">Bu RFQ davetini reddettiniz. Bu sürece artık erişiminiz yok.</p>
     </div>
 
     <div v-if="myInvitation?.status === 'Invited'" class="rounded-xl border border-amber-200 bg-amber-50 p-5">

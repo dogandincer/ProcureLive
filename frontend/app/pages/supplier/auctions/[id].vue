@@ -18,6 +18,7 @@ const feed = ref<{ text: string; time: number }[]>([]);
 const declineReason = ref("");
 const showDecline = ref(false);
 const flashItem = ref<string | null>(null);
+const actionError = ref("");
 
 const myInvitation = computed(() =>
   auction.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId) ?? null,
@@ -47,17 +48,30 @@ async function load() {
 }
 
 async function accept() {
-  await api.post(`/api/auctions/${auctionId}/invitations/respond`, { accept: true, declineReason: null });
-  await load();
+  actionError.value = "";
+  try {
+    await api.post(`/api/auctions/${auctionId}/invitations/respond`, { accept: true, declineReason: null });
+    await load();
+  } catch (error: any) {
+    actionError.value = error?.data?.title ?? "İşlem gerçekleştirilemedi.";
+  }
 }
 
 async function decline() {
-  await api.post(`/api/auctions/${auctionId}/invitations/respond`, {
-    accept: false,
-    declineReason: declineReason.value || "Belirtilmedi",
-  });
-  showDecline.value = false;
-  await load();
+  actionError.value = "";
+  try {
+    await api.post(`/api/auctions/${auctionId}/invitations/respond`, {
+      accept: false,
+      declineReason: declineReason.value || "Belirtilmedi",
+    });
+    showDecline.value = false;
+    // Declining revokes read access to this auction (server-side), so re-fetching would 403.
+    // Update the invitation status locally instead of reloading.
+    const invitation = auction.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId);
+    if (invitation) invitation.status = "Declined";
+  } catch (error: any) {
+    actionError.value = error?.data?.title ?? "İşlem gerçekleştirilemedi.";
+  }
 }
 
 async function placeBid(item: AuctionItemDto) {
@@ -155,6 +169,11 @@ onBeforeUnmount(() => {
       <div v-if="isUrgent && auction.status === 'Live'" class="mt-1 text-xs text-rose-600">
         Son dakika teklifleri süreyi otomatik uzatır (anti-sniping)
       </div>
+    </div>
+
+    <div v-if="actionError" class="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+      <span>{{ actionError }}</span>
+      <button class="font-semibold" @click="actionError = ''">Kapat</button>
     </div>
 
     <div v-if="myInvitation?.status === 'Invited'" class="rounded-xl border border-amber-200 bg-amber-50 p-5">

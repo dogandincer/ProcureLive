@@ -101,6 +101,10 @@ public class ApplicationDbContext
 
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
+    public DbSet<AuctionAnalyticsViewRow> AuctionAnalytics => Set<AuctionAnalyticsViewRow>();
+
+    public DbSet<SupplierPerformanceViewRow> SupplierPerformance => Set<SupplierPerformanceViewRow>();
+
     public Task ExecuteRawSqlAsync(string sql, object[] parameters, CancellationToken cancellationToken)
     {
         return Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
@@ -114,6 +118,18 @@ public class ApplicationDbContext
 
         builder.Entity<Company>().HasQueryFilter(c => !c.IsDeleted);
         builder.Entity<Product>().HasQueryFilter(p => !p.IsDeleted);
+
+        builder.Entity<AuctionAnalyticsViewRow>(v =>
+        {
+            v.HasNoKey();
+            v.ToView("AuctionAnalyticsView");
+        });
+
+        builder.Entity<SupplierPerformanceViewRow>(v =>
+        {
+            v.HasNoKey();
+            v.ToView("SupplierPerformanceView");
+        });
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

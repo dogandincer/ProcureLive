@@ -90,6 +90,12 @@ public interface IApplicationDbContext
 
     DbSet<RolePermission> RolePermissions { get; }
 
+    /// <summary>Read-only, keyless projection of the "AuctionAnalyticsView" database view.</summary>
+    DbSet<AuctionAnalyticsViewRow> AuctionAnalytics { get; }
+
+    /// <summary>Read-only, keyless projection of the "SupplierPerformanceView" database view.</summary>
+    DbSet<SupplierPerformanceViewRow> SupplierPerformance { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 
     /// <summary>

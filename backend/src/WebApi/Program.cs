@@ -103,10 +103,14 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy(Policies.RequireSupplier, policy => policy.RequireRole(Roles.Supplier))
     .AddPolicy(Policies.RequireInternalUser, policy => policy.RequireRole(Roles.Admin, Roles.Buyer))
     .AddPolicy(Policies.CompanyAccess, policy => policy.Requirements.Add(new CompanyAccessRequirement()))
-    .AddPolicy(Policies.AuctionAccess, policy => policy.Requirements.Add(new AuctionAccessRequirement()));
+    .AddPolicy(Policies.AuctionAccess, policy => policy.Requirements.Add(new AuctionAccessRequirement()))
+    .AddPolicy(Policies.RfiProcessAccess, policy => policy.Requirements.Add(new RfiProcessAccessRequirement()))
+    .AddPolicy(Policies.RfqProcessAccess, policy => policy.Requirements.Add(new RfqProcessAccessRequirement()));
 
 builder.Services.AddScoped<IAuthorizationHandler, CompanyAccessHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, AuctionAccessHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, RfiProcessAccessHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, RfqProcessAccessHandler>();
 
 const string CorsPolicyName = "ProcureLiveCors";
 string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()

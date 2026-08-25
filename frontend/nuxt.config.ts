@@ -4,7 +4,11 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@nuxtjs/tailwindcss"],
   css: ["~/assets/css/main.css"],
-  ssr: true,
+  // Authenticated internal tool, not a public/SEO site: SSR has no benefit here, and it caused a
+  // hydration mismatch because currentUser is only known client-side (JWT lives in a cookie, but
+  // the "who am I" API call runs in a client-only plugin) - the server always rendered a logged-out
+  // header. Disabling SSR removes the mismatch entirely instead of papering over it with <ClientOnly>.
+  ssr: false,
   runtimeConfig: {
     public: {
       apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:5228",

@@ -21,4 +21,6 @@ public static class Policies
     public const string RequireInternalUser = "RequireInternalUser";
     public const string CompanyAccess = "CompanyAccess";
     public const string AuctionAccess = "AuctionAccess";
+    public const string RfiProcessAccess = "RfiProcessAccess";
+    public const string RfqProcessAccess = "RfqProcessAccess";
 }

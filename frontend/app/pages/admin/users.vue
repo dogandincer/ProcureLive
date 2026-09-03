@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CompanyDto, PagedResult, UserDto } from "~/types/api";
+import type { ExcelColumn } from "~/composables/useExcelImport";
 
 const api = useApi();
 const { isAdminRole } = useAuth();
@@ -17,6 +18,37 @@ const roles = isAdminRole() ? ["Admin", "Buyer", "Supplier"] : ["Supplier"];
 const form = reactive({ email: "", password: "", firstName: "", lastName: "", role: roles[0], companyId: "" });
 
 const companyName = (companyId: string | null) => companies.value.find((c) => c.id === companyId)?.name ?? "-";
+
+const importColumns: ExcelColumn[] = [
+  { key: "email", label: "E-posta", required: true },
+  { key: "password", label: "Şifre", required: true, hint: "En az 8 karakter" },
+  { key: "firstName", label: "Ad", required: true },
+  { key: "lastName", label: "Soyad", required: true },
+  { key: "role", label: "Rol", required: true, hint: roles.join("/") },
+  { key: "company", label: "Cari", hint: "Rol Supplier ise zorunlu - mevcut bir Cari adı" },
+];
+
+async function importUserRow(row: Record<string, string | number | boolean | null>) {
+  const companyNameValue = String(row.company ?? "").trim();
+  let companyId: string | null = null;
+
+  if (companyNameValue) {
+    const match = companies.value.find((c) => c.name.toLocaleLowerCase("tr") === companyNameValue.toLocaleLowerCase("tr"));
+    if (!match) {
+      throw { data: { title: `Cari bulunamadı: "${companyNameValue}"` } };
+    }
+    companyId = match.id;
+  }
+
+  await api.post("/api/auth/register", {
+    email: row.email,
+    password: row.password,
+    firstName: row.firstName,
+    lastName: row.lastName,
+    role: row.role,
+    companyId,
+  });
+}
 
 async function load() {
   try {
@@ -101,9 +133,12 @@ onMounted(load);
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-slate-800">Kullanıcılar</h1>
-      <button class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white" @click="showForm = !showForm">
-        {{ showForm ? "Vazgeç" : "+ Yeni Kullanıcı" }}
-      </button>
+      <div class="flex gap-2">
+        <ExcelImportButton :columns="importColumns" template-filename="kullanicilar-sablon.xlsx" :import-row="importUserRow" @imported="load" />
+        <button class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white" @click="showForm = !showForm">
+          {{ showForm ? "Vazgeç" : "+ Yeni Kullanıcı" }}
+        </button>
+      </div>
     </div>
 
     <div v-if="errorMessage" class="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">

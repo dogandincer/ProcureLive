@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CategoryDto } from "~/types/api";
+import type { ExcelColumn } from "~/composables/useExcelImport";
 
 const api = useApi();
 const tree = ref<CategoryDto[]>([]);
@@ -8,6 +9,39 @@ const submitting = ref(false);
 const errorMessage = ref("");
 
 const form = reactive({ name: "", code: "", parentCategoryId: "" });
+
+const importColumns: ExcelColumn[] = [
+  { key: "name", label: "Kategori Adı", required: true },
+  { key: "code", label: "Kod", required: true },
+  { key: "parentCategory", label: "Üst Kategori", hint: "Opsiyonel - mevcut veya bu dosyada daha önce geçen bir kategori adı" },
+];
+
+// Resolves parent-by-name across rows in one import session so a parent created earlier in the same
+// file (e.g. "Elektronik" in row 2) can be referenced by later rows (e.g. "Kablolar" -> "Elektronik").
+let importSessionNameToId: Map<string, string> | null = null;
+
+async function importCategoryRow(row: Record<string, string | number | boolean | null>) {
+  if (!importSessionNameToId) {
+    importSessionNameToId = new Map(flatCategories.value.map((fc) => [fc.category.name.toLocaleLowerCase("tr"), fc.category.id]));
+  }
+
+  const parentName = String(row.parentCategory ?? "").trim();
+  let parentCategoryId: string | null = null;
+
+  if (parentName) {
+    parentCategoryId = importSessionNameToId.get(parentName.toLocaleLowerCase("tr")) ?? null;
+    if (!parentCategoryId) {
+      throw { data: { title: `Üst kategori bulunamadı: "${parentName}"` } };
+    }
+  }
+
+  const newId = await api.post<string>("/api/categories", {
+    name: row.name,
+    code: row.code,
+    parentCategoryId,
+  });
+  importSessionNameToId.set(String(row.name).toLocaleLowerCase("tr"), newId);
+}
 
 interface FlatCategory {
   category: CategoryDto;
@@ -21,6 +55,7 @@ function flatten(list: CategoryDto[], depth = 0): FlatCategory[] {
 const flatCategories = computed(() => flatten(tree.value));
 
 async function load() {
+  importSessionNameToId = null;
   try {
     tree.value = await api.get<CategoryDto[]>("/api/categories");
   } catch (error: any) {
@@ -54,9 +89,12 @@ onMounted(load);
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-slate-800">Kategoriler</h1>
-      <button class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white" @click="showForm = !showForm">
-        {{ showForm ? "Vazgeç" : "+ Yeni Kategori" }}
-      </button>
+      <div class="flex gap-2">
+        <ExcelImportButton :columns="importColumns" template-filename="kategoriler-sablon.xlsx" :import-row="importCategoryRow" @imported="load" />
+        <button class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white" @click="showForm = !showForm">
+          {{ showForm ? "Vazgeç" : "+ Yeni Kategori" }}
+        </button>
+      </div>
     </div>
 
     <p v-if="errorMessage && !showForm" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ errorMessage }}</p>

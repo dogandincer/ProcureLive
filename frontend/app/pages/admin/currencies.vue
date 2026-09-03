@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CurrencyDto, ExchangeRateDto } from "~/types/api";
+import type { ExcelColumn } from "~/composables/useExcelImport";
 
 const api = useApi();
 const currencies = ref<CurrencyDto[]>([]);
@@ -13,6 +14,21 @@ const currencyForm = reactive({ code: "", name: "", symbol: "", isBaseCurrency: 
 const rateForm = reactive({ currencyId: "", rateDate: new Date().toISOString().slice(0, 10), rateToBase: null as number | null, source: "" });
 
 const nonBaseCurrencies = computed(() => currencies.value.filter((c) => !c.isBaseCurrency));
+
+const importColumns: ExcelColumn[] = [
+  { key: "code", label: "Kod", required: true, hint: "3 harfli ISO kodu, örn. CHF" },
+  { key: "name", label: "Ad", required: true },
+  { key: "symbol", label: "Sembol", required: true },
+];
+
+async function importCurrencyRow(row: Record<string, string | number | boolean | null>) {
+  await api.post("/api/currencies", {
+    code: String(row.code).toUpperCase(),
+    name: row.name,
+    symbol: row.symbol,
+    isBaseCurrency: false,
+  });
+}
 
 async function load() {
   try {
@@ -90,9 +106,12 @@ onMounted(load);
       <div class="rounded-xl border border-slate-200 bg-white p-5">
         <div class="flex items-center justify-between">
           <h2 class="text-sm font-semibold text-slate-700">Para Birimleri</h2>
-          <button class="text-xs font-medium text-indigo-600 hover:underline" @click="showCurrencyForm = !showCurrencyForm">
-            {{ showCurrencyForm ? "Vazgeç" : "+ Yeni" }}
-          </button>
+          <div class="flex items-center gap-2">
+            <ExcelImportButton :columns="importColumns" template-filename="para-birimleri-sablon.xlsx" :import-row="importCurrencyRow" @imported="load" />
+            <button class="text-xs font-medium text-indigo-600 hover:underline" @click="showCurrencyForm = !showCurrencyForm">
+              {{ showCurrencyForm ? "Vazgeç" : "+ Yeni" }}
+            </button>
+          </div>
         </div>
 
         <form v-if="showCurrencyForm" class="mt-3 grid grid-cols-2 gap-2" @submit.prevent="createCurrency">

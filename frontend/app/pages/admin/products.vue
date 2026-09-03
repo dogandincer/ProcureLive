@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CategoryDto, PagedResult, ProductDto } from "~/types/api";
+import type { ExcelColumn } from "~/composables/useExcelImport";
 
 const api = useApi();
 const products = ref<ProductDto[]>([]);
@@ -10,6 +11,33 @@ const errorMessage = ref("");
 
 const form = reactive({ sku: "", name: "", categoryId: "", unitOfMeasure: "Piece", brand: "" });
 const unitOfMeasures = ["Piece", "Kilogram", "Gram", "Liter", "Meter", "SquareMeter", "CubicMeter", "Box", "Pallet", "Hour", "Service"];
+
+const importColumns: ExcelColumn[] = [
+  { key: "sku", label: "SKU", required: true },
+  { key: "name", label: "Ürün Adı", required: true },
+  { key: "category", label: "Kategori", required: true, hint: "Mevcut bir kategori adı (Kategoriler ekranından)" },
+  { key: "unitOfMeasure", label: "Birim", hint: unitOfMeasures.join("/") },
+  { key: "brand", label: "Marka" },
+];
+
+async function importProductRow(row: Record<string, string | number | boolean | null>) {
+  const categoryName = String(row.category ?? "").trim();
+  const category = categories.value.find((c) => c.name.toLocaleLowerCase("tr") === categoryName.toLocaleLowerCase("tr"));
+
+  if (!category) {
+    throw { data: { title: `Kategori bulunamadı: "${categoryName}"` } };
+  }
+
+  await api.post("/api/products", {
+    sku: row.sku,
+    name: row.name,
+    description: null,
+    categoryId: category.id,
+    unitOfMeasure: unitOfMeasures.includes(String(row.unitOfMeasure)) ? row.unitOfMeasure : "Piece",
+    brand: row.brand || null,
+    defaultCurrencyId: null,
+  });
+}
 
 function flattenCategories(list: CategoryDto[]): CategoryDto[] {
   return list.flatMap((c) => [c, ...flattenCategories(c.children)]);
@@ -61,9 +89,12 @@ onMounted(load);
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-slate-800">Stok / Ürünler</h1>
-      <button class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white" @click="showForm = !showForm">
-        {{ showForm ? "Vazgeç" : "+ Yeni Ürün" }}
-      </button>
+      <div class="flex gap-2">
+        <ExcelImportButton :columns="importColumns" template-filename="urunler-sablon.xlsx" :import-row="importProductRow" @imported="load" />
+        <button class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white" @click="showForm = !showForm">
+          {{ showForm ? "Vazgeç" : "+ Yeni Ürün" }}
+        </button>
+      </div>
     </div>
 
     <p v-if="errorMessage && !showForm" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ errorMessage }}</p>

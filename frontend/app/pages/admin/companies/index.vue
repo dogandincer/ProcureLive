@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CompanyDto, PagedResult } from "~/types/api";
+import type { ExcelColumn } from "~/composables/useExcelImport";
 
 const api = useApi();
 const companies = ref<CompanyDto[]>([]);
@@ -10,6 +11,24 @@ const errorMessage = ref("");
 const form = reactive({ name: "", taxNumber: "", taxOffice: "", companyType: "Supplier", website: "" });
 const statuses = ["PendingApproval", "Active", "Passive"];
 const statusDrafts = reactive<Record<string, string>>({});
+
+const importColumns: ExcelColumn[] = [
+  { key: "name", label: "Firma Adı", required: true },
+  { key: "taxNumber", label: "Vergi No", required: true },
+  { key: "taxOffice", label: "Vergi Dairesi", required: true },
+  { key: "companyType", label: "Tür", required: true, hint: "Supplier veya Internal" },
+  { key: "website", label: "Web Sitesi" },
+];
+
+async function importCompanyRow(row: Record<string, string | number | boolean | null>) {
+  await api.post("/api/companies", {
+    name: row.name,
+    taxNumber: row.taxNumber,
+    taxOffice: row.taxOffice,
+    companyType: row.companyType || "Supplier",
+    website: row.website || null,
+  });
+}
 
 async function load() {
   try {
@@ -66,9 +85,12 @@ onMounted(load);
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-slate-800">Cariler</h1>
-      <button class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white" @click="showForm = !showForm">
-        {{ showForm ? "Vazgeç" : "+ Yeni Cari" }}
-      </button>
+      <div class="flex gap-2">
+        <ExcelImportButton :columns="importColumns" template-filename="cariler-sablon.xlsx" :import-row="importCompanyRow" @imported="load" />
+        <button class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white" @click="showForm = !showForm">
+          {{ showForm ? "Vazgeç" : "+ Yeni Cari" }}
+        </button>
+      </div>
     </div>
 
     <div v-if="errorMessage && !showForm" class="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">

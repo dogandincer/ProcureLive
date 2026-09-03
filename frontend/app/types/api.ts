@@ -38,6 +38,40 @@ export interface CompanyDto {
   createdAt: string;
 }
 
+export interface ContactPersonDto {
+  id: string;
+  firstName: string;
+  lastName: string;
+  title: string | null;
+  email: string;
+  phone: string | null;
+  isPrimary: boolean;
+}
+
+export interface AddressDto {
+  id: string;
+  addressType: string;
+  country: string;
+  city: string;
+  district: string | null;
+  postalCode: string | null;
+  line1: string;
+  line2: string | null;
+}
+
+export interface CompanyDetailDto {
+  id: string;
+  name: string;
+  taxNumber: string;
+  taxOffice: string;
+  companyType: string;
+  status: string;
+  website: string | null;
+  createdAt: string;
+  contactPersons: ContactPersonDto[];
+  addresses: AddressDto[];
+}
+
 export interface ProductDto {
   id: string;
   sku: string;

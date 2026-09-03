@@ -95,6 +95,7 @@ onMounted(load);
             <th class="pb-2">Vergi No</th>
             <th class="pb-2">Tür</th>
             <th class="pb-2">Durum</th>
+            <th class="pb-2"></th>
           </tr>
         </thead>
         <tbody>
@@ -116,6 +117,7 @@ onMounted(load);
                 </button>
               </div>
             </td>
+            <td class="py-2 text-right"><NuxtLink :to="`/admin/companies/${c.id}`" class="text-indigo-600 hover:underline">Detay</NuxtLink></td>
           </tr>
         </tbody>
       </table>

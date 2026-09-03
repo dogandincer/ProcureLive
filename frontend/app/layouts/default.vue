@@ -13,6 +13,7 @@ const adminLinks = [
   { to: "/admin", label: "Panel" },
   { to: "/admin/companies", label: "Cariler" },
   { to: "/admin/products", label: "Stok / Ürünler" },
+  { to: "/admin/categories", label: "Kategoriler" },
   { to: "/admin/auctions", label: "İhaleler" },
   { to: "/admin/rfi", label: "RFI" },
   { to: "/admin/rfq", label: "RFQ" },

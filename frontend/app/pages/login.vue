@@ -16,7 +16,7 @@ async function submit() {
     await login(email.value, password.value);
     await navigateTo(homePathForRole());
   } catch (error: any) {
-    errorMessage.value = error?.data?.title ?? "Giriş başarısız. E-posta veya şifre hatalı.";
+    errorMessage.value = apiErrorMessage(error, "Giriş başarısız. E-posta veya şifre hatalı.");
   } finally {
     loading.value = false;
   }

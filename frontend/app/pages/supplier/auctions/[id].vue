@@ -63,7 +63,7 @@ async function accept() {
     await api.post(`/api/auctions/${auctionId}/invitations/respond`, { accept: true, declineReason: null });
     await load();
   } catch (error: any) {
-    actionError.value = error?.data?.title ?? "İşlem gerçekleştirilemedi.";
+    actionError.value = apiErrorMessage(error, "İşlem gerçekleştirilemedi.");
   }
 }
 
@@ -80,7 +80,7 @@ async function decline() {
     const invitation = auction.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId);
     if (invitation) invitation.status = "Declined";
   } catch (error: any) {
-    actionError.value = error?.data?.title ?? "İşlem gerçekleştirilemedi.";
+    actionError.value = apiErrorMessage(error, "İşlem gerçekleştirilemedi.");
   }
 }
 
@@ -102,7 +102,7 @@ async function placeBid(item: AuctionItemDto) {
     await load();
     pushFeed(`Teklifiniz gönderildi: ${amount} ${auction.value.currencyCode}`);
   } catch (error: any) {
-    bidErrors[item.id] = error?.data?.title ?? "Teklif verilemedi.";
+    bidErrors[item.id] = apiErrorMessage(error, "Teklif verilemedi.");
   } finally {
     placingBid[item.id] = false;
   }

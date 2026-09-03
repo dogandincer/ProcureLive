@@ -40,7 +40,7 @@ async function accept(auctionId: string) {
     await api.post(`/api/auctions/${auctionId}/invitations/respond`, { accept: true, declineReason: null });
     await load();
   } catch (error: any) {
-    actionError.value = error?.data?.title ?? "İşlem gerçekleştirilemedi.";
+    actionError.value = apiErrorMessage(error, "İşlem gerçekleştirilemedi.");
   }
 }
 
@@ -56,7 +56,7 @@ async function decline(auctionId: string) {
     // reloading, so the row doesn't just vanish without explanation.
     myInvitationStatus[auctionId] = "Declined";
   } catch (error: any) {
-    actionError.value = error?.data?.title ?? "İşlem gerçekleştirilemedi.";
+    actionError.value = apiErrorMessage(error, "İşlem gerçekleştirilemedi.");
   }
 }
 

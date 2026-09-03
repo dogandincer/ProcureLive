@@ -18,7 +18,7 @@ async function runAction(action: () => Promise<void>) {
   try {
     await action();
   } catch (error: any) {
-    actionError.value = error?.data?.title ?? error?.data?.detail ?? "İşlem gerçekleştirilemedi.";
+    actionError.value = apiErrorMessage(error, "İşlem gerçekleştirilemedi.");
   }
 }
 

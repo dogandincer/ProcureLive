@@ -44,7 +44,7 @@ async function create() {
     showForm.value = false;
     await load();
   } catch (error: any) {
-    errorMessage.value = error?.data?.title ?? "Ürün oluşturulamadı.";
+    errorMessage.value = apiErrorMessage(error, "Ürün oluşturulamadı.");
   } finally {
     submitting.value = false;
   }

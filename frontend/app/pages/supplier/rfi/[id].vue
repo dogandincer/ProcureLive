@@ -42,7 +42,7 @@ async function accept() {
     await api.post(`/api/rfi/processes/${processId}/invitations/respond`, { accept: true, declineReason: null });
     await load();
   } catch (error: any) {
-    actionError.value = error?.data?.title ?? "İşlem gerçekleştirilemedi.";
+    actionError.value = apiErrorMessage(error, "İşlem gerçekleştirilemedi.");
   }
 }
 
@@ -58,7 +58,7 @@ async function decline() {
     const invitation = process.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId);
     if (invitation) invitation.status = "Declined";
   } catch (error: any) {
-    actionError.value = error?.data?.title ?? "İşlem gerçekleştirilemedi.";
+    actionError.value = apiErrorMessage(error, "İşlem gerçekleştirilemedi.");
   }
 }
 
@@ -80,7 +80,7 @@ async function submitAnswers() {
     submitted.value = true;
     await load();
   } catch (error: any) {
-    actionError.value = error?.data?.title ?? "İşlem gerçekleştirilemedi.";
+    actionError.value = apiErrorMessage(error, "İşlem gerçekleştirilemedi.");
   } finally {
     submitting.value = false;
   }

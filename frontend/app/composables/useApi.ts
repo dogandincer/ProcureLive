@@ -1,3 +1,17 @@
+/**
+ * FluentValidation failures (400) come back as { title: "Doğrulama hatası.", errors: { Field: ["specific message"] } } -
+ * the generic title alone tells the user nothing. Prefer the first field-level message when present.
+ */
+export function apiErrorMessage(error: any, fallback: string): string {
+  const data = error?.data;
+  const fieldErrors = data?.errors as Record<string, string[]> | undefined;
+  if (fieldErrors) {
+    const firstMessages = Object.values(fieldErrors).find((messages) => Array.isArray(messages) && messages.length > 0);
+    if (firstMessages) return firstMessages[0];
+  }
+  return data?.title ?? data?.detail ?? fallback;
+}
+
 export function useApi() {
   const config = useRuntimeConfig();
   const { accessToken, logout } = useAuth();

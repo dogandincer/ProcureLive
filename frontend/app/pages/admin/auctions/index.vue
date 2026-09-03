@@ -69,7 +69,7 @@ async function createAuction() {
     });
     await navigateTo(`/admin/auctions/${id}`);
   } catch (error: any) {
-    errorMessage.value = error?.data?.title ?? "İhale oluşturulamadı.";
+    errorMessage.value = apiErrorMessage(error, "İhale oluşturulamadı.");
   } finally {
     submitting.value = false;
   }

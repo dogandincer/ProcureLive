@@ -29,7 +29,7 @@ async function create() {
     showForm.value = false;
     await load();
   } catch (error: any) {
-    errorMessage.value = error?.data?.title ?? "Cari oluşturulamadı.";
+    errorMessage.value = apiErrorMessage(error, "Cari oluşturulamadı.");
   } finally {
     submitting.value = false;
   }

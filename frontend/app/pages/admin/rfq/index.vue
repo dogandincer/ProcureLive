@@ -48,7 +48,7 @@ async function create() {
     showForm.value = false;
     await navigateTo(`/admin/rfq/${id}`);
   } catch (error: any) {
-    actionError.value = error?.data?.title ?? error?.data?.detail ?? "İşlem gerçekleştirilemedi.";
+    actionError.value = apiErrorMessage(error, "İşlem gerçekleştirilemedi.");
   }
 }
 

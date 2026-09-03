@@ -33,20 +33,24 @@ const statusBadge: Record<string, string> = {
 };
 
 async function load() {
-  const [auctionPage, companyPage, currencyList] = await Promise.all([
-    api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 50 }),
-    api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 }),
-    api.get<CurrencyDto[]>("/api/currencies"),
-  ]);
-  auctions.value = auctionPage.items;
-  companies.value = companyPage.items;
-  currencies.value = currencyList;
+  try {
+    const [auctionPage, companyPage, currencyList] = await Promise.all([
+      api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 50 }),
+      api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 }),
+      api.get<CurrencyDto[]>("/api/currencies"),
+    ]);
+    auctions.value = auctionPage.items;
+    companies.value = companyPage.items;
+    currencies.value = currencyList;
 
-  if (!form.ownerCompanyId && companies.value.length > 0) {
-    form.ownerCompanyId = companies.value.find((c) => c.companyType === "Internal")?.id ?? companies.value[0].id;
-  }
-  if (!form.currencyId && currencies.value.length > 0) {
-    form.currencyId = currencies.value.find((c) => c.isBaseCurrency)?.id ?? currencies.value[0].id;
+    if (!form.ownerCompanyId && companies.value.length > 0) {
+      form.ownerCompanyId = companies.value.find((c) => c.companyType === "Internal")?.id ?? companies.value[0].id;
+    }
+    if (!form.currencyId && currencies.value.length > 0) {
+      form.currencyId = currencies.value.find((c) => c.isBaseCurrency)?.id ?? currencies.value[0].id;
+    }
+  } catch (error: any) {
+    errorMessage.value = apiErrorMessage(error, "Kayıtlar yüklenemedi.");
   }
 }
 
@@ -89,6 +93,8 @@ onMounted(load);
         {{ showForm ? "Vazgeç" : "+ Yeni İhale" }}
       </button>
     </div>
+
+    <p v-if="errorMessage && !showForm" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ errorMessage }}</p>
 
     <form v-if="showForm" class="space-y-4 rounded-xl border border-slate-200 bg-white p-5" @submit.prevent="createAuction">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

@@ -19,15 +19,19 @@ const form = reactive({ email: "", password: "", firstName: "", lastName: "", ro
 const companyName = (companyId: string | null) => companies.value.find((c) => c.id === companyId)?.name ?? "-";
 
 async function load() {
-  const [userPage, companyPage] = await Promise.all([
-    api.get<PagedResult<UserDto>>("/api/users", { page: 1, pageSize: 100 }),
-    api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 }),
-  ]);
-  users.value = userPage.items;
-  companies.value = companyPage.items;
-  for (const u of users.value) {
-    roleDrafts[u.id] = u.roles[0] ?? "Supplier";
-    companyDrafts[u.id] = u.companyId ?? "";
+  try {
+    const [userPage, companyPage] = await Promise.all([
+      api.get<PagedResult<UserDto>>("/api/users", { page: 1, pageSize: 100 }),
+      api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 }),
+    ]);
+    users.value = userPage.items;
+    companies.value = companyPage.items;
+    for (const u of users.value) {
+      roleDrafts[u.id] = u.roles[0] ?? "Supplier";
+      companyDrafts[u.id] = u.companyId ?? "";
+    }
+  } catch (error: any) {
+    errorMessage.value = apiErrorMessage(error, "Kayıtlar yüklenemedi.");
   }
 }
 

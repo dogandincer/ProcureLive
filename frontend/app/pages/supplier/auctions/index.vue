@@ -20,17 +20,21 @@ const statusBadge: Record<string, string> = {
 };
 
 async function load() {
-  const page = await api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 50 });
-  auctions.value = page.items;
+  try {
+    const page = await api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 50 });
+    auctions.value = page.items;
 
-  for (const a of page.items) {
-    try {
-      const detail = await api.get<AuctionDetailDto>(`/api/auctions/${a.id}`);
-      const inv = detail.invitations.find((i) => i.companyId === currentUser.value?.companyId);
-      if (inv) myInvitationStatus[a.id] = inv.status;
-    } catch {
-      // ignore individual load failures, keep listing the rest
+    for (const a of page.items) {
+      try {
+        const detail = await api.get<AuctionDetailDto>(`/api/auctions/${a.id}`);
+        const inv = detail.invitations.find((i) => i.companyId === currentUser.value?.companyId);
+        if (inv) myInvitationStatus[a.id] = inv.status;
+      } catch {
+        // ignore individual load failures, keep listing the rest
+      }
     }
+  } catch (error: any) {
+    actionError.value = apiErrorMessage(error, "Kayıtlar yüklenemedi.");
   }
 }
 

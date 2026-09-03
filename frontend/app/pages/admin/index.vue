@@ -9,6 +9,7 @@ const auctions = ref<AuctionDto[]>([]);
 const companyCount = ref(0);
 const productCount = ref(0);
 const loading = ref(true);
+const errorMessage = ref("");
 
 const recommendation = ref<AuctionModelRecommendationDto | null>(null);
 const recommendationLoading = ref(false);
@@ -18,6 +19,7 @@ const estimatedItems = ref(1);
 
 async function load() {
   loading.value = true;
+  errorMessage.value = "";
   try {
     const [auctionPage, companyPage, productPage] = await Promise.all([
       api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 10 }),
@@ -27,6 +29,8 @@ async function load() {
     auctions.value = auctionPage.items;
     companyCount.value = companyPage.totalCount;
     productCount.value = productPage.totalCount;
+  } catch (error: any) {
+    errorMessage.value = apiErrorMessage(error, "Panel verileri yüklenemedi.");
   } finally {
     loading.value = false;
   }
@@ -72,6 +76,8 @@ onMounted(load);
         + Yeni İhale
       </NuxtLink>
     </div>
+
+    <p v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ errorMessage }}</p>
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div class="rounded-xl border border-slate-200 bg-white p-5">

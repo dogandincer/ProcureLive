@@ -12,10 +12,14 @@ const statuses = ["PendingApproval", "Active", "Passive"];
 const statusDrafts = reactive<Record<string, string>>({});
 
 async function load() {
-  const page = await api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 });
-  companies.value = page.items;
-  for (const c of companies.value) {
-    statusDrafts[c.id] = c.status;
+  try {
+    const page = await api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 });
+    companies.value = page.items;
+    for (const c of companies.value) {
+      statusDrafts[c.id] = c.status;
+    }
+  } catch (error: any) {
+    errorMessage.value = apiErrorMessage(error, "Kayıtlar yüklenemedi.");
   }
 }
 

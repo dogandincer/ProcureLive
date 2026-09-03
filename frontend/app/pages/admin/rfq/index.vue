@@ -19,20 +19,24 @@ const statusBadge: Record<string, string> = {
 };
 
 async function load() {
-  const [processPage, companyPage, currencyList] = await Promise.all([
-    api.get<PagedResult<RfqProcessDto>>("/api/rfq/processes", { page: 1, pageSize: 50 }),
-    api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 }),
-    api.get<CurrencyDto[]>("/api/currencies"),
-  ]);
-  processes.value = processPage.items;
-  companies.value = companyPage.items;
-  currencies.value = currencyList;
+  try {
+    const [processPage, companyPage, currencyList] = await Promise.all([
+      api.get<PagedResult<RfqProcessDto>>("/api/rfq/processes", { page: 1, pageSize: 50 }),
+      api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 }),
+      api.get<CurrencyDto[]>("/api/currencies"),
+    ]);
+    processes.value = processPage.items;
+    companies.value = companyPage.items;
+    currencies.value = currencyList;
 
-  if (!form.ownerCompanyId && companies.value.length > 0) {
-    form.ownerCompanyId = companies.value.find((c) => c.companyType === "Internal")?.id ?? companies.value[0].id;
-  }
-  if (!form.currencyId && currencies.value.length > 0) {
-    form.currencyId = currencies.value.find((c) => c.isBaseCurrency)?.id ?? currencies.value[0].id;
+    if (!form.ownerCompanyId && companies.value.length > 0) {
+      form.ownerCompanyId = companies.value.find((c) => c.companyType === "Internal")?.id ?? companies.value[0].id;
+    }
+    if (!form.currencyId && currencies.value.length > 0) {
+      form.currencyId = currencies.value.find((c) => c.isBaseCurrency)?.id ?? currencies.value[0].id;
+    }
+  } catch (error: any) {
+    actionError.value = apiErrorMessage(error, "Kayıtlar yüklenemedi.");
   }
 }
 

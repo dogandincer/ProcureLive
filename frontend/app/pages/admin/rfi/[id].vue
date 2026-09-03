@@ -12,6 +12,7 @@ const evaluations = ref<SupplierEvaluationDto[]>([]);
 const inviteCompanyId = ref("");
 const evalForm = reactive({ companyId: "", totalScore: 0, comments: "" });
 const actionError = ref("");
+const loadError = ref("");
 
 async function runAction(action: () => Promise<void>) {
   actionError.value = "";
@@ -23,18 +24,26 @@ async function runAction(action: () => Promise<void>) {
 }
 
 async function load() {
-  const [detail, companyPage, evalList] = await Promise.all([
-    api.get<RfiProcessDetailDto>(`/api/rfi/processes/${processId}`),
-    api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100, companyType: "Supplier" }),
-    api.get<SupplierEvaluationDto[]>(`/api/rfi/processes/${processId}/evaluations`),
-  ]);
-  process.value = detail;
-  companies.value = companyPage.items;
-  evaluations.value = evalList;
+  try {
+    const [detail, companyPage, evalList] = await Promise.all([
+      api.get<RfiProcessDetailDto>(`/api/rfi/processes/${processId}`),
+      api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100, companyType: "Supplier" }),
+      api.get<SupplierEvaluationDto[]>(`/api/rfi/processes/${processId}/evaluations`),
+    ]);
+    process.value = detail;
+    companies.value = companyPage.items;
+    evaluations.value = evalList;
+  } catch (error: any) {
+    loadError.value = apiErrorMessage(error, "RFI süreci yüklenemedi.");
+  }
 }
 
 async function loadResponses() {
-  responses.value = await api.get<RfiResponseDto[]>(`/api/rfi/processes/${processId}/responses`);
+  try {
+    responses.value = await api.get<RfiResponseDto[]>(`/api/rfi/processes/${processId}/responses`);
+  } catch (error: any) {
+    actionError.value = apiErrorMessage(error, "Yanıtlar yüklenemedi.");
+  }
 }
 
 async function invite() {
@@ -67,11 +76,14 @@ async function close() {
 
 onMounted(async () => {
   await load();
+  if (!process.value) return;
   await loadResponses();
 });
 </script>
 
 <template>
+  <p v-if="loadError && !process" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ loadError }}</p>
+
   <div v-if="process" class="space-y-6">
     <div class="flex items-center justify-between">
       <div>

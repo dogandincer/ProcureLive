@@ -21,7 +21,11 @@ function flatten(list: CategoryDto[], depth = 0): FlatCategory[] {
 const flatCategories = computed(() => flatten(tree.value));
 
 async function load() {
-  tree.value = await api.get<CategoryDto[]>("/api/categories");
+  try {
+    tree.value = await api.get<CategoryDto[]>("/api/categories");
+  } catch (error: any) {
+    errorMessage.value = apiErrorMessage(error, "Kayıtlar yüklenemedi.");
+  }
 }
 
 async function create() {
@@ -54,6 +58,8 @@ onMounted(load);
         {{ showForm ? "Vazgeç" : "+ Yeni Kategori" }}
       </button>
     </div>
+
+    <p v-if="errorMessage && !showForm" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ errorMessage }}</p>
 
     <form v-if="showForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="create">
       <input v-model="form.name" placeholder="Kategori Adı" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />

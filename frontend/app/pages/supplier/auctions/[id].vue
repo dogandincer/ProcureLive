@@ -20,6 +20,7 @@ const showDecline = ref(false);
 const flashItem = ref<string | null>(null);
 const actionError = ref("");
 const accessDenied = ref(false);
+const loadError = ref("");
 
 const myInvitation = computed(() =>
   auction.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId) ?? null,
@@ -50,7 +51,7 @@ async function load() {
     if (error?.response?.status === 403) {
       accessDenied.value = true;
     } else {
-      throw error;
+      loadError.value = apiErrorMessage(error, "İhale yüklenemedi.");
     }
   } finally {
     loading.value = false;
@@ -116,7 +117,7 @@ let ticker: ReturnType<typeof setInterval> | null = null;
 
 onMounted(async () => {
   await load();
-  if (accessDenied.value) return;
+  if (accessDenied.value || !auction.value) return;
 
   ticker = setInterval(() => {
     now.value = Date.now();
@@ -160,6 +161,8 @@ onBeforeUnmount(() => {
   <div v-if="accessDenied" class="rounded-xl border border-slate-200 bg-slate-50 p-5">
     <p class="text-sm font-medium text-slate-600">Bu ihaleye erişiminiz yok. Daveti reddetmiş olabilirsiniz.</p>
   </div>
+
+  <p v-else-if="loadError" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ loadError }}</p>
 
   <div v-else-if="auction" class="space-y-6">
     <div class="flex items-start justify-between">

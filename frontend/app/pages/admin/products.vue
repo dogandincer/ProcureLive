@@ -16,14 +16,18 @@ function flattenCategories(list: CategoryDto[]): CategoryDto[] {
 }
 
 async function load() {
-  const [productPage, categoryTree] = await Promise.all([
-    api.get<PagedResult<ProductDto>>("/api/products", { page: 1, pageSize: 100 }),
-    api.get<CategoryDto[]>("/api/categories"),
-  ]);
-  products.value = productPage.items;
-  categories.value = flattenCategories(categoryTree);
-  if (!form.categoryId && categories.value.length > 0) {
-    form.categoryId = categories.value[0].id;
+  try {
+    const [productPage, categoryTree] = await Promise.all([
+      api.get<PagedResult<ProductDto>>("/api/products", { page: 1, pageSize: 100 }),
+      api.get<CategoryDto[]>("/api/categories"),
+    ]);
+    products.value = productPage.items;
+    categories.value = flattenCategories(categoryTree);
+    if (!form.categoryId && categories.value.length > 0) {
+      form.categoryId = categories.value[0].id;
+    }
+  } catch (error: any) {
+    errorMessage.value = apiErrorMessage(error, "Kayıtlar yüklenemedi.");
   }
 }
 
@@ -61,6 +65,8 @@ onMounted(load);
         {{ showForm ? "Vazgeç" : "+ Yeni Ürün" }}
       </button>
     </div>
+
+    <p v-if="errorMessage && !showForm" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ errorMessage }}</p>
 
     <form v-if="showForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="create">
       <input v-model="form.sku" placeholder="SKU" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />

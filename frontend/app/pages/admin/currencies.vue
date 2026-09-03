@@ -15,14 +15,18 @@ const rateForm = reactive({ currencyId: "", rateDate: new Date().toISOString().s
 const nonBaseCurrencies = computed(() => currencies.value.filter((c) => !c.isBaseCurrency));
 
 async function load() {
-  const [currencyList, rateList] = await Promise.all([
-    api.get<CurrencyDto[]>("/api/currencies"),
-    api.get<ExchangeRateDto[]>("/api/currencies/exchange-rates"),
-  ]);
-  currencies.value = currencyList;
-  rates.value = [...rateList].sort((a, b) => b.rateDate.localeCompare(a.rateDate));
-  if (!rateForm.currencyId && nonBaseCurrencies.value.length > 0) {
-    rateForm.currencyId = nonBaseCurrencies.value[0].id;
+  try {
+    const [currencyList, rateList] = await Promise.all([
+      api.get<CurrencyDto[]>("/api/currencies"),
+      api.get<ExchangeRateDto[]>("/api/currencies/exchange-rates"),
+    ]);
+    currencies.value = currencyList;
+    rates.value = [...rateList].sort((a, b) => b.rateDate.localeCompare(a.rateDate));
+    if (!rateForm.currencyId && nonBaseCurrencies.value.length > 0) {
+      rateForm.currencyId = nonBaseCurrencies.value[0].id;
+    }
+  } catch (error: any) {
+    errorMessage.value = apiErrorMessage(error, "Kayıtlar yüklenemedi.");
   }
 }
 

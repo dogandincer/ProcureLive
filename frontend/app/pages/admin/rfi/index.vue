@@ -33,14 +33,19 @@ const statusBadge: Record<string, string> = {
 };
 
 async function load() {
-  const [processPage, templateList, companyPage] = await Promise.all([
-    api.get<PagedResult<RfiProcessDto>>("/api/rfi/processes", { page: 1, pageSize: 50 }),
-    api.get<RfiTemplateDto[]>("/api/rfi/templates"),
-    api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 }),
-  ]);
-  processes.value = processPage.items;
-  templates.value = templateList;
-  companies.value = companyPage.items;
+  try {
+    const [processPage, templateList, companyPage] = await Promise.all([
+      api.get<PagedResult<RfiProcessDto>>("/api/rfi/processes", { page: 1, pageSize: 50 }),
+      api.get<RfiTemplateDto[]>("/api/rfi/templates"),
+      api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 }),
+    ]);
+    processes.value = processPage.items;
+    templates.value = templateList;
+    companies.value = companyPage.items;
+  } catch (error: any) {
+    actionError.value = apiErrorMessage(error, "Kayıtlar yüklenemedi.");
+    return;
+  }
 
   if (!processForm.rfiTemplateId && templates.value.length > 0) processForm.rfiTemplateId = templates.value[0].id;
   if (!processForm.ownerCompanyId && companies.value.length > 0) {

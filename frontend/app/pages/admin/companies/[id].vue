@@ -15,7 +15,11 @@ const addressTypes = ["HeadOffice", "Billing", "Shipping"];
 const addressForm = reactive({ addressType: "HeadOffice", country: "Türkiye", city: "", district: "", postalCode: "", line1: "", line2: "" });
 
 async function load() {
-  company.value = await api.get<CompanyDetailDto>(`/api/companies/${companyId}`);
+  try {
+    company.value = await api.get<CompanyDetailDto>(`/api/companies/${companyId}`);
+  } catch (error: any) {
+    errorMessage.value = apiErrorMessage(error, "Cari yüklenemedi.");
+  }
 }
 
 async function addContact() {
@@ -61,6 +65,8 @@ onMounted(load);
 </script>
 
 <template>
+  <p v-if="errorMessage && !company" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ errorMessage }}</p>
+
   <div v-if="company" class="space-y-6">
     <div>
       <NuxtLink to="/admin/companies" class="text-xs text-indigo-600 hover:underline">← Cariler</NuxtLink>

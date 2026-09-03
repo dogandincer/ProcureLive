@@ -12,6 +12,7 @@ const quotes = ref<RfqQuoteDto[]>([]);
 const inviteCompanyId = ref("");
 const newLine = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece" });
 const actionError = ref("");
+const loadError = ref("");
 
 async function runAction(action: () => Promise<void>) {
   actionError.value = "";
@@ -34,20 +35,32 @@ const groupedMatrix = computed(() => {
 });
 
 async function load() {
-  const [detail, companyPage] = await Promise.all([
-    api.get<RfqProcessDetailDto>(`/api/rfq/processes/${processId}`),
-    api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100, companyType: "Supplier" }),
-  ]);
-  process.value = detail;
-  companies.value = companyPage.items;
+  try {
+    const [detail, companyPage] = await Promise.all([
+      api.get<RfqProcessDetailDto>(`/api/rfq/processes/${processId}`),
+      api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100, companyType: "Supplier" }),
+    ]);
+    process.value = detail;
+    companies.value = companyPage.items;
+  } catch (error: any) {
+    loadError.value = apiErrorMessage(error, "RFQ süreci yüklenemedi.");
+  }
 }
 
 async function loadMatrix() {
-  matrix.value = await api.get<RfqComparisonRowDto[]>(`/api/rfq/processes/${processId}/comparison-matrix`);
+  try {
+    matrix.value = await api.get<RfqComparisonRowDto[]>(`/api/rfq/processes/${processId}/comparison-matrix`);
+  } catch (error: any) {
+    actionError.value = apiErrorMessage(error, "Karşılaştırma matrisi yüklenemedi.");
+  }
 }
 
 async function loadQuotes() {
-  quotes.value = await api.get<RfqQuoteDto[]>(`/api/rfq/processes/${processId}/quotes`);
+  try {
+    quotes.value = await api.get<RfqQuoteDto[]>(`/api/rfq/processes/${processId}/quotes`);
+  } catch (error: any) {
+    actionError.value = apiErrorMessage(error, "Teklifler yüklenemedi.");
+  }
 }
 
 async function award(quoteId: string) {
@@ -96,12 +109,15 @@ async function close() {
 
 onMounted(async () => {
   await load();
+  if (!process.value) return;
   await loadMatrix();
   await loadQuotes();
 });
 </script>
 
 <template>
+  <p v-if="loadError && !process" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ loadError }}</p>
+
   <div v-if="process" class="space-y-6">
     <div class="flex items-center justify-between">
       <div>

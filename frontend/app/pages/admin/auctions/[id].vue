@@ -26,6 +26,7 @@ const inviteCompanyId = ref("");
 const newItem = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece", targetPrice: null as number | null });
 const extendMinutes = ref(5);
 const actionError = ref("");
+const loadError = ref("");
 
 async function runAction(action: () => Promise<void>) {
   actionError.value = "";
@@ -59,13 +60,18 @@ const timeLeftLabel = computed(() => {
 
 async function load() {
   loading.value = true;
-  const [detail, companyPage] = await Promise.all([
-    api.get<AuctionDetailDto>(`/api/auctions/${auctionId}`),
-    api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100, companyType: "Supplier" }),
-  ]);
-  auction.value = detail;
-  companies.value = companyPage.items;
-  loading.value = false;
+  try {
+    const [detail, companyPage] = await Promise.all([
+      api.get<AuctionDetailDto>(`/api/auctions/${auctionId}`),
+      api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100, companyType: "Supplier" }),
+    ]);
+    auction.value = detail;
+    companies.value = companyPage.items;
+  } catch (error: any) {
+    loadError.value = apiErrorMessage(error, "İhale yüklenemedi.");
+  } finally {
+    loading.value = false;
+  }
 }
 
 async function addItem() {
@@ -136,6 +142,7 @@ let ticker: ReturnType<typeof setInterval> | null = null;
 
 onMounted(async () => {
   await load();
+  if (!auction.value) return;
 
   ticker = setInterval(() => {
     now.value = Date.now();
@@ -176,6 +183,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <p v-if="loadError && !auction" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ loadError }}</p>
+
   <div v-if="auction" class="space-y-6">
     <div class="flex items-start justify-between">
       <div>

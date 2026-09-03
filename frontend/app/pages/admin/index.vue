@@ -12,6 +12,7 @@ const loading = ref(true);
 
 const recommendation = ref<AuctionModelRecommendationDto | null>(null);
 const recommendationLoading = ref(false);
+const recommendationError = ref("");
 const estimatedParticipants = ref(5);
 const estimatedItems = ref(1);
 
@@ -33,6 +34,7 @@ async function load() {
 
 async function getRecommendation() {
   recommendationLoading.value = true;
+  recommendationError.value = "";
   try {
     recommendation.value = await api.post<AuctionModelRecommendationDto>("/api/ai/auction-model-recommendation", {
       categoryId: null,
@@ -40,6 +42,8 @@ async function getRecommendation() {
       estimatedParticipantCount: estimatedParticipants.value,
       estimatedItemCount: estimatedItems.value,
     });
+  } catch (error: any) {
+    recommendationError.value = apiErrorMessage(error, "Öneri alınamadı.");
   } finally {
     recommendationLoading.value = false;
   }
@@ -137,6 +141,8 @@ onMounted(load);
           {{ recommendationLoading ? "Hesaplanıyor..." : "Öner" }}
         </button>
       </div>
+
+      <p v-if="recommendationError" class="mt-3 text-sm text-rose-600">{{ recommendationError }}</p>
 
       <div v-if="recommendation" class="mt-4 rounded-lg bg-indigo-50 p-4">
         <div class="text-sm font-semibold text-indigo-800">

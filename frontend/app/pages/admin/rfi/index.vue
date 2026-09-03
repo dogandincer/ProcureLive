@@ -11,6 +11,9 @@ const showProcessForm = ref(false);
 const templateForm = reactive({ name: "", description: "" });
 const processForm = reactive({ rfiTemplateId: "", title: "", ownerCompanyId: "", dueDate: "" });
 const actionError = ref("");
+const expandedTemplateId = ref<string | null>(null);
+const questionTypes = ["Text", "Number", "Boolean", "MultipleChoice", "FileUpload"];
+const questionForm = reactive({ questionText: "", questionType: "Text", isRequired: true, weight: 1, optionsText: "" });
 
 async function runAction(action: () => Promise<void>) {
   actionError.value = "";
@@ -54,6 +57,30 @@ async function createTemplate() {
   });
 }
 
+function toggleTemplate(template: RfiTemplateDto) {
+  expandedTemplateId.value = expandedTemplateId.value === template.id ? null : template.id;
+  Object.assign(questionForm, { questionText: "", questionType: "Text", isRequired: true, weight: 1, optionsText: "" });
+}
+
+async function addQuestion(template: RfiTemplateDto) {
+  await runAction(async () => {
+    const options = questionForm.questionType === "MultipleChoice"
+      ? questionForm.optionsText.split("\n").map((o) => o.trim()).filter(Boolean)
+      : null;
+
+    await api.post(`/api/rfi/templates/${template.id}/questions`, {
+      questionText: questionForm.questionText,
+      questionType: questionForm.questionType,
+      isRequired: questionForm.isRequired,
+      sortOrder: template.questions.length + 1,
+      weight: questionForm.weight,
+      options,
+    });
+    Object.assign(questionForm, { questionText: "", questionType: "Text", isRequired: true, weight: 1, optionsText: "" });
+    await load();
+  });
+}
+
 async function createProcess() {
   await runAction(async () => {
     const id = await api.post<string>("/api/rfi/processes", {
@@ -93,8 +120,51 @@ onMounted(load);
       <input v-model="templateForm.name" placeholder="Şablon Adı" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
       <input v-model="templateForm.description" placeholder="Açıklama" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
       <button type="submit" class="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-white sm:col-span-2">Şablonu Kaydet</button>
-      <p class="text-xs text-slate-400 sm:col-span-2">Soruları şablon oluşturulduktan sonra ekleyebilirsiniz (API: POST /api/rfi/templates/{`{id}`}/questions).</p>
+      <p class="text-xs text-slate-400 sm:col-span-2">Şablonu kaydettikten sonra aşağıdaki listeden soru ekleyebilirsiniz.</p>
     </form>
+
+    <div class="rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="text-sm font-semibold text-slate-700">Şablonlar</h2>
+      <ul class="mt-3 space-y-2">
+        <li v-for="t in templates" :key="t.id" class="rounded-lg border border-slate-100 p-3">
+          <button class="flex w-full items-center justify-between text-left" @click="toggleTemplate(t)">
+            <span class="text-sm font-medium text-slate-700">{{ t.name }}</span>
+            <span class="text-xs text-slate-400">{{ t.questions.length }} soru · {{ expandedTemplateId === t.id ? "Gizle" : "Detay" }}</span>
+          </button>
+
+          <div v-if="expandedTemplateId === t.id" class="mt-3 space-y-3 border-t border-slate-100 pt-3">
+            <ol class="list-decimal space-y-1 pl-4 text-sm text-slate-600">
+              <li v-for="q in t.questions" :key="q.id">
+                {{ q.questionText }}
+                <span class="text-xs text-slate-400">({{ q.questionType }}, ağırlık {{ q.weight }}{{ q.isRequired ? ", zorunlu" : "" }})</span>
+              </li>
+              <li v-if="t.questions.length === 0" class="text-slate-400">Henüz soru yok</li>
+            </ol>
+
+            <form class="grid grid-cols-1 gap-2 sm:grid-cols-2" @submit.prevent="addQuestion(t)">
+              <input v-model="questionForm.questionText" placeholder="Soru metni" required class="sm:col-span-2 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+              <select v-model="questionForm.questionType" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+                <option v-for="qt in questionTypes" :key="qt" :value="qt">{{ qt }}</option>
+              </select>
+              <input v-model.number="questionForm.weight" type="number" min="0" step="0.5" placeholder="Ağırlık" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+              <textarea
+                v-if="questionForm.questionType === 'MultipleChoice'"
+                v-model="questionForm.optionsText"
+                placeholder="Her satıra bir seçenek"
+                rows="3"
+                class="sm:col-span-2 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+              />
+              <label class="flex items-center gap-2 text-xs text-slate-600">
+                <input v-model="questionForm.isRequired" type="checkbox" />
+                Zorunlu soru
+              </label>
+              <button type="submit" class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white">Soru Ekle</button>
+            </form>
+          </div>
+        </li>
+        <li v-if="templates.length === 0" class="text-sm text-slate-400">Henüz şablon yok</li>
+      </ul>
+    </div>
 
     <form v-if="showProcessForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="createProcess">
       <select v-model="processForm.rfiTemplateId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm">

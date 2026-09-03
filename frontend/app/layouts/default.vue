@@ -8,6 +8,7 @@ const { connect } = useNotificationHub();
 const notifications = ref<NotificationDto[]>([]);
 const unreadCount = ref(0);
 const showNotifications = ref(false);
+const unreadOnly = ref(false);
 
 const adminLinks = [
   { to: "/admin", label: "Panel" },
@@ -37,7 +38,7 @@ const links = computed(() => {
 async function loadNotifications() {
   try {
     const [list, count] = await Promise.all([
-      api.get<{ items: NotificationDto[] }>("/api/notifications", { pageSize: 10 }),
+      api.get<{ items: NotificationDto[] }>("/api/notifications", { unreadOnly: unreadOnly.value || undefined, pageSize: 10 }),
       api.get<number>("/api/notifications/unread-count"),
     ]);
     notifications.value = list.items;
@@ -55,10 +56,29 @@ async function markRead(notification: NotificationDto) {
     await api.post(`/api/notifications/${notification.id}/read`);
     notification.isRead = true;
     unreadCount.value = Math.max(0, unreadCount.value - 1);
+    if (unreadOnly.value) {
+      notifications.value = notifications.value.filter((n) => n.id !== notification.id);
+    }
   } catch {
     // best-effort: leave the notification marked unread so the user can retry by clicking again
   }
 }
+
+async function markAllRead() {
+  try {
+    await api.post("/api/notifications/read-all");
+    unreadCount.value = 0;
+    if (unreadOnly.value) {
+      notifications.value = [];
+    } else {
+      notifications.value = notifications.value.map((n) => ({ ...n, isRead: true }));
+    }
+  } catch {
+    // best-effort: leave state as-is so the user can retry by clicking again
+  }
+}
+
+watch(unreadOnly, loadNotifications);
 
 onMounted(async () => {
   await loadNotifications();
@@ -115,10 +135,25 @@ onMounted(async () => {
               v-if="showNotifications"
               class="absolute right-0 z-20 mt-2 w-80 rounded-lg border border-slate-200 bg-white shadow-lg"
             >
-              <div class="border-b border-slate-100 px-4 py-2 text-sm font-semibold">Bildirimler</div>
+              <div class="flex items-center justify-between border-b border-slate-100 px-4 py-2">
+                <span class="text-sm font-semibold">Bildirimler</span>
+                <div class="flex items-center gap-3">
+                  <label class="flex items-center gap-1 text-xs text-slate-500">
+                    <input v-model="unreadOnly" type="checkbox" />
+                    Okunmamış
+                  </label>
+                  <button
+                    v-if="unreadCount > 0"
+                    class="text-xs font-medium text-indigo-600 hover:underline"
+                    @click="markAllRead"
+                  >
+                    Tümünü okundu işaretle
+                  </button>
+                </div>
+              </div>
               <div class="max-h-96 overflow-y-auto">
                 <p v-if="notifications.length === 0" class="px-4 py-6 text-center text-sm text-slate-400">
-                  Bildirim yok
+                  {{ unreadOnly ? "Okunmamış bildirim yok" : "Bildirim yok" }}
                 </p>
                 <button
                   v-for="n in notifications"

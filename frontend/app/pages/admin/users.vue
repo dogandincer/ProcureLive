@@ -2,6 +2,7 @@
 import type { CompanyDto, PagedResult, UserDto } from "~/types/api";
 
 const api = useApi();
+const { isAdminRole } = useAuth();
 const users = ref<UserDto[]>([]);
 const companies = ref<CompanyDto[]>([]);
 const showForm = ref(false);
@@ -10,8 +11,10 @@ const errorMessage = ref("");
 const roleDrafts = reactive<Record<string, string>>({});
 const companyDrafts = reactive<Record<string, string>>({});
 
-const roles = ["Admin", "Buyer", "Supplier"];
-const form = reactive({ email: "", password: "", firstName: "", lastName: "", role: "Buyer", companyId: "" });
+// A Buyer may only create Supplier accounts - the backend enforces this too (RegisterCommandHandler),
+// this just keeps a Buyer's own form from offering a role their submission would be rejected for.
+const roles = isAdminRole() ? ["Admin", "Buyer", "Supplier"] : ["Supplier"];
+const form = reactive({ email: "", password: "", firstName: "", lastName: "", role: roles[0], companyId: "" });
 
 const companyName = (companyId: string | null) => companies.value.find((c) => c.id === companyId)?.name ?? "-";
 
@@ -40,7 +43,7 @@ async function create() {
       role: form.role,
       companyId: form.role === "Supplier" ? form.companyId || null : null,
     });
-    Object.assign(form, { email: "", password: "", firstName: "", lastName: "", role: "Buyer", companyId: "" });
+    Object.assign(form, { email: "", password: "", firstName: "", lastName: "", role: roles[0], companyId: "" });
     showForm.value = false;
     await load();
   } catch (error: any) {
@@ -129,7 +132,7 @@ onMounted(load);
             <td class="py-2 font-medium text-slate-700">{{ u.firstName }} {{ u.lastName }}</td>
             <td class="py-2 text-slate-500">{{ companyName(u.companyId) }}</td>
             <td class="py-2">
-              <div class="flex flex-wrap items-center gap-2">
+              <div v-if="isAdminRole()" class="flex flex-wrap items-center gap-2">
                 <select v-model="roleDrafts[u.id]" class="rounded-md border border-slate-300 px-2 py-1 text-xs">
                   <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
                 </select>
@@ -150,6 +153,7 @@ onMounted(load);
                   Kaydet
                 </button>
               </div>
+              <span v-else class="text-xs text-slate-500">{{ u.roles.join(", ") }}</span>
             </td>
             <td class="py-2">
               <span class="rounded px-2 py-0.5 text-xs font-medium" :class="u.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'">
@@ -157,7 +161,7 @@ onMounted(load);
               </span>
             </td>
             <td class="py-2 text-right">
-              <button v-if="u.isActive" class="text-xs font-medium text-rose-600 hover:underline" @click="deactivate(u)">
+              <button v-if="isAdminRole() && u.isActive" class="text-xs font-medium text-rose-600 hover:underline" @click="deactivate(u)">
                 Devre Dışı Bırak
               </button>
             </td>

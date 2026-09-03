@@ -44,7 +44,11 @@ public sealed class UsersController : ControllerBase
         return NoContent();
     }
 
+    // Role assignment and deactivation are privilege-sensitive (a Buyer could otherwise promote
+    // themselves to Admin, or deactivate the only Admin account) - Admin-only regardless of the
+    // controller-wide RequireInternalUser policy.
     [HttpPost("{id:guid}/roles")]
+    [Authorize(Policy = Policies.RequireAdmin)]
     public async Task<IActionResult> AssignRoles(Guid id, AssignRolesRequest request, CancellationToken cancellationToken)
     {
         await _sender.Send(new AssignRolesCommand(id, request.Roles), cancellationToken);
@@ -52,6 +56,7 @@ public sealed class UsersController : ControllerBase
     }
 
     [HttpPost("{id:guid}/deactivate")]
+    [Authorize(Policy = Policies.RequireAdmin)]
     public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)
     {
         await _sender.Send(new DeactivateUserCommand(id), cancellationToken);

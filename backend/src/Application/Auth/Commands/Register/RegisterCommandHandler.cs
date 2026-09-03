@@ -2,6 +2,7 @@ using MediatR;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Models;
+using ProcureLive.Application.Common.Security;
 using ProcureLive.Contracts.Auth;
 using RefreshTokenEntity = ProcureLive.Domain.Entities.Identity.RefreshToken;
 
@@ -13,21 +14,32 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Au
     private readonly ITokenService _tokenService;
     private readonly IApplicationDbContext _context;
     private readonly IDateTime _dateTime;
+    private readonly ICurrentUserService _currentUserService;
 
     public RegisterCommandHandler(
         IIdentityService identityService,
         ITokenService tokenService,
         IApplicationDbContext context,
-        IDateTime dateTime)
+        IDateTime dateTime,
+        ICurrentUserService currentUserService)
     {
         _identityService = identityService;
         _tokenService = tokenService;
         _context = context;
         _dateTime = dateTime;
+        _currentUserService = currentUserService;
     }
 
     public async Task<AuthResultDto> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
+        // Only an Admin caller may provision Admin or Buyer (internal, privileged) accounts - a Buyer
+        // caller may only onboard Supplier accounts. Without this, any Buyer could self-escalate by
+        // registering a new Admin user.
+        if (!_currentUserService.IsInRole(Roles.Admin) && request.Role != Roles.Supplier)
+        {
+            throw new ForbiddenAccessException("Yalnızca Admin kullanıcılar Admin veya Buyer rolünde hesap oluşturabilir.");
+        }
+
         var createResult = await _identityService.CreateUserAsync(
             request.Email,
             request.Password,

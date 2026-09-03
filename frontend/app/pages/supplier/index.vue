@@ -8,18 +8,25 @@ const auctions = ref<AuctionDto[]>([]);
 const rfiProcesses = ref<RfiProcessDto[]>([]);
 const rfqProcesses = ref<RfqProcessDto[]>([]);
 const loading = ref(true);
+const errorMessage = ref("");
 
 async function load() {
   loading.value = true;
-  const [auctionPage, rfiPage, rfqPage] = await Promise.all([
-    api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 10 }),
-    api.get<PagedResult<RfiProcessDto>>("/api/rfi/processes", { page: 1, pageSize: 10 }),
-    api.get<PagedResult<RfqProcessDto>>("/api/rfq/processes", { page: 1, pageSize: 10 }),
-  ]);
-  auctions.value = auctionPage.items;
-  rfiProcesses.value = rfiPage.items;
-  rfqProcesses.value = rfqPage.items;
-  loading.value = false;
+  errorMessage.value = "";
+  try {
+    const [auctionPage, rfiPage, rfqPage] = await Promise.all([
+      api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 10 }),
+      api.get<PagedResult<RfiProcessDto>>("/api/rfi/processes", { page: 1, pageSize: 10 }),
+      api.get<PagedResult<RfqProcessDto>>("/api/rfq/processes", { page: 1, pageSize: 10 }),
+    ]);
+    auctions.value = auctionPage.items;
+    rfiProcesses.value = rfiPage.items;
+    rfqProcesses.value = rfqPage.items;
+  } catch (error: any) {
+    errorMessage.value = apiErrorMessage(error, "Panel verileri yüklenemedi.");
+  } finally {
+    loading.value = false;
+  }
 }
 
 const liveAuctions = computed(() => auctions.value.filter((a) => a.status === "Live"));
@@ -30,6 +37,8 @@ onMounted(load);
 <template>
   <div class="space-y-6">
     <h1 class="text-xl font-bold text-slate-800">Merhaba, {{ currentUser?.firstName }} 👋</h1>
+
+    <p v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ errorMessage }}</p>
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div class="rounded-xl border border-slate-200 bg-white p-5">

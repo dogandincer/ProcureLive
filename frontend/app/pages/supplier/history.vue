@@ -3,6 +3,7 @@ import type { AuctionDto, PagedResult } from "~/types/api";
 
 const api = useApi();
 const auctions = ref<AuctionDto[]>([]);
+const errorMessage = ref("");
 
 const statusBadge: Record<string, string> = {
   Ended: "bg-slate-100 text-slate-600",
@@ -11,14 +12,20 @@ const statusBadge: Record<string, string> = {
 };
 
 onMounted(async () => {
-  const page = await api.get<PagedResult<AuctionDto>>("/api/auctions/history/mine", { page: 1, pageSize: 50 });
-  auctions.value = page.items;
+  try {
+    const page = await api.get<PagedResult<AuctionDto>>("/api/auctions/history/mine", { page: 1, pageSize: 50 });
+    auctions.value = page.items;
+  } catch (error: any) {
+    errorMessage.value = apiErrorMessage(error, "Kayıtlar yüklenemedi.");
+  }
 });
 </script>
 
 <template>
   <div class="space-y-6">
     <h1 class="text-xl font-bold text-slate-800">İhale Geçmişim</h1>
+
+    <p v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ errorMessage }}</p>
 
     <div class="rounded-xl border border-slate-200 bg-white p-5">
       <table class="w-full text-sm">

@@ -3,10 +3,15 @@ import type { PagedResult, RfiProcessDto } from "~/types/api";
 
 const api = useApi();
 const processes = ref<RfiProcessDto[]>([]);
+const errorMessage = ref("");
 
 async function load() {
-  const page = await api.get<PagedResult<RfiProcessDto>>("/api/rfi/processes", { page: 1, pageSize: 50 });
-  processes.value = page.items;
+  try {
+    const page = await api.get<PagedResult<RfiProcessDto>>("/api/rfi/processes", { page: 1, pageSize: 50 });
+    processes.value = page.items;
+  } catch (error: any) {
+    errorMessage.value = apiErrorMessage(error, "Kayıtlar yüklenemedi.");
+  }
 }
 
 onMounted(load);
@@ -15,6 +20,8 @@ onMounted(load);
 <template>
   <div class="space-y-6">
     <h1 class="text-xl font-bold text-slate-800">RFI Davetlerim</h1>
+
+    <p v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ errorMessage }}</p>
 
     <div class="rounded-xl border border-slate-200 bg-white p-5">
       <table class="w-full text-sm">

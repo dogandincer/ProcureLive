@@ -66,6 +66,26 @@ export interface CurrencyDto {
   isBaseCurrency: boolean;
 }
 
+export interface ExchangeRateDto {
+  id: string;
+  currencyId: string;
+  currencyCode: string;
+  rateDate: string;
+  rateToBase: number;
+  source: string | null;
+}
+
+export interface UserDto {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  roles: string[];
+  companyId: string | null;
+  isActive: boolean;
+  lastLoginAt: string | null;
+}
+
 export interface AuctionDto {
   id: string;
   title: string;

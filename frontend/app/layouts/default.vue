@@ -12,8 +12,10 @@ const showNotifications = ref(false);
 const adminLinks = [
   { to: "/admin", label: "Panel" },
   { to: "/admin/companies", label: "Cariler" },
+  { to: "/admin/users", label: "Kullanıcılar" },
   { to: "/admin/products", label: "Stok / Ürünler" },
   { to: "/admin/categories", label: "Kategoriler" },
+  { to: "/admin/currencies", label: "Para Birimleri" },
   { to: "/admin/auctions", label: "İhaleler" },
   { to: "/admin/rfi", label: "RFI" },
   { to: "/admin/rfq", label: "RFQ" },

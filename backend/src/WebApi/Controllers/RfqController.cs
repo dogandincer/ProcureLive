@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProcureLive.Application.Common.Security;
 using ProcureLive.Application.Rfq.Commands.AddRfqLineItem;
+using ProcureLive.Application.Rfq.Commands.AwardRfqProcess;
 using ProcureLive.Application.Rfq.Commands.CloseRfqProcess;
 using ProcureLive.Application.Rfq.Commands.CreateRfqProcess;
 using ProcureLive.Application.Rfq.Commands.InviteCompaniesToRfq;
@@ -134,6 +135,14 @@ public sealed class RfqController : ControllerBase
     public async Task<IActionResult> Close(Guid id, CancellationToken cancellationToken)
     {
         await _sender.Send(new CloseRfqProcessCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/award")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> Award(Guid id, AwardRfqProcessRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new AwardRfqProcessCommand(id, request.WinningQuoteId, request.Notes), cancellationToken);
         return NoContent();
     }
 }

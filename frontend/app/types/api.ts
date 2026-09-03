@@ -271,8 +271,31 @@ export interface RfqProcessDetailDto {
   currencyCode: string;
   status: string;
   dueDate: string;
+  winningQuoteId: string | null;
   lineItems: RfqLineItemDto[];
   invitations: AuctionInvitationDto[];
+}
+
+export interface RfqQuoteLineItemDto {
+  rfqLineItemId: string;
+  lineItemDescription: string;
+  unitPrice: number;
+  currencyId: string;
+  currencyCode: string;
+  normalizedUnitPriceInBaseCurrency: number;
+  leadTimeDays: number | null;
+  notes: string | null;
+}
+
+export interface RfqQuoteDto {
+  id: string;
+  companyId: string;
+  companyName: string;
+  status: string;
+  submittedAt: string | null;
+  validUntil: string | null;
+  notes: string | null;
+  lineItems: RfqQuoteLineItemDto[];
 }
 
 export interface RfqComparisonRowDto {

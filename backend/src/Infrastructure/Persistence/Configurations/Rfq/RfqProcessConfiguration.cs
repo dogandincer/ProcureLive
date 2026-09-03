@@ -35,5 +35,10 @@ public sealed class RfqProcessConfiguration : IEntityTypeConfiguration<RfqProces
             .WithOne(q => q.RfqProcess)
             .HasForeignKey(q => q.RfqProcessId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne<RfqQuote>()
+            .WithMany()
+            .HasForeignKey(p => p.WinningQuoteId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

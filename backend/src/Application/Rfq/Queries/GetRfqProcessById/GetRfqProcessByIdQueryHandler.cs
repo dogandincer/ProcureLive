@@ -42,6 +42,6 @@ public sealed class GetRfqProcessByIdQueryHandler : IRequestHandler<GetRfqProces
         return new RfqProcessDetailDto(
             process.Id, process.Title, process.OwnerCompanyId, process.OwnerCompany.Name,
             process.CurrencyId, process.Currency.Code, process.Status.ToString(), process.DueDate,
-            lineItems, invitations);
+            process.WinningQuoteId, lineItems, invitations);
     }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CompanyDto, PagedResult, RfqComparisonRowDto, RfqProcessDetailDto } from "~/types/api";
+import type { CompanyDto, PagedResult, RfqComparisonRowDto, RfqProcessDetailDto, RfqQuoteDto } from "~/types/api";
 
 const route = useRoute();
 const processId = route.params.id as string;
@@ -8,6 +8,7 @@ const api = useApi();
 const process = ref<RfqProcessDetailDto | null>(null);
 const companies = ref<CompanyDto[]>([]);
 const matrix = ref<RfqComparisonRowDto[]>([]);
+const quotes = ref<RfqQuoteDto[]>([]);
 const inviteCompanyId = ref("");
 const newLine = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece" });
 const actionError = ref("");
@@ -43,6 +44,17 @@ async function load() {
 
 async function loadMatrix() {
   matrix.value = await api.get<RfqComparisonRowDto[]>(`/api/rfq/processes/${processId}/comparison-matrix`);
+}
+
+async function loadQuotes() {
+  quotes.value = await api.get<RfqQuoteDto[]>(`/api/rfq/processes/${processId}/quotes`);
+}
+
+async function award(quoteId: string) {
+  await runAction(async () => {
+    await api.post(`/api/rfq/processes/${processId}/award`, { winningQuoteId: quoteId, notes: null });
+    await load();
+  });
 }
 
 async function addLine() {
@@ -85,6 +97,7 @@ async function close() {
 onMounted(async () => {
   await load();
   await loadMatrix();
+  await loadQuotes();
 });
 </script>
 
@@ -172,6 +185,37 @@ onMounted(async () => {
         </table>
       </div>
       <p v-if="matrix.length === 0" class="mt-2 text-sm text-slate-400">Henüz teklif gelmedi.</p>
+    </div>
+
+    <div class="rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold text-slate-700">Teklifler</h3>
+      <p v-if="process.status === 'Awarded'" class="mt-1 text-xs text-emerald-700">
+        Kazanan: {{ quotes.find((q) => q.id === process!.winningQuoteId)?.companyName ?? "-" }}
+      </p>
+      <ul class="mt-3 space-y-2 text-sm">
+        <li
+          v-for="q in quotes.filter((q) => q.status === 'Submitted')"
+          :key="q.id"
+          class="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
+          :class="{ 'border-emerald-300 bg-emerald-50': q.id === process.winningQuoteId }"
+        >
+          <span>{{ q.companyName }}</span>
+          <button
+            v-if="process.status === 'Closed'"
+            class="rounded bg-indigo-600 px-2 py-1 text-xs font-semibold text-white"
+            @click="award(q.id)"
+          >
+            Kazanan Seç
+          </button>
+          <span v-else-if="q.id === process.winningQuoteId" class="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+            Kazandı
+          </span>
+        </li>
+        <li v-if="quotes.filter((q) => q.status === 'Submitted').length === 0" class="text-slate-400">Henüz gönderilmiş teklif yok</li>
+      </ul>
+      <p v-if="process.status !== 'Closed' && process.status !== 'Awarded'" class="mt-2 text-xs text-slate-400">
+        Kazanan seçmeden önce süreci kapatmanız gerekir.
+      </p>
     </div>
   </div>
 </template>

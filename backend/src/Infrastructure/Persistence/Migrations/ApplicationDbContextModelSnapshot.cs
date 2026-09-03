@@ -125,6 +125,59 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Analytics.AuctionAnalyticsViewRow", b =>
+                {
+                    b.Property<Guid>("AuctionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AuctionType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("EndAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ExtensionCount")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("FirstBidAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime?>("FirstBidAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal?>("LastBidAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<double?>("MinutesToFirstBid")
+                        .HasColumnType("double precision");
+
+                    b.Property<Guid>("OwnerCompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("PriceChangePercentage")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("StartAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("TotalBidCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UniqueBidderCount")
+                        .HasColumnType("integer");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("AuctionAnalyticsView", (string)null);
+                });
+
             modelBuilder.Entity("ProcureLive.Domain.Entities.Analytics.MlFeatureSnapshot", b =>
                 {
                     b.Property<Guid>("Id")
@@ -151,6 +204,41 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.HasIndex("EntityType", "EntityId", "SnapshotDate");
 
                     b.ToTable("MlFeatureSnapshots", (string)null);
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Analytics.SupplierPerformanceViewRow", b =>
+                {
+                    b.Property<decimal?>("AuctionWinRatePercentage")
+                        .HasColumnType("numeric");
+
+                    b.Property<double?>("AverageResponseHours")
+                        .HasColumnType("double precision");
+
+                    b.Property<decimal?>("AverageRfiScore")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("RfiEvaluationCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SubmittedRfqQuoteCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalAuctionsParticipated")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("WonAuctionCount")
+                        .HasColumnType("integer");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("SupplierPerformanceView", (string)null);
                 });
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Auctions.Auction", b =>
@@ -1523,6 +1611,12 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AwardNotes")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("AwardedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1552,11 +1646,16 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("WinningQuoteId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CurrencyId");
 
                     b.HasIndex("OwnerCompanyId");
+
+                    b.HasIndex("WinningQuoteId");
 
                     b.ToTable("RfqProcesses", (string)null);
                 });
@@ -2269,6 +2368,11 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OwnerCompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("ProcureLive.Domain.Entities.Rfq.RfqQuote", null)
+                        .WithMany()
+                        .HasForeignKey("WinningQuoteId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Currency");
 

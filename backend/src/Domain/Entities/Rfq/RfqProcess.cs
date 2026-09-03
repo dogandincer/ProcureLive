@@ -26,4 +26,10 @@ public class RfqProcess : AuditableEntity
     public ICollection<RfqInvitation> Invitations { get; set; } = new List<RfqInvitation>();
 
     public ICollection<RfqQuote> Quotes { get; set; } = new List<RfqQuote>();
+
+    public Guid? WinningQuoteId { get; set; }
+
+    public DateTime? AwardedAt { get; set; }
+
+    public string? AwardNotes { get; set; }
 }

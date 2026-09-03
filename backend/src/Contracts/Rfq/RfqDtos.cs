@@ -23,6 +23,7 @@ public sealed record RfqProcessDetailDto(
     string CurrencyCode,
     string Status,
     DateTime DueDate,
+    Guid? WinningQuoteId,
     IReadOnlyCollection<RfqLineItemDto> LineItems,
     IReadOnlyCollection<RfqInvitationDto> Invitations);
 
@@ -67,6 +68,8 @@ public sealed record CreateRfqProcessRequest(string Title, Guid OwnerCompanyId, 
 public sealed record AddRfqLineItemRequest(Guid? ProductId, string Description, decimal Quantity, string UnitOfMeasure, int SortOrder);
 
 public sealed record InviteCompaniesToRfqRequest(IReadOnlyCollection<Guid> CompanyIds);
+
+public sealed record AwardRfqProcessRequest(Guid WinningQuoteId, string? Notes);
 
 public sealed record RespondToRfqInvitationRequest(bool Accept, string? DeclineReason);
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CompanyDto, PagedResult, RfqComparisonRowDto, RfqProcessDetailDto, RfqQuoteDto } from "~/types/api";
+import type { ExcelColumn } from "~/composables/useExcelImport";
 
 const route = useRoute();
 const processId = route.params.id as string;
@@ -35,6 +36,7 @@ const groupedMatrix = computed(() => {
 });
 
 async function load() {
+  importSortOrderCounter = null;
   try {
     const [detail, companyPage] = await Promise.all([
       api.get<RfqProcessDetailDto>(`/api/rfq/processes/${processId}`),
@@ -81,6 +83,32 @@ async function addLine() {
     });
     newLine.description = "";
     await load();
+  });
+}
+
+const importLineColumns: ExcelColumn[] = [
+  { key: "description", label: "Açıklama", required: true },
+  { key: "quantity", label: "Miktar", required: true, type: "number" },
+  { key: "unitOfMeasure", label: "Birim", hint: unitOfMeasures.join("/") },
+];
+
+// process.value only refreshes via load(), which we don't call per-row during a bulk import - so
+// lineItems.length would stay frozen and every imported row would collide on the same sortOrder.
+// Track a local counter across the whole import session instead.
+let importSortOrderCounter: number | null = null;
+
+async function importLineRow(row: Record<string, string | number | boolean | null>) {
+  if (importSortOrderCounter === null) {
+    importSortOrderCounter = process.value?.lineItems.length ?? 0;
+  }
+  importSortOrderCounter += 1;
+
+  await api.post(`/api/rfq/processes/${processId}/line-items`, {
+    productId: null,
+    description: row.description,
+    quantity: row.quantity,
+    unitOfMeasure: unitOfMeasures.includes(String(row.unitOfMeasure)) ? row.unitOfMeasure : "Piece",
+    sortOrder: importSortOrderCounter,
   });
 }
 
@@ -141,7 +169,17 @@ onMounted(async () => {
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <div class="rounded-xl border border-slate-200 bg-white p-5">
-        <h3 class="text-sm font-semibold text-slate-700">Kalemler (Adım 2/4)</h3>
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-slate-700">Kalemler (Adım 2/4)</h3>
+          <ExcelImportButton
+            v-if="process.status === 'Draft'"
+            :columns="importLineColumns"
+            template-filename="rfq-kalemler-sablon.xlsx"
+            :import-row="importLineRow"
+            label="Excel'den Aktar"
+            @imported="load"
+          />
+        </div>
         <ul class="mt-3 space-y-1 text-sm text-slate-600">
           <li v-for="li in process.lineItems" :key="li.id">{{ li.description }} — {{ li.quantity }} {{ li.unitOfMeasure }}</li>
           <li v-if="process.lineItems.length === 0" class="text-slate-400">Henüz kalem yok</li>

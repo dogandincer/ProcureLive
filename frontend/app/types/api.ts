@@ -75,6 +75,19 @@ export interface ExchangeRateDto {
   source: string | null;
 }
 
+export interface AuditLogDto {
+  id: string;
+  entityName: string;
+  entityId: string;
+  action: string;
+  changedByUserId: string | null;
+  changedByUserName: string | null;
+  changedAt: string;
+  oldValues: string | null;
+  newValues: string | null;
+  affectedColumns: string | null;
+}
+
 export interface UserDto {
   id: string;
   email: string;

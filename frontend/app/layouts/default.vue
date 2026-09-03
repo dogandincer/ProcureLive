@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { NotificationDto } from "~/types/api";
 
-const { currentUser, isInternalRole, isSupplierRole, logout } = useAuth();
+const { currentUser, isInternalRole, isSupplierRole, isAdminRole, logout } = useAuth();
 const api = useApi();
 const { connect } = useNotificationHub();
 
@@ -29,7 +29,10 @@ const supplierLinks = [
   { to: "/supplier/rfq", label: "RFQ Davetlerim" },
 ];
 
-const links = computed(() => (isInternalRole() ? adminLinks : supplierLinks));
+const links = computed(() => {
+  if (!isInternalRole()) return supplierLinks;
+  return isAdminRole() ? [...adminLinks, { to: "/admin/audit-log", label: "Denetim Kaydı" }] : adminLinks;
+});
 
 async function loadNotifications() {
   try {

@@ -72,6 +72,11 @@ public static class DependencyInjection
         services.AddScoped<IEmailSender, LoggingEmailSender>();
         services.AddScoped<IAuctionModelRecommender, HeuristicAuctionModelRecommender>();
 
+        services.AddHttpClient<IExchangeRateProvider, TcmbExchangeRateProvider>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(15);
+        });
+
         return services;
     }
 }

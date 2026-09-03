@@ -153,6 +153,9 @@ builder.Services.AddHostedService<AuctionLifecycleHostedService>();
 builder.Services.AddScoped<INotificationRealtimeService, SignalRNotificationRealtimeService>();
 builder.Services.AddHostedService<NotificationEmailDispatchHostedService>();
 
+// Faz 4c: kur bilgilerini TCMB'den saatlik otomatik cekme (baslangicta bir kez + her saat).
+builder.Services.AddHostedService<ExchangeRateSyncHostedService>();
+
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();

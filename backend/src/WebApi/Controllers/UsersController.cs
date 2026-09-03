@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProcureLive.Application.Common.Security;
+using ProcureLive.Application.Users.Commands.ActivateUser;
 using ProcureLive.Application.Users.Commands.AssignRoles;
 using ProcureLive.Application.Users.Commands.DeactivateUser;
 using ProcureLive.Application.Users.Commands.UpdateUser;
@@ -60,6 +61,14 @@ public sealed class UsersController : ControllerBase
     public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)
     {
         await _sender.Send(new DeactivateUserCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/activate")]
+    [Authorize(Policy = Policies.RequireAdmin)]
+    public async Task<IActionResult> Activate(Guid id, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ActivateUserCommand(id), cancellationToken);
         return NoContent();
     }
 }

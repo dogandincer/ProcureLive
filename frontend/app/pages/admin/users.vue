@@ -80,6 +80,16 @@ async function deactivate(user: UserDto) {
   }
 }
 
+async function activate(user: UserDto) {
+  errorMessage.value = "";
+  try {
+    await api.post(`/api/users/${user.id}/activate`);
+    await load();
+  } catch (error: any) {
+    errorMessage.value = apiErrorMessage(error, "Kullanıcı etkinleştirilemedi.");
+  }
+}
+
 onMounted(load);
 </script>
 
@@ -163,6 +173,9 @@ onMounted(load);
             <td class="py-2 text-right">
               <button v-if="isAdminRole() && u.isActive" class="text-xs font-medium text-rose-600 hover:underline" @click="deactivate(u)">
                 Devre Dışı Bırak
+              </button>
+              <button v-else-if="isAdminRole() && !u.isActive" class="text-xs font-medium text-emerald-600 hover:underline" @click="activate(u)">
+                Etkinleştir
               </button>
             </td>
           </tr>

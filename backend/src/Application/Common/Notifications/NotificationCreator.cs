@@ -71,4 +71,54 @@ public static class NotificationCreator
 
         await realtimeService.NotifyCompanyAsync(companyId, dto, cancellationToken);
     }
+
+    /// <summary>
+    /// Same as <see cref="CreateForCompanyAsync"/> but for the internal (Admin/Buyer) side rather than
+    /// a specific Cari - CompanyId stays null (GetMyNotificationsQueryHandler/GetUnreadNotificationCountQueryHandler
+    /// filter on that for internal users) and the push goes to the "internal" SignalR group instead of a
+    /// per-company group. No Email channel log is queued: there's no single recipient contact person for
+    /// "every internal user", so email notification for this case is intentionally out of scope for now.
+    /// </summary>
+    public static async Task CreateForInternalUsersAsync(
+        IApplicationDbContext context,
+        INotificationRealtimeService realtimeService,
+        IDateTime dateTime,
+        NotificationType type,
+        string title,
+        string body,
+        string? relatedEntityType,
+        Guid? relatedEntityId,
+        CancellationToken cancellationToken)
+    {
+        DateTime now = dateTime.UtcNow;
+
+        var notification = new Notification
+        {
+            CompanyId = null,
+            Type = type,
+            Title = title,
+            Body = body,
+            RelatedEntityType = relatedEntityType,
+            RelatedEntityId = relatedEntityId,
+            IsRead = false
+        };
+
+        context.Notifications.Add(notification);
+
+        context.NotificationChannelLogs.Add(new NotificationChannelLog
+        {
+            Notification = notification,
+            Channel = NotificationChannel.InApp,
+            Status = NotificationDeliveryStatus.Sent,
+            SentAt = now
+        });
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        var dto = new NotificationDto(
+            notification.Id, notification.Type.ToString(), notification.Title, notification.Body,
+            notification.RelatedEntityType, notification.RelatedEntityId, notification.IsRead, null, now);
+
+        await realtimeService.NotifyInternalUsersAsync(dto, cancellationToken);
+    }
 }

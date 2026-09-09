@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Notifications;
 using ProcureLive.Domain.Entities.Notifications;
 using ProcureLive.Domain.Entities.Rfi;
 using ProcureLive.Domain.Enums;
@@ -13,15 +14,18 @@ public sealed class RespondToRfiInvitationCommandHandler : IRequestHandler<Respo
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTime _dateTime;
+    private readonly INotificationRealtimeService _notificationRealtimeService;
 
     public RespondToRfiInvitationCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTime dateTime)
+        IDateTime dateTime,
+        INotificationRealtimeService notificationRealtimeService)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTime = dateTime;
+        _notificationRealtimeService = notificationRealtimeService;
     }
 
     public async Task Handle(RespondToRfiInvitationCommand request, CancellationToken cancellationToken)
@@ -46,6 +50,13 @@ public sealed class RespondToRfiInvitationCommandHandler : IRequestHandler<Respo
             throw new ConflictException("Bu davete zaten yanıt verilmiş.");
         }
 
+        RfiProcess? process = await _context.RfiProcesses.FirstOrDefaultAsync(p => p.Id == request.RfiProcessId, cancellationToken);
+
+        if (process is null)
+        {
+            throw new NotFoundException(nameof(RfiProcess), request.RfiProcessId);
+        }
+
         DateTime now = _dateTime.UtcNow;
         Guid userId = _currentUserService.UserId ?? Guid.Empty;
 
@@ -64,5 +75,26 @@ public sealed class RespondToRfiInvitationCommandHandler : IRequestHandler<Respo
         });
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Mirrors the Auction/RFQ equivalents - without this, the buyer only finds out a supplier
+        // accepted/declined by manually revisiting the RFI detail page.
+        string? respondingCompanyName = await _context.Companies
+            .Where(c => c.Id == companyId.Value)
+            .Select(c => c.Name)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        string action = request.Accept ? "kabul etti" : "reddetti";
+        string body = $"\"{respondingCompanyName}\" \"{process.Title}\" RFI süreci davetini {action}.";
+        if (!request.Accept && !string.IsNullOrWhiteSpace(request.DeclineReason))
+        {
+            body += $" Gerekçe: {request.DeclineReason}";
+        }
+
+        await NotificationCreator.CreateForInternalUsersAsync(
+            _context, _notificationRealtimeService, _dateTime,
+            NotificationType.InvitationResponded,
+            "Davet Yanıtlandı",
+            body,
+            nameof(RfiProcess), process.Id, cancellationToken);
     }
 }

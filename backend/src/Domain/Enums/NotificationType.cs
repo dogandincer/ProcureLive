@@ -8,5 +8,6 @@ public enum NotificationType
     RfiInvitation = 3,
     RfqInvitation = 4,
     AwardNotice = 5,
-    System = 6
+    System = 6,
+    InvitationResponded = 7
 }

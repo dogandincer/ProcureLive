@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Currencies;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Notifications;
 using ProcureLive.Contracts.Auctions;
 using ProcureLive.Domain.Entities.Auctions;
 using ProcureLive.Domain.Enums;
@@ -18,6 +19,7 @@ public sealed class PlaceBidCommandHandler : IRequestHandler<PlaceBidCommand, Bi
     private readonly IDateTime _dateTime;
     private readonly IAuctionCacheService _cacheService;
     private readonly IAuctionNotificationService _notificationService;
+    private readonly INotificationRealtimeService _notificationRealtimeService;
 
     public PlaceBidCommandHandler(
         IApplicationDbContext context,
@@ -25,7 +27,8 @@ public sealed class PlaceBidCommandHandler : IRequestHandler<PlaceBidCommand, Bi
         ICurrentUserService currentUserService,
         IDateTime dateTime,
         IAuctionCacheService cacheService,
-        IAuctionNotificationService notificationService)
+        IAuctionNotificationService notificationService,
+        INotificationRealtimeService notificationRealtimeService)
     {
         _context = context;
         _unitOfWork = unitOfWork;
@@ -33,6 +36,7 @@ public sealed class PlaceBidCommandHandler : IRequestHandler<PlaceBidCommand, Bi
         _dateTime = dateTime;
         _cacheService = cacheService;
         _notificationService = notificationService;
+        _notificationRealtimeService = notificationRealtimeService;
     }
 
     public async Task<BidDto> Handle(PlaceBidCommand request, CancellationToken cancellationToken)
@@ -178,6 +182,19 @@ public sealed class PlaceBidCommandHandler : IRequestHandler<PlaceBidCommand, Bi
         {
             await _notificationService.AuctionExtendedAsync(
                 auction.Id, newEndAt.Value, "Anti-sniping: son dakika teklifi nedeniyle otomatik uzatma.", cancellationToken);
+        }
+
+        // SignalR (above) only reaches the outbid company if they happen to have this auction's live
+        // page open right now - the persisted Notification below is what actually informs them if
+        // they've stepped away. Mirrors AwardAuctionItemCommandHandler's notification pattern.
+        if (currentWinningBid is not null && currentWinningBid.CompanyId != companyId.Value)
+        {
+            await NotificationCreator.CreateForCompanyAsync(
+                _context, _notificationRealtimeService, _dateTime, currentWinningBid.CompanyId,
+                NotificationType.Outbid,
+                "Teklifiniz Geçildi",
+                $"\"{auction.Title}\" ihalesinde \"{item.Description}\" kalemi için teklifiniz geçildi.",
+                nameof(Auction), auction.Id, cancellationToken);
         }
 
         return bidDto;

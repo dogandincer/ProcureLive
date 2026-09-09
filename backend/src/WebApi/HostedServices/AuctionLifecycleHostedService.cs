@@ -1,18 +1,21 @@
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Notifications;
 using ProcureLive.Domain.Entities.Auctions;
 using ProcureLive.Domain.Enums;
 
 namespace ProcureLive.WebApi.HostedServices;
 
 /// <summary>
-/// Polls for Scheduled auctions whose StartAt has passed (-> Live, broadcasts AuctionStarted) and
-/// Live auctions whose EndAt has passed (-> Ended, broadcasts AuctionEnded). IHostedService is a
+/// Polls for Scheduled auctions whose StartAt has passed (-> Live, broadcasts AuctionStarted), Live
+/// auctions whose EndAt has passed (-> Ended, broadcasts AuctionEnded), and Scheduled auctions starting
+/// within the reminder window (persisted "starting soon" notification to invitees). IHostedService is a
 /// singleton, so a scoped DbContext/notification service is resolved per tick via IServiceScopeFactory.
 /// </summary>
 public sealed class AuctionLifecycleHostedService : BackgroundService
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan ReminderWindow = TimeSpan.FromMinutes(15);
 
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<AuctionLifecycleHostedService> _logger;
@@ -46,6 +49,7 @@ public sealed class AuctionLifecycleHostedService : BackgroundService
         IApplicationDbContext context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
         IDateTime dateTime = scope.ServiceProvider.GetRequiredService<IDateTime>();
         IAuctionNotificationService notificationService = scope.ServiceProvider.GetRequiredService<IAuctionNotificationService>();
+        INotificationRealtimeService notificationRealtimeService = scope.ServiceProvider.GetRequiredService<INotificationRealtimeService>();
 
         DateTime now = dateTime.UtcNow;
 
@@ -69,7 +73,21 @@ public sealed class AuctionLifecycleHostedService : BackgroundService
             auction.ActualEndAt = now;
         }
 
-        if (toStart.Count > 0 || toEnd.Count > 0)
+        DateTime reminderThreshold = now.Add(ReminderWindow);
+
+        List<Auction> toRemind = await context.Auctions
+            .Where(a => a.Status == AuctionStatus.Scheduled
+                && a.StartingReminderSentAt == null
+                && a.StartAt > now
+                && a.StartAt <= reminderThreshold)
+            .ToListAsync(cancellationToken);
+
+        foreach (Auction auction in toRemind)
+        {
+            auction.StartingReminderSentAt = now;
+        }
+
+        if (toStart.Count > 0 || toEnd.Count > 0 || toRemind.Count > 0)
         {
             await context.SaveChangesAsync(cancellationToken);
         }
@@ -82,6 +100,26 @@ public sealed class AuctionLifecycleHostedService : BackgroundService
         foreach (Auction auction in toEnd)
         {
             await notificationService.AuctionEndedAsync(auction.Id, cancellationToken);
+        }
+
+        foreach (Auction auction in toRemind)
+        {
+            List<Guid> recipientCompanyIds = await context.AuctionInvitations
+                .Where(i => i.AuctionId == auction.Id && i.Status != InvitationStatus.Declined)
+                .Select(i => i.CompanyId)
+                .ToListAsync(cancellationToken);
+
+            int minutesLeft = Math.Max(1, (int)Math.Round((auction.StartAt - now).TotalMinutes));
+
+            foreach (Guid companyId in recipientCompanyIds)
+            {
+                await NotificationCreator.CreateForCompanyAsync(
+                    context, notificationRealtimeService, dateTime, companyId,
+                    NotificationType.AuctionStarting,
+                    "İhale Yakında Başlıyor",
+                    $"\"{auction.Title}\" ihalesi yaklaşık {minutesLeft} dakika içinde başlıyor.",
+                    nameof(Auction), auction.Id, cancellationToken);
+            }
         }
     }
 }

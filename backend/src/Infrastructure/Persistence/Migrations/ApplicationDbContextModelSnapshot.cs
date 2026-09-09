@@ -293,6 +293,9 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("StartAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("StartingReminderSentAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 

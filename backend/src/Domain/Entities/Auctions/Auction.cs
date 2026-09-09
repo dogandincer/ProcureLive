@@ -31,6 +31,9 @@ public class Auction : AuditableEntity
 
     public DateTime? ActualEndAt { get; set; }
 
+    /// <summary>Set once the "starting soon" reminder has gone out, so the lifecycle poller doesn't re-send it every tick.</summary>
+    public DateTime? StartingReminderSentAt { get; set; }
+
     public decimal? ReservePrice { get; set; }
 
     public decimal? MinDecrementAmount { get; set; }

@@ -2,21 +2,20 @@
 definePageMeta({ layout: false });
 
 const { login, homePathForRole } = useAuth();
+const toast = useToast();
 
 const email = ref("admin@procurelive.local");
 const password = ref("");
-const errorMessage = ref("");
 const loading = ref(false);
 
 async function submit() {
-  errorMessage.value = "";
   loading.value = true;
 
   try {
     await login(email.value, password.value);
     await navigateTo(homePathForRole());
   } catch (error: any) {
-    errorMessage.value = apiErrorMessage(error, "Giriş başarısız. E-posta veya şifre hatalı.");
+    toast.error(apiErrorMessage(error, "Giriş başarısız. E-posta veya şifre hatalı."));
   } finally {
     loading.value = false;
   }
@@ -50,15 +49,9 @@ async function submit() {
           />
         </div>
 
-        <p v-if="errorMessage" class="text-sm text-rose-600">{{ errorMessage }}</p>
-
-        <button
-          type="submit"
-          :disabled="loading"
-          class="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
-        >
+        <AppButton type="submit" class="w-full" :loading="loading">
           {{ loading ? "Giriş yapılıyor..." : "Giriş Yap" }}
-        </button>
+        </AppButton>
       </div>
     </form>
   </div>

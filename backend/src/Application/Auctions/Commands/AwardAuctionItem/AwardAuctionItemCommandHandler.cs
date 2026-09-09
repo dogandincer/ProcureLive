@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Notifications;
 using ProcureLive.Domain.Entities.Auctions;
 using ProcureLive.Domain.Enums;
 
@@ -13,17 +14,20 @@ public sealed class AwardAuctionItemCommandHandler : IRequestHandler<AwardAuctio
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTime _dateTime;
     private readonly IAuctionNotificationService _notificationService;
+    private readonly INotificationRealtimeService _notificationRealtimeService;
 
     public AwardAuctionItemCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
         IDateTime dateTime,
-        IAuctionNotificationService notificationService)
+        IAuctionNotificationService notificationService,
+        INotificationRealtimeService notificationRealtimeService)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTime = dateTime;
         _notificationService = notificationService;
+        _notificationRealtimeService = notificationRealtimeService;
     }
 
     public async Task Handle(AwardAuctionItemCommand request, CancellationToken cancellationToken)
@@ -104,5 +108,31 @@ public sealed class AwardAuctionItemCommandHandler : IRequestHandler<AwardAuctio
         }
 
         await _notificationService.ItemAwardedAsync(auction.Id, item.Id, winningBid.CompanyId, cancellationToken);
+
+        // SignalR (above) only reaches a company actively watching this auction's live page - the
+        // persisted Notification + queued email below is what actually informs a winner who isn't
+        // online at award time. Mirrors AwardRfqProcessCommandHandler's notification pattern.
+        await NotificationCreator.CreateForCompanyAsync(
+            _context, _notificationRealtimeService, _dateTime, winningBid.CompanyId,
+            NotificationType.AwardNotice,
+            "İhaleyi Kazandınız",
+            $"\"{auction.Title}\" ihalesinde \"{item.Description}\" kalemi için teklifiniz kazandı.",
+            nameof(Auction), auction.Id, cancellationToken);
+
+        List<Guid> losingCompanyIds = await _context.Bids
+            .Where(b => b.AuctionItemId == item.Id && b.CompanyId != winningBid.CompanyId)
+            .Select(b => b.CompanyId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        foreach (Guid companyId in losingCompanyIds)
+        {
+            await NotificationCreator.CreateForCompanyAsync(
+                _context, _notificationRealtimeService, _dateTime, companyId,
+                NotificationType.AwardNotice,
+                "İhale Sonuçlandı",
+                $"\"{auction.Title}\" ihalesinde \"{item.Description}\" kalemi için başka bir tedarikçinin teklifi seçildi.",
+                nameof(Auction), auction.Id, cancellationToken);
+        }
     }
 }

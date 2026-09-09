@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Notifications;
 using ProcureLive.Domain.Entities.Auctions;
 using ProcureLive.Domain.Enums;
 
@@ -12,15 +13,18 @@ public sealed class InviteCompaniesCommandHandler : IRequestHandler<InviteCompan
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTime _dateTime;
+    private readonly INotificationRealtimeService _notificationRealtimeService;
 
     public InviteCompaniesCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTime dateTime)
+        IDateTime dateTime,
+        INotificationRealtimeService notificationRealtimeService)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTime = dateTime;
+        _notificationRealtimeService = notificationRealtimeService;
     }
 
     public async Task Handle(InviteCompaniesCommand request, CancellationToken cancellationToken)
@@ -45,7 +49,9 @@ public sealed class InviteCompaniesCommandHandler : IRequestHandler<InviteCompan
         DateTime now = _dateTime.UtcNow;
         Guid invitedByUserId = _currentUserService.UserId ?? Guid.Empty;
 
-        foreach (Guid companyId in request.CompanyIds.Except(alreadyInvited))
+        List<Guid> newlyInvitedCompanyIds = request.CompanyIds.Except(alreadyInvited).ToList();
+
+        foreach (Guid companyId in newlyInvitedCompanyIds)
         {
             _context.AuctionInvitations.Add(new AuctionInvitation
             {
@@ -58,5 +64,18 @@ public sealed class InviteCompaniesCommandHandler : IRequestHandler<InviteCompan
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Mirrors InviteCompaniesToRfiCommandHandler / InviteCompaniesToRfqCommandHandler - without this,
+        // a supplier invited to an auction (the app's core feature) never finds out unless they happen
+        // to be browsing the list themselves.
+        foreach (Guid companyId in newlyInvitedCompanyIds)
+        {
+            await NotificationCreator.CreateForCompanyAsync(
+                _context, _notificationRealtimeService, _dateTime, companyId,
+                NotificationType.AuctionInvitation,
+                "Yeni İhale Daveti",
+                $"\"{auction.Title}\" ihalesine davet edildiniz.",
+                nameof(Auction), auction.Id, cancellationToken);
+        }
     }
 }

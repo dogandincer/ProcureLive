@@ -155,13 +155,13 @@ onMounted(async () => {
       </nav>
     </aside>
 
-    <div class="flex min-h-screen flex-1 flex-col">
-      <header class="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
-        <div class="flex items-center gap-3">
-          <button class="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 md:hidden" @click="sidebarOpen = true">
+    <div class="flex min-h-screen min-w-0 flex-1 flex-col">
+      <header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
+        <div class="flex min-w-0 flex-1 items-center gap-3">
+          <button class="shrink-0 rounded-md p-1.5 text-slate-500 hover:bg-slate-100 md:hidden" @click="sidebarOpen = true">
             ☰
           </button>
-          <div class="text-sm text-slate-500">
+          <div class="min-w-0 truncate text-sm text-slate-500">
             {{ currentUser?.firstName }} {{ currentUser?.lastName }}
             <span class="ml-2 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
               {{ currentUser?.roles.join(", ") }}
@@ -169,7 +169,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div class="flex items-center gap-4">
+        <div class="flex shrink-0 items-center gap-2 sm:gap-4">
           <div class="relative">
             <button
               class="relative rounded-full p-2 text-slate-500 hover:bg-slate-100"

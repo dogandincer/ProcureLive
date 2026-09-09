@@ -3,12 +3,13 @@ import type { CompanyDto, PagedResult, UserDto } from "~/types/api";
 import type { ExcelColumn } from "~/composables/useExcelImport";
 
 const api = useApi();
+const toast = useToast();
 const { isAdminRole } = useAuth();
 const users = ref<UserDto[]>([]);
 const companies = ref<CompanyDto[]>([]);
 const showForm = ref(false);
 const submitting = ref(false);
-const errorMessage = ref("");
+const loading = ref(true);
 const roleDrafts = reactive<Record<string, string>>({});
 const companyDrafts = reactive<Record<string, string>>({});
 
@@ -51,6 +52,7 @@ async function importUserRow(row: Record<string, string | number | boolean | nul
 }
 
 async function load() {
+  loading.value = true;
   try {
     const [userPage, companyPage] = await Promise.all([
       api.get<PagedResult<UserDto>>("/api/users", { page: 1, pageSize: 100 }),
@@ -63,12 +65,13 @@ async function load() {
       companyDrafts[u.id] = u.companyId ?? "";
     }
   } catch (error: any) {
-    errorMessage.value = apiErrorMessage(error, "Kayıtlar yüklenemedi.");
+    toast.error(apiErrorMessage(error, "Kayıtlar yüklenemedi."));
+  } finally {
+    loading.value = false;
   }
 }
 
 async function create() {
-  errorMessage.value = "";
   submitting.value = true;
   try {
     await api.post("/api/auth/register", {
@@ -81,16 +84,16 @@ async function create() {
     });
     Object.assign(form, { email: "", password: "", firstName: "", lastName: "", role: roles[0], companyId: "" });
     showForm.value = false;
+    toast.success("Kullanıcı oluşturuldu.");
     await load();
   } catch (error: any) {
-    errorMessage.value = apiErrorMessage(error, "Kullanıcı oluşturulamadı.");
+    toast.error(apiErrorMessage(error, "Kullanıcı oluşturulamadı."));
   } finally {
     submitting.value = false;
   }
 }
 
 async function saveRole(user: UserDto) {
-  errorMessage.value = "";
   try {
     if (roleDrafts[user.id] === "Supplier" && companyDrafts[user.id]) {
       await api.put(`/api/users/${user.id}`, {
@@ -100,29 +103,30 @@ async function saveRole(user: UserDto) {
       });
     }
     await api.post(`/api/users/${user.id}/roles`, { roles: [roleDrafts[user.id]] });
+    toast.success("Kullanıcı rolü güncellendi.");
     await load();
   } catch (error: any) {
-    errorMessage.value = apiErrorMessage(error, "Rol güncellenemedi.");
+    toast.error(apiErrorMessage(error, "Rol güncellenemedi."));
   }
 }
 
 async function deactivate(user: UserDto) {
-  errorMessage.value = "";
   try {
     await api.post(`/api/users/${user.id}/deactivate`);
+    toast.success("Kullanıcı devre dışı bırakıldı.");
     await load();
   } catch (error: any) {
-    errorMessage.value = apiErrorMessage(error, "Kullanıcı devre dışı bırakılamadı.");
+    toast.error(apiErrorMessage(error, "Kullanıcı devre dışı bırakılamadı."));
   }
 }
 
 async function activate(user: UserDto) {
-  errorMessage.value = "";
   try {
     await api.post(`/api/users/${user.id}/activate`);
+    toast.success("Kullanıcı etkinleştirildi.");
     await load();
   } catch (error: any) {
-    errorMessage.value = apiErrorMessage(error, "Kullanıcı etkinleştirilemedi.");
+    toast.error(apiErrorMessage(error, "Kullanıcı etkinleştirilemedi."));
   }
 }
 
@@ -135,15 +139,10 @@ onMounted(load);
       <h1 class="text-xl font-bold text-slate-800">Kullanıcılar</h1>
       <div class="flex gap-2">
         <ExcelImportButton :columns="importColumns" template-filename="kullanicilar-sablon.xlsx" :import-row="importUserRow" @imported="load" />
-        <button class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white" @click="showForm = !showForm">
+        <AppButton @click="showForm = !showForm">
           {{ showForm ? "Vazgeç" : "+ Yeni Kullanıcı" }}
-        </button>
+        </AppButton>
       </div>
-    </div>
-
-    <div v-if="errorMessage" class="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-      <span>{{ errorMessage }}</span>
-      <button class="font-semibold" @click="errorMessage = ''">Kapat</button>
     </div>
 
     <form v-if="showForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="create">
@@ -158,69 +157,70 @@ onMounted(load);
         <option value="" disabled>Cari seç...</option>
         <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
       </select>
-      <button type="submit" :disabled="submitting" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white sm:col-span-2 disabled:opacity-50">
+      <AppButton type="submit" class="sm:col-span-2" :loading="submitting">
         {{ submitting ? "Kaydediliyor..." : "Kaydet" }}
-      </button>
+      </AppButton>
     </form>
 
-    <div class="rounded-xl border border-slate-200 bg-white p-5">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-            <th class="pb-2">E-posta</th>
-            <th class="pb-2">Ad Soyad</th>
-            <th class="pb-2">Cari</th>
-            <th class="pb-2">Rol</th>
-            <th class="pb-2">Durum</th>
-            <th class="pb-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="u in users" :key="u.id" class="border-b border-slate-50">
-            <td class="py-2 text-slate-700">{{ u.email }}</td>
-            <td class="py-2 font-medium text-slate-700">{{ u.firstName }} {{ u.lastName }}</td>
-            <td class="py-2 text-slate-500">{{ companyName(u.companyId) }}</td>
-            <td class="py-2">
-              <div v-if="isAdminRole()" class="flex flex-wrap items-center gap-2">
-                <select v-model="roleDrafts[u.id]" class="rounded-md border border-slate-300 px-2 py-1 text-xs">
-                  <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
-                </select>
-                <select
-                  v-if="roleDrafts[u.id] === 'Supplier'"
-                  v-model="companyDrafts[u.id]"
-                  class="rounded-md border border-slate-300 px-2 py-1 text-xs"
-                >
-                  <option value="" disabled>Cari seç...</option>
-                  <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
-                </select>
-                <button
-                  v-if="roleDrafts[u.id] !== u.roles[0] || (roleDrafts[u.id] === 'Supplier' && companyDrafts[u.id] !== u.companyId)"
-                  class="rounded bg-indigo-600 px-2 py-1 text-xs font-semibold text-white disabled:opacity-40"
-                  :disabled="roleDrafts[u.id] === 'Supplier' && !companyDrafts[u.id]"
-                  @click="saveRole(u)"
-                >
-                  Kaydet
+    <AppCard>
+      <LoadingSpinner v-if="loading" />
+      <div v-else class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
+              <th class="pb-2">E-posta</th>
+              <th class="pb-2">Ad Soyad</th>
+              <th class="pb-2">Cari</th>
+              <th class="pb-2">Rol</th>
+              <th class="pb-2">Durum</th>
+              <th class="pb-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="u in users" :key="u.id" class="border-b border-slate-50">
+              <td class="py-2 text-slate-700">{{ u.email }}</td>
+              <td class="py-2 font-medium text-slate-700">{{ u.firstName }} {{ u.lastName }}</td>
+              <td class="py-2 text-slate-500">{{ companyName(u.companyId) }}</td>
+              <td class="py-2">
+                <div v-if="isAdminRole()" class="flex flex-wrap items-center gap-2">
+                  <select v-model="roleDrafts[u.id]" class="rounded-md border border-slate-300 px-2 py-1 text-xs">
+                    <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
+                  </select>
+                  <select
+                    v-if="roleDrafts[u.id] === 'Supplier'"
+                    v-model="companyDrafts[u.id]"
+                    class="rounded-md border border-slate-300 px-2 py-1 text-xs"
+                  >
+                    <option value="" disabled>Cari seç...</option>
+                    <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
+                  </select>
+                  <button
+                    v-if="roleDrafts[u.id] !== u.roles[0] || (roleDrafts[u.id] === 'Supplier' && companyDrafts[u.id] !== u.companyId)"
+                    class="rounded bg-indigo-600 px-2 py-1 text-xs font-semibold text-white disabled:opacity-40"
+                    :disabled="roleDrafts[u.id] === 'Supplier' && !companyDrafts[u.id]"
+                    @click="saveRole(u)"
+                  >
+                    Kaydet
+                  </button>
+                </div>
+                <span v-else class="text-xs text-slate-500">{{ u.roles.join(", ") }}</span>
+              </td>
+              <td class="py-2">
+                <AppBadge :tone="u.isActive ? 'emerald' : 'slate'">{{ u.isActive ? "Aktif" : "Pasif" }}</AppBadge>
+              </td>
+              <td class="py-2 text-right">
+                <button v-if="isAdminRole() && u.isActive" class="text-xs font-medium text-rose-600 hover:underline" @click="deactivate(u)">
+                  Devre Dışı Bırak
                 </button>
-              </div>
-              <span v-else class="text-xs text-slate-500">{{ u.roles.join(", ") }}</span>
-            </td>
-            <td class="py-2">
-              <span class="rounded px-2 py-0.5 text-xs font-medium" :class="u.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'">
-                {{ u.isActive ? "Aktif" : "Pasif" }}
-              </span>
-            </td>
-            <td class="py-2 text-right">
-              <button v-if="isAdminRole() && u.isActive" class="text-xs font-medium text-rose-600 hover:underline" @click="deactivate(u)">
-                Devre Dışı Bırak
-              </button>
-              <button v-else-if="isAdminRole() && !u.isActive" class="text-xs font-medium text-emerald-600 hover:underline" @click="activate(u)">
-                Etkinleştir
-              </button>
-            </td>
-          </tr>
-          <tr v-if="users.length === 0"><td colspan="6" class="py-6 text-center text-slate-400">Henüz kullanıcı yok</td></tr>
-        </tbody>
-      </table>
-    </div>
+                <button v-else-if="isAdminRole() && !u.isActive" class="text-xs font-medium text-emerald-600 hover:underline" @click="activate(u)">
+                  Etkinleştir
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <EmptyState v-if="users.length === 0">Henüz kullanıcı yok</EmptyState>
+      </div>
+    </AppCard>
   </div>
 </template>

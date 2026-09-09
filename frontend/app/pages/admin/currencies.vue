@@ -3,12 +3,13 @@ import type { CurrencyDto, ExchangeRateDto } from "~/types/api";
 import type { ExcelColumn } from "~/composables/useExcelImport";
 
 const api = useApi();
+const toast = useToast();
 const currencies = ref<CurrencyDto[]>([]);
 const rates = ref<ExchangeRateDto[]>([]);
 const showCurrencyForm = ref(false);
 const showRateForm = ref(false);
 const submitting = ref(false);
-const errorMessage = ref("");
+const loading = ref(true);
 
 const currencyForm = reactive({ code: "", name: "", symbol: "", isBaseCurrency: false });
 const rateForm = reactive({ currencyId: "", rateDate: new Date().toISOString().slice(0, 10), rateToBase: null as number | null, source: "" });
@@ -31,6 +32,7 @@ async function importCurrencyRow(row: Record<string, string | number | boolean |
 }
 
 async function load() {
+  loading.value = true;
   try {
     const [currencyList, rateList] = await Promise.all([
       api.get<CurrencyDto[]>("/api/currencies"),
@@ -42,12 +44,13 @@ async function load() {
       rateForm.currencyId = nonBaseCurrencies.value[0].id;
     }
   } catch (error: any) {
-    errorMessage.value = apiErrorMessage(error, "Kayıtlar yüklenemedi.");
+    toast.error(apiErrorMessage(error, "Kayıtlar yüklenemedi."));
+  } finally {
+    loading.value = false;
   }
 }
 
 async function createCurrency() {
-  errorMessage.value = "";
   submitting.value = true;
   try {
     await api.post("/api/currencies", {
@@ -58,9 +61,10 @@ async function createCurrency() {
     });
     Object.assign(currencyForm, { code: "", name: "", symbol: "", isBaseCurrency: false });
     showCurrencyForm.value = false;
+    toast.success("Para birimi oluşturuldu.");
     await load();
   } catch (error: any) {
-    errorMessage.value = apiErrorMessage(error, "Para birimi oluşturulamadı.");
+    toast.error(apiErrorMessage(error, "Para birimi oluşturulamadı."));
   } finally {
     submitting.value = false;
   }
@@ -68,7 +72,6 @@ async function createCurrency() {
 
 async function createRate() {
   if (!rateForm.currencyId || rateForm.rateToBase === null) return;
-  errorMessage.value = "";
   submitting.value = true;
   try {
     await api.post("/api/currencies/exchange-rates", {
@@ -80,9 +83,10 @@ async function createRate() {
     rateForm.rateToBase = null;
     rateForm.source = "";
     showRateForm.value = false;
+    toast.success("Döviz kuru eklendi.");
     await load();
   } catch (error: any) {
-    errorMessage.value = apiErrorMessage(error, "Kur oluşturulamadı.");
+    toast.error(apiErrorMessage(error, "Kur oluşturulamadı."));
   } finally {
     submitting.value = false;
   }
@@ -97,13 +101,9 @@ onMounted(load);
       <h1 class="text-xl font-bold text-slate-800">Para Birimleri &amp; Kurlar</h1>
     </div>
 
-    <div v-if="errorMessage" class="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-      <span>{{ errorMessage }}</span>
-      <button class="font-semibold" @click="errorMessage = ''">Kapat</button>
-    </div>
-
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <div class="rounded-xl border border-slate-200 bg-white p-5">
+    <LoadingSpinner v-if="loading" />
+    <div v-else class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <AppCard>
         <div class="flex items-center justify-between">
           <h2 class="text-sm font-semibold text-slate-700">Para Birimleri</h2>
           <div class="flex items-center gap-2">
@@ -122,34 +122,37 @@ onMounted(load);
             <input v-model="currencyForm.isBaseCurrency" type="checkbox" />
             Sistem baz para birimi yap
           </label>
-          <button type="submit" :disabled="submitting" class="col-span-2 rounded-md bg-slate-800 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50">
+          <AppButton type="submit" variant="secondary" class="col-span-2" :loading="submitting">
             {{ submitting ? "Kaydediliyor..." : "Kaydet" }}
-          </button>
+          </AppButton>
         </form>
 
-        <table class="mt-3 w-full text-sm">
-          <thead>
-            <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-              <th class="pb-1">Kod</th>
-              <th class="pb-1">Ad</th>
-              <th class="pb-1">Sembol</th>
-              <th class="pb-1"></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="c in currencies" :key="c.id" class="border-b border-slate-50">
-              <td class="py-1 font-mono font-semibold text-slate-700">{{ c.code }}</td>
-              <td class="py-1 text-slate-600">{{ c.name }}</td>
-              <td class="py-1 text-slate-500">{{ c.symbol }}</td>
-              <td class="py-1 text-right">
-                <span v-if="c.isBaseCurrency" class="rounded bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">Baz</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <div class="overflow-x-auto">
+          <table class="mt-3 w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
+                <th class="pb-1">Kod</th>
+                <th class="pb-1">Ad</th>
+                <th class="pb-1">Sembol</th>
+                <th class="pb-1"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="c in currencies" :key="c.id" class="border-b border-slate-50">
+                <td class="py-1 font-mono font-semibold text-slate-700">{{ c.code }}</td>
+                <td class="py-1 text-slate-600">{{ c.name }}</td>
+                <td class="py-1 text-slate-500">{{ c.symbol }}</td>
+                <td class="py-1 text-right">
+                  <AppBadge v-if="c.isBaseCurrency" tone="indigo">Baz</AppBadge>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <EmptyState v-if="currencies.length === 0">Henüz para birimi yok</EmptyState>
+        </div>
+      </AppCard>
 
-      <div class="rounded-xl border border-slate-200 bg-white p-5">
+      <AppCard>
         <div class="flex items-center justify-between">
           <h2 class="text-sm font-semibold text-slate-700">Döviz Kurları (baz para birimine göre)</h2>
           <button class="text-xs font-medium text-indigo-600 hover:underline" @click="showRateForm = !showRateForm">
@@ -164,32 +167,34 @@ onMounted(load);
           <input v-model="rateForm.rateDate" type="date" required class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
           <input v-model.number="rateForm.rateToBase" type="number" step="0.000001" placeholder="Kur (örn. 34.50)" required class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
           <input v-model="rateForm.source" placeholder="Kaynak (opsiyonel)" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-          <button type="submit" :disabled="submitting" class="col-span-2 rounded-md bg-slate-800 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50">
+          <AppButton type="submit" variant="secondary" class="col-span-2" :loading="submitting">
             {{ submitting ? "Kaydediliyor..." : "Kaydet" }}
-          </button>
+          </AppButton>
         </form>
         <p v-if="nonBaseCurrencies.length === 0" class="mt-2 text-xs text-slate-400">Kur tanımlamak için önce baz olmayan bir para birimi ekleyin.</p>
 
-        <table class="mt-3 w-full text-sm">
-          <thead>
-            <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-              <th class="pb-1">Para Birimi</th>
-              <th class="pb-1">Tarih</th>
-              <th class="pb-1">Kur</th>
-              <th class="pb-1">Kaynak</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="r in rates" :key="r.id" class="border-b border-slate-50">
-              <td class="py-1 font-mono font-semibold text-slate-700">{{ r.currencyCode }}</td>
-              <td class="py-1 text-slate-500">{{ r.rateDate }}</td>
-              <td class="py-1 font-mono text-slate-700">{{ r.rateToBase }}</td>
-              <td class="py-1 text-slate-400">{{ r.source ?? "-" }}</td>
-            </tr>
-            <tr v-if="rates.length === 0"><td colspan="4" class="py-4 text-center text-slate-400">Henüz kur tanımlı değil</td></tr>
-          </tbody>
-        </table>
-      </div>
+        <div class="overflow-x-auto">
+          <table class="mt-3 w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
+                <th class="pb-1">Para Birimi</th>
+                <th class="pb-1">Tarih</th>
+                <th class="pb-1">Kur</th>
+                <th class="pb-1">Kaynak</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="r in rates" :key="r.id" class="border-b border-slate-50">
+                <td class="py-1 font-mono font-semibold text-slate-700">{{ r.currencyCode }}</td>
+                <td class="py-1 text-slate-500">{{ r.rateDate }}</td>
+                <td class="py-1 font-mono text-slate-700">{{ r.rateToBase }}</td>
+                <td class="py-1 text-slate-400">{{ r.source ?? "-" }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <EmptyState v-if="rates.length === 0">Henüz kur tanımlı değil</EmptyState>
+        </div>
+      </AppCard>
     </div>
   </div>
 </template>

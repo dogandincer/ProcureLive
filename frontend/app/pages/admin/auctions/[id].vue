@@ -12,6 +12,7 @@ const route = useRoute();
 const auctionId = route.params.id as string;
 
 const api = useApi();
+const toast = useToast();
 const { connectAndJoin, disconnect } = useAuctionHub();
 const { isAdminRole } = useAuth();
 
@@ -25,26 +26,37 @@ const comparisons = reactive<Record<string, BidComparisonDto[]>>({});
 const inviteCompanyId = ref("");
 const newItem = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece", targetPrice: null as number | null });
 const extendMinutes = ref(5);
-const actionError = ref("");
-const loadError = ref("");
 
 async function runAction(action: () => Promise<void>) {
-  actionError.value = "";
   try {
     await action();
   } catch (error: any) {
-    actionError.value = apiErrorMessage(error, "İşlem gerçekleştirilemedi.");
+    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
   }
 }
 
-const statusBadge: Record<string, string> = {
-  Draft: "bg-slate-100 text-slate-600",
-  Scheduled: "bg-amber-100 text-amber-700",
-  Live: "bg-emerald-100 text-emerald-700",
-  Ended: "bg-slate-100 text-slate-600",
-  Awarded: "bg-indigo-100 text-indigo-700",
-  Cancelled: "bg-rose-100 text-rose-700",
+const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "rose"> = {
+  Draft: "slate",
+  Scheduled: "amber",
+  Live: "emerald",
+  Ended: "slate",
+  Awarded: "indigo",
+  Cancelled: "rose",
 };
+
+const workflowStep = computed(() => {
+  if (!auction.value) return null;
+  switch (auction.value.status) {
+    case "Draft":
+      return { step: 1, label: "Taslak: Kalem & Cari Davet Edin" };
+    case "Scheduled":
+      return { step: 2, label: "Yayınlandı: Başlangıç Bekleniyor" };
+    case "Live":
+      return { step: 3, label: "Canlı: Teklifler Toplanıyor" };
+    default:
+      return null;
+  }
+});
 
 const unitOfMeasures = ["Piece", "Kilogram", "Gram", "Liter", "Meter", "SquareMeter", "CubicMeter", "Box", "Pallet", "Hour", "Service"];
 
@@ -68,7 +80,7 @@ async function load() {
     auction.value = detail;
     companies.value = companyPage.items;
   } catch (error: any) {
-    loadError.value = apiErrorMessage(error, "İhale yüklenemedi.");
+    toast.error(apiErrorMessage(error, "İhale yüklenemedi."));
   } finally {
     loading.value = false;
   }
@@ -85,6 +97,7 @@ async function addItem() {
       sortOrder: (auction.value?.items.length ?? 0) + 1,
     });
     newItem.description = "";
+    toast.success("Kalem eklendi.");
     await load();
   });
 }
@@ -94,6 +107,7 @@ async function invite() {
   await runAction(async () => {
     await api.post(`/api/auctions/${auctionId}/invitations`, { companyIds: [inviteCompanyId.value] });
     inviteCompanyId.value = "";
+    toast.success("Cari davet edildi.");
     await load();
   });
 }
@@ -101,6 +115,7 @@ async function invite() {
 async function publish() {
   await runAction(async () => {
     await api.post(`/api/auctions/${auctionId}/publish`);
+    toast.success("İhale yayınlandı.");
     await load();
   });
 }
@@ -108,6 +123,7 @@ async function publish() {
 async function cancelAuction() {
   await runAction(async () => {
     await api.post(`/api/auctions/${auctionId}/cancel`, "Admin tarafından iptal edildi");
+    toast.success("İhale iptal edildi.");
     await load();
   });
 }
@@ -120,6 +136,7 @@ async function extend() {
       newEndAt,
       reason: `Admin manuel süre uzatma (+${extendMinutes.value} dk)`,
     });
+    toast.success(`Süre ${extendMinutes.value} dk uzatıldı.`);
     await load();
   });
 }
@@ -133,6 +150,7 @@ async function loadComparison(itemId: string) {
 async function award(itemId: string, bidId: string) {
   await runAction(async () => {
     await api.post(`/api/auctions/${auctionId}/items/${itemId}/award`, { winningBidId: bidId, notes: null });
+    toast.success("Kazanan seçildi.");
     await load();
     await loadComparison(itemId);
   });
@@ -183,64 +201,60 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <p v-if="loadError && !auction" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ loadError }}</p>
+  <LoadingSpinner v-if="loading" />
 
-  <div v-if="auction" class="space-y-6">
+  <div v-else-if="auction" class="space-y-6">
     <div class="flex items-start justify-between">
       <div>
         <h1 class="text-xl font-bold text-slate-800">{{ auction.title }}</h1>
         <p class="mt-1 text-sm text-slate-500">{{ auction.description }}</p>
+        <StepBadge v-if="workflowStep" class="mt-2" :step="workflowStep.step" :total="3" :label="workflowStep.label" />
       </div>
-      <span class="rounded px-3 py-1 text-sm font-medium" :class="statusBadge[auction.status]">{{ auction.status }}</span>
-    </div>
-
-    <div v-if="actionError" class="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-      <span>{{ actionError }}</span>
-      <button class="font-semibold" @click="actionError = ''">Kapat</button>
+      <AppBadge :tone="statusTone[auction.status]">{{ auction.status }}</AppBadge>
     </div>
 
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-      <div class="rounded-xl border border-slate-200 bg-white p-4">
+      <AppCard>
         <div class="text-xs text-slate-500">Tür</div>
         <div class="mt-1 font-semibold text-slate-800">{{ auction.auctionType }}</div>
-      </div>
-      <div class="rounded-xl border border-slate-200 bg-white p-4">
+      </AppCard>
+      <AppCard>
         <div class="text-xs text-slate-500">Para Birimi</div>
         <div class="mt-1 font-semibold text-slate-800">{{ auction.currencyCode }}</div>
-      </div>
-      <div class="rounded-xl border border-slate-200 bg-white p-4">
+      </AppCard>
+      <AppCard>
         <div class="text-xs text-slate-500">Bitişe Kalan</div>
         <div class="mt-1 font-mono font-semibold text-emerald-700">{{ timeLeftLabel }}</div>
-      </div>
-      <div class="rounded-xl border border-slate-200 bg-white p-4">
+      </AppCard>
+      <AppCard>
         <div class="text-xs text-slate-500">Süre Uzatma Kuralı</div>
         <div class="mt-1 font-semibold text-slate-800">{{ auction.extensionRuleMinutes }} dk</div>
-      </div>
+      </AppCard>
     </div>
 
-    <div v-if="isAdminRole()" class="flex flex-wrap gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
-      <span class="self-center text-sm font-medium text-amber-800">Admin Kontrolü:</span>
-      <button v-if="auction.status === 'Draft'" class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white" @click="publish">
+    <div v-if="isAdminRole()" class="flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
+      <span class="text-sm font-medium text-amber-800">Admin Kontrolü:</span>
+      <AppButton v-if="auction.status === 'Draft'" @click="publish">
         Yayınla
-      </button>
+      </AppButton>
       <template v-if="auction.status === 'Live'">
         <input v-model.number="extendMinutes" type="number" min="1" class="w-20 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-        <button class="rounded-md bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white" @click="extend">
+        <AppButton variant="secondary" @click="extend">
           Süreyi Anında Uzat
-        </button>
+        </AppButton>
       </template>
-      <button
+      <AppButton
         v-if="!['Ended', 'Awarded', 'Cancelled'].includes(auction.status)"
-        class="rounded-md bg-rose-600 px-3 py-1.5 text-sm font-semibold text-white"
+        variant="danger"
         @click="cancelAuction"
       >
         İhaleyi İptal Et
-      </button>
+      </AppButton>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div class="lg:col-span-2 space-y-4">
-        <div v-for="item in auction.items" :key="item.id" class="rounded-xl border border-slate-200 bg-white p-5">
+        <AppCard v-for="item in auction.items" :key="item.id">
           <div class="flex items-center justify-between">
             <div>
               <div class="font-semibold text-slate-800">{{ item.description }}</div>
@@ -258,38 +272,38 @@ onBeforeUnmount(() => {
             Teklifleri Karşılaştır (çoklu para birimi normalize edilmiş)
           </button>
 
-          <table v-if="comparisons[item.id]" class="mt-2 w-full text-xs">
-            <thead>
-              <tr class="border-b border-slate-100 text-left uppercase text-slate-400">
-                <th class="pb-1">Cari</th>
-                <th class="pb-1">Tutar</th>
-                <th class="pb-1">Normalize</th>
-                <th class="pb-1">Durum</th>
-                <th class="pb-1"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="b in comparisons[item.id]" :key="b.bidId" class="border-b border-slate-50">
-                <td class="py-1">{{ b.companyName }}</td>
-                <td class="py-1 font-mono">{{ b.amount }} {{ b.currencyCode }}</td>
-                <td class="py-1 font-mono">{{ b.normalizedAmountInBaseCurrency.toFixed(2) }}</td>
-                <td class="py-1">{{ b.status }}</td>
-                <td class="py-1 text-right">
-                  <button
-                    v-if="auction.status !== 'Awarded'"
-                    class="rounded bg-indigo-600 px-2 py-0.5 text-white"
-                    @click="award(item.id, b.bidId)"
-                  >
-                    Kazanan Seç
-                  </button>
-                </td>
-              </tr>
-              <tr v-if="comparisons[item.id].length === 0">
-                <td colspan="5" class="py-2 text-center text-slate-400">Henüz teklif yok</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+          <div v-if="comparisons[item.id]" class="mt-2 overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="border-b border-slate-100 text-left uppercase text-slate-400">
+                  <th class="pb-1">Cari</th>
+                  <th class="pb-1">Tutar</th>
+                  <th class="pb-1">Normalize</th>
+                  <th class="pb-1">Durum</th>
+                  <th class="pb-1"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="b in comparisons[item.id]" :key="b.bidId" class="border-b border-slate-50">
+                  <td class="py-1">{{ b.companyName }}</td>
+                  <td class="py-1 font-mono">{{ b.amount }} {{ b.currencyCode }}</td>
+                  <td class="py-1 font-mono">{{ b.normalizedAmountInBaseCurrency.toFixed(2) }}</td>
+                  <td class="py-1">{{ b.status }}</td>
+                  <td class="py-1 text-right">
+                    <button
+                      v-if="auction.status !== 'Awarded'"
+                      class="rounded bg-indigo-600 px-2 py-0.5 text-white"
+                      @click="award(item.id, b.bidId)"
+                    >
+                      Kazanan Seç
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <EmptyState v-if="comparisons[item.id].length === 0">Henüz teklif yok</EmptyState>
+          </div>
+        </AppCard>
 
         <form v-if="auction.status === 'Draft'" class="rounded-xl border border-dashed border-slate-300 bg-white p-5" @submit.prevent="addItem">
           <h3 class="text-sm font-semibold text-slate-700">Kalem Ekle</h3>
@@ -300,37 +314,37 @@ onBeforeUnmount(() => {
               <option v-for="u in unitOfMeasures" :key="u" :value="u">{{ u }}</option>
             </select>
           </div>
-          <button type="submit" class="mt-3 rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-white">Ekle</button>
+          <AppButton type="submit" variant="secondary" class="mt-3">Ekle</AppButton>
         </form>
       </div>
 
       <div class="space-y-4">
-        <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <AppCard>
           <h3 class="text-sm font-semibold text-slate-700">Davetli Cariler</h3>
-          <ul class="mt-3 space-y-2 text-sm">
+          <ul v-if="auction.invitations.length > 0" class="mt-3 space-y-2 text-sm">
             <li v-for="inv in auction.invitations" :key="inv.id" class="flex items-center justify-between">
               <span>{{ inv.companyName }}</span>
               <span class="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ inv.status }}</span>
             </li>
-            <li v-if="auction.invitations.length === 0" class="text-slate-400">Henüz davet yok</li>
           </ul>
+          <EmptyState v-else class="mt-3">Henüz davet yok</EmptyState>
 
           <div v-if="['Draft', 'Scheduled'].includes(auction.status)" class="mt-3 flex gap-2">
             <select v-model="inviteCompanyId" class="flex-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
               <option value="" disabled>Cari seç...</option>
               <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
             </select>
-            <button class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white" @click="invite">Davet Et</button>
+            <AppButton @click="invite">Davet Et</AppButton>
           </div>
-        </div>
+        </AppCard>
 
-        <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <AppCard>
           <h3 class="text-sm font-semibold text-slate-700">Canlı Akış</h3>
-          <ul class="mt-3 space-y-1 text-xs text-slate-500">
+          <ul v-if="liveLog.length > 0" class="mt-3 space-y-1 text-xs text-slate-500">
             <li v-for="(entry, i) in liveLog" :key="i">{{ entry }}</li>
-            <li v-if="liveLog.length === 0" class="text-slate-400">Henüz olay yok</li>
           </ul>
-        </div>
+          <EmptyState v-else class="mt-3">Henüz olay yok</EmptyState>
+        </AppCard>
       </div>
     </div>
   </div>

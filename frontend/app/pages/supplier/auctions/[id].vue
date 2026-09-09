@@ -5,6 +5,7 @@ const route = useRoute();
 const auctionId = route.params.id as string;
 
 const api = useApi();
+const toast = useToast();
 const { connectAndJoin, disconnect } = useAuctionHub();
 const { currentUser } = useAuth();
 
@@ -18,9 +19,7 @@ const feed = ref<{ text: string; time: number }[]>([]);
 const declineReason = ref("");
 const showDecline = ref(false);
 const flashItem = ref<string | null>(null);
-const actionError = ref("");
 const accessDenied = ref(false);
-const loadError = ref("");
 
 const myInvitation = computed(() =>
   auction.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId) ?? null,
@@ -51,7 +50,7 @@ async function load() {
     if (error?.response?.status === 403) {
       accessDenied.value = true;
     } else {
-      loadError.value = apiErrorMessage(error, "İhale yüklenemedi.");
+      toast.error(apiErrorMessage(error, "İhale yüklenemedi."));
     }
   } finally {
     loading.value = false;
@@ -59,17 +58,16 @@ async function load() {
 }
 
 async function accept() {
-  actionError.value = "";
   try {
     await api.post(`/api/auctions/${auctionId}/invitations/respond`, { accept: true, declineReason: null });
+    toast.success("Davet kabul edildi.");
     await load();
   } catch (error: any) {
-    actionError.value = apiErrorMessage(error, "İşlem gerçekleştirilemedi.");
+    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
   }
 }
 
 async function decline() {
-  actionError.value = "";
   try {
     await api.post(`/api/auctions/${auctionId}/invitations/respond`, {
       accept: false,
@@ -80,8 +78,9 @@ async function decline() {
     // Update the invitation status locally instead of reloading.
     const invitation = auction.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId);
     if (invitation) invitation.status = "Declined";
+    toast.success("Davet reddedildi.");
   } catch (error: any) {
-    actionError.value = apiErrorMessage(error, "İşlem gerçekleştirilemedi.");
+    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
   }
 }
 
@@ -162,7 +161,7 @@ onBeforeUnmount(() => {
     <p class="text-sm font-medium text-slate-600">Bu ihaleye erişiminiz yok. Daveti reddetmiş olabilirsiniz.</p>
   </div>
 
-  <p v-else-if="loadError" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ loadError }}</p>
+  <LoadingSpinner v-else-if="loading" />
 
   <div v-else-if="auction" class="space-y-6">
     <div class="flex items-start justify-between">
@@ -189,20 +188,15 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div v-if="actionError" class="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-      <span>{{ actionError }}</span>
-      <button class="font-semibold" @click="actionError = ''">Kapat</button>
-    </div>
-
     <div v-if="myInvitation?.status === 'Invited'" class="rounded-xl border border-amber-200 bg-amber-50 p-5">
       <p class="text-sm font-medium text-amber-800">Bu ihaleye davetlisiniz. Katılmak için daveti kabul edin.</p>
       <div class="mt-3 flex gap-2">
-        <button class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white" @click="accept">Daveti Kabul Et</button>
-        <button class="rounded-md bg-rose-600 px-4 py-2 text-sm font-semibold text-white" @click="showDecline = true">Reddet</button>
+        <AppButton variant="success" @click="accept">Daveti Kabul Et</AppButton>
+        <AppButton variant="danger" @click="showDecline = true">Reddet</AppButton>
       </div>
       <div v-if="showDecline" class="mt-3 flex gap-2">
         <input v-model="declineReason" placeholder="Red gerekçesi (zorunlu)" class="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <button class="rounded-md bg-rose-600 px-4 py-2 text-sm font-semibold text-white" @click="decline">Onayla</button>
+        <AppButton variant="danger" @click="decline">Onayla</AppButton>
       </div>
     </div>
 
@@ -252,12 +246,12 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div class="rounded-xl border border-slate-200 bg-white p-5">
+    <AppCard>
       <h3 class="text-sm font-semibold text-slate-700">Canlı Akış</h3>
-      <ul class="mt-3 space-y-1 text-sm text-slate-600">
+      <ul v-if="feed.length > 0" class="mt-3 space-y-1 text-sm text-slate-600">
         <li v-for="(entry, i) in feed" :key="i">{{ entry.text }}</li>
-        <li v-if="feed.length === 0" class="text-slate-400">Henüz olay yok</li>
       </ul>
-    </div>
+      <EmptyState v-else class="mt-3">Henüz olay yok</EmptyState>
+    </AppCard>
   </div>
 </template>

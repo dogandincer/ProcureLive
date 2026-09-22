@@ -24,7 +24,12 @@
     "actions": "İşlemler",
     "optional": "opsiyonel",
     "logout": "Çıkış",
-    "stepOf": "Adım {step}/{total}"
+    "stepOf": "Adım {step}/{total}",
+    "notSpecified": "Belirtilmedi",
+    "accept": "Kabul Et",
+    "decline": "Reddet",
+    "confirm": "Onayla",
+    "declineReasonPlaceholder": "Red gerekçesi"
   },
   "nav": {
     "panel": "Panel",
@@ -144,6 +149,35 @@
       "Billing": "Fatura Adresi",
       "Shipping": "Teslimat Adresi"
     },
+    "auctionStatus": {
+      "Draft": "Taslak",
+      "Scheduled": "Planlandı",
+      "Live": "Canlı",
+      "Ended": "Sona Erdi",
+      "Awarded": "Sonuçlandı",
+      "Cancelled": "İptal Edildi"
+    },
+    "auctionType": {
+      "English": "İngiliz (Artan)",
+      "Dutch": "Hollanda (Azalan)",
+      "ReverseSealed": "Ters Kapalı Zarf",
+      "SealedBid": "Kapalı Zarf"
+    },
+    "bidStatus": {
+      "Active": "Aktif",
+      "Outbid": "Geçildi",
+      "Withdrawn": "Geri Çekildi",
+      "Winning": "Kazanıyor",
+      "Rejected": "Reddedildi"
+    },
+    "invitationStatus": {
+      "Invited": "Davet Edildi",
+      "Accepted": "Kabul Edildi",
+      "Declined": "Reddedildi",
+      "Participating": "Katılıyor",
+      "Won": "Kazandı",
+      "Lost": "Kaybetti"
+    },
     "unitOfMeasure": {
       "Piece": "Adet",
       "Kilogram": "Kilogram",
@@ -156,6 +190,151 @@
       "Pallet": "Palet",
       "Hour": "Saat",
       "Service": "Hizmet"
+    }
+  },
+  "auctions": {
+    "title": "İhaleler",
+    "new": "+ Yeni İhale",
+    "form": {
+      "title": "Başlık",
+      "description": "Açıklama",
+      "auctionType": "İhale Türü",
+      "extensionMinutes": "Süre Uzatma (dk)",
+      "ownerCompany": "Alıcı Cari",
+      "currency": "Para Birimi",
+      "startAt": "Başlangıç",
+      "endAt": "Bitiş",
+      "createDraft": "Taslak Oluştur",
+      "creating": "Oluşturuluyor...",
+      "hint": "Oluşturulduktan sonra detay sayfasından kalem ekleyip Cari davet edebilirsiniz."
+    },
+    "table": {
+      "title": "Başlık",
+      "owner": "Alıcı",
+      "type": "Tür",
+      "items": "Kalem",
+      "invitations": "Davet",
+      "endsAt": "Bitiş"
+    },
+    "empty": "Henüz ihale yok",
+    "loadError": "Kayıtlar yüklenemedi.",
+    "createError": "İhale oluşturulamadı.",
+    "createdToast": "İhale taslağı oluşturuldu.",
+    "detail": {
+      "workflow": {
+        "draft": "Taslak: Kalem & Cari Davet Edin",
+        "scheduled": "Yayınlandı: Başlangıç Bekleniyor",
+        "live": "Canlı: Teklifler Toplanıyor"
+      },
+      "type": "Tür",
+      "currency": "Para Birimi",
+      "timeLeft": "Bitişe Kalan",
+      "timeExpired": "Süre doldu",
+      "timeLeftFormat": "{minutes}dk {seconds}sn",
+      "extensionRule": "Süre Uzatma Kuralı",
+      "minutesShort": "dk",
+      "adminControl": "Admin Kontrolü:",
+      "publish": "Yayınla",
+      "extendNow": "Süreyi Anında Uzat",
+      "cancelAuction": "İhaleyi İptal Et",
+      "bidCount": "teklif",
+      "currentBest": "Güncel En İyi",
+      "compareBids": "Teklifleri Karşılaştır (çoklu para birimi normalize edilmiş)",
+      "compareTable": {
+        "company": "Cari",
+        "amount": "Tutar",
+        "normalized": "Normalize"
+      },
+      "selectWinner": "Kazanan Seç",
+      "emptyBids": "Henüz teklif yok",
+      "addItem": "Kalem Ekle",
+      "form": {
+        "description": "Açıklama",
+        "quantity": "Miktar"
+      },
+      "add": "Ekle",
+      "invitedCompanies": "Davetli Cariler",
+      "emptyInvites": "Henüz davet yok",
+      "selectCompany": "Cari seç...",
+      "invite": "Davet Et",
+      "liveLog": "Canlı Akış",
+      "emptyLog": "Henüz olay yok",
+      "actionError": "İşlem gerçekleştirilemedi.",
+      "loadError": "İhale yüklenemedi.",
+      "itemAddedToast": "Kalem eklendi.",
+      "invitedToast": "Cari davet edildi.",
+      "publishedToast": "İhale yayınlandı.",
+      "cancelledToast": "İhale iptal edildi.",
+      "cancelReason": "Admin tarafından iptal edildi",
+      "extendedToast": "Süre {minutes} dk uzatıldı.",
+      "extendReason": "Admin manuel süre uzatma (+{minutes} dk)",
+      "winnerSelectedToast": "Kazanan seçildi.",
+      "log": {
+        "newBid": "Yeni teklif: {amount} ({status})",
+        "extended": "Süre uzatıldı: {reason}",
+        "started": "İhale canlıya geçti",
+        "ended": "İhale sona erdi",
+        "awarded": "Bir kalem için kazanan seçildi"
+      }
+    },
+    "live": {
+      "accessDenied": "Bu ihaleye erişiminiz yok. Daveti reddetmiş olabilirsiniz.",
+      "status": "Durum",
+      "timeLeft": "Bitişe Kalan Süre",
+      "antiSniping": "Son dakika teklifleri süreyi otomatik uzatır (anti-sniping)",
+      "invitedBanner": "Bu ihaleye davetlisiniz. Katılmak için daveti kabul edin.",
+      "acceptInvite": "Daveti Kabul Et",
+      "declineReasonRequired": "Red gerekçesi (zorunlu)",
+      "declinedBanner": "Bu ihale davetini reddettiniz; teklif veremezsiniz.",
+      "bidCount": "teklif",
+      "currentBest": "Güncel En İyi Teklif",
+      "yourBidPlaceholder": "Teklifiniz ({currency})",
+      "submitting": "Gönderiliyor...",
+      "placeBid": "Teklif Ver",
+      "needAcceptedInvite": "Teklif verebilmek için davetin kabul edilmiş olması gerekir.",
+      "notLive": "İhale şu anda canlı değil.",
+      "liveFeed": "Canlı Akış",
+      "emptyFeed": "Henüz olay yok",
+      "loadError": "İhale yüklenemedi.",
+      "actionError": "İşlem gerçekleştirilemedi.",
+      "acceptedToast": "Davet kabul edildi.",
+      "declinedToast": "Davet reddedildi.",
+      "bidError": "Teklif verilemedi.",
+      "feed": {
+        "bidSubmitted": "Teklifiniz gönderildi: {amount} {currency}",
+        "you": "Siz",
+        "someone": "Bir katılımcı",
+        "bidPlaced": "{who} {amount} teklif verdi",
+        "extended": "⏱️ Süre uzatıldı: {reason}",
+        "ended": "🏁 İhale sona erdi",
+        "wonItem": "🎉 Bir kalemi kazandınız!",
+        "itemAwarded": "Bir kalem için kazanan belirlendi."
+      }
+    },
+    "supplierList": {
+      "title": "İhale Davetlerim",
+      "table": {
+        "title": "Başlık",
+        "owner": "Alıcı",
+        "myInviteStatus": "Davet Durumum",
+        "endsAt": "Bitiş"
+      },
+      "declined": "Reddedildi",
+      "empty": "Davet yok",
+      "loadError": "Kayıtlar yüklenemedi.",
+      "actionError": "İşlem gerçekleştirilemedi.",
+      "acceptedToast": "Davet kabul edildi.",
+      "declinedToast": "Davet reddedildi."
+    },
+    "history": {
+      "title": "İhale Geçmişim",
+      "table": {
+        "title": "Başlık",
+        "owner": "Alıcı",
+        "endsAt": "Bitiş"
+      },
+      "empty": "Tamamlanmış ihale yok",
+      "loadError": "Kayıtlar yüklenemedi."
     }
   },
   "currencies": {

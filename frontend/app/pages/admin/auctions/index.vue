@@ -3,6 +3,8 @@ import type { AuctionDto, CompanyDto, CurrencyDto, PagedResult } from "~/types/a
 
 const api = useApi();
 const toast = useToast();
+const { t } = useI18n();
+const { formatDateTime } = useDateFormat();
 
 const auctions = ref<AuctionDto[]>([]);
 const companies = ref<CompanyDto[]>([]);
@@ -52,7 +54,7 @@ async function load() {
       form.currencyId = currencies.value.find((c) => c.isBaseCurrency)?.id ?? currencies.value[0].id;
     }
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Kayıtlar yüklenemedi."));
+    toast.error(apiErrorMessage(error, t("auctions.loadError")));
   } finally {
     loading.value = false;
   }
@@ -74,10 +76,10 @@ async function createAuction() {
       minDecrementPercentage: null,
       extensionRuleMinutes: form.extensionRuleMinutes,
     });
-    toast.success("İhale taslağı oluşturuldu.");
+    toast.success(t("auctions.createdToast"));
     await navigateTo(`/admin/auctions/${id}`);
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "İhale oluşturulamadı."));
+    toast.error(apiErrorMessage(error, t("auctions.createError")));
   } finally {
     submitting.value = false;
   }
@@ -89,58 +91,58 @@ onMounted(load);
 <template>
   <div class="space-y-6">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800">İhaleler</h1>
+      <h1 class="text-xl font-bold text-slate-800">{{ $t("auctions.title") }}</h1>
       <AppButton @click="showForm = !showForm">
-        {{ showForm ? "Vazgeç" : "+ Yeni İhale" }}
+        {{ showForm ? $t("common.cancel") : $t("auctions.new") }}
       </AppButton>
     </div>
 
     <form v-if="showForm" class="space-y-4 rounded-xl border border-slate-200 bg-white p-5" @submit.prevent="createAuction">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div class="sm:col-span-2">
-          <label class="mb-1 block text-sm font-medium text-slate-700">Başlık</label>
+          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.title") }}</label>
           <input v-model="form.title" required class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
         </div>
         <div class="sm:col-span-2">
-          <label class="mb-1 block text-sm font-medium text-slate-700">Açıklama</label>
+          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.description") }}</label>
           <textarea v-model="form.description" rows="2" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
         </div>
         <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">İhale Türü</label>
+          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.auctionType") }}</label>
           <select v-model="form.auctionType" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
-            <option v-for="t in auctionTypes" :key="t" :value="t">{{ t }}</option>
+            <option v-for="at in auctionTypes" :key="at" :value="at">{{ $t(`enums.auctionType.${at}`) }}</option>
           </select>
         </div>
         <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">Süre Uzatma (dk)</label>
+          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.extensionMinutes") }}</label>
           <input v-model.number="form.extensionRuleMinutes" type="number" min="0" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
         </div>
         <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">Alıcı Cari</label>
+          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.ownerCompany") }}</label>
           <select v-model="form.ownerCompanyId" required class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
             <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
           </select>
         </div>
         <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">Para Birimi</label>
+          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.currency") }}</label>
           <select v-model="form.currencyId" required class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
             <option v-for="c in currencies" :key="c.id" :value="c.id">{{ c.code }}</option>
           </select>
         </div>
         <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">Başlangıç</label>
+          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.startAt") }}</label>
           <input v-model="form.startAt" type="datetime-local" required class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
         </div>
         <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">Bitiş</label>
+          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.endAt") }}</label>
           <input v-model="form.endAt" type="datetime-local" required class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
         </div>
       </div>
 
       <AppButton type="submit" :loading="submitting">
-        {{ submitting ? "Oluşturuluyor..." : "Taslak Oluştur" }}
+        {{ submitting ? $t("auctions.form.creating") : $t("auctions.form.createDraft") }}
       </AppButton>
-      <p class="text-xs text-slate-400">Oluşturulduktan sonra detay sayfasından kalem ekleyip Cari davet edebilirsiniz.</p>
+      <p class="text-xs text-slate-400">{{ $t("auctions.form.hint") }}</p>
     </form>
 
     <AppCard>
@@ -149,13 +151,13 @@ onMounted(load);
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-              <th class="pb-2">Başlık</th>
-              <th class="pb-2">Alıcı</th>
-              <th class="pb-2">Tür</th>
-              <th class="pb-2">Durum</th>
-              <th class="pb-2">Kalem</th>
-              <th class="pb-2">Davet</th>
-              <th class="pb-2">Bitiş</th>
+              <th class="pb-2">{{ $t("auctions.table.title") }}</th>
+              <th class="pb-2">{{ $t("auctions.table.owner") }}</th>
+              <th class="pb-2">{{ $t("auctions.table.type") }}</th>
+              <th class="pb-2">{{ $t("common.status") }}</th>
+              <th class="pb-2">{{ $t("auctions.table.items") }}</th>
+              <th class="pb-2">{{ $t("auctions.table.invitations") }}</th>
+              <th class="pb-2">{{ $t("auctions.table.endsAt") }}</th>
               <th class="pb-2"></th>
             </tr>
           </thead>
@@ -163,20 +165,20 @@ onMounted(load);
             <tr v-for="a in auctions" :key="a.id" class="border-b border-slate-50">
               <td class="py-2 font-medium text-slate-700">{{ a.title }}</td>
               <td class="py-2 text-slate-500">{{ a.ownerCompanyName }}</td>
-              <td class="py-2 text-slate-500">{{ a.auctionType }}</td>
+              <td class="py-2 text-slate-500">{{ $t(`enums.auctionType.${a.auctionType}`) }}</td>
               <td class="py-2">
-                <AppBadge :tone="statusTone[a.status]">{{ a.status }}</AppBadge>
+                <AppBadge :tone="statusTone[a.status]">{{ $t(`enums.auctionStatus.${a.status}`) }}</AppBadge>
               </td>
               <td class="py-2 text-slate-500">{{ a.itemCount }}</td>
               <td class="py-2 text-slate-500">{{ a.invitationCount }}</td>
-              <td class="py-2 text-slate-500">{{ new Date(a.endAt).toLocaleString("tr-TR") }}</td>
+              <td class="py-2 text-slate-500">{{ formatDateTime(a.endAt) }}</td>
               <td class="py-2 text-right">
-                <NuxtLink :to="`/admin/auctions/${a.id}`" class="text-indigo-600 hover:underline">Detay</NuxtLink>
+                <NuxtLink :to="`/admin/auctions/${a.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink>
               </td>
             </tr>
           </tbody>
         </table>
-        <EmptyState v-if="auctions.length === 0">Henüz ihale yok</EmptyState>
+        <EmptyState v-if="auctions.length === 0">{{ $t("auctions.empty") }}</EmptyState>
       </div>
     </AppCard>
   </div>

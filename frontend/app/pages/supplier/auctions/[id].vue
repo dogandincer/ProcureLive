@@ -6,6 +6,7 @@ const auctionId = route.params.id as string;
 
 const api = useApi();
 const toast = useToast();
+const { t } = useI18n();
 const { connectAndJoin, disconnect } = useAuctionHub();
 const { currentUser } = useAuth();
 
@@ -30,11 +31,11 @@ const canBid = computed(() => myInvitation.value && ["Accepted", "Participating"
 const timeLeftLabel = computed(() => {
   if (!auction.value) return "";
   const diffMs = new Date(auction.value.endAt).getTime() - now.value;
-  if (diffMs <= 0) return "Süre doldu";
+  if (diffMs <= 0) return t("auctions.detail.timeExpired");
   const totalSeconds = Math.floor(diffMs / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  return `${minutes}dk ${seconds}sn`;
+  return t("auctions.detail.timeLeftFormat", { minutes, seconds });
 });
 
 const isUrgent = computed(() => {
@@ -50,7 +51,7 @@ async function load() {
     if (error?.response?.status === 403) {
       accessDenied.value = true;
     } else {
-      toast.error(apiErrorMessage(error, "İhale yüklenemedi."));
+      toast.error(apiErrorMessage(error, t("auctions.live.loadError")));
     }
   } finally {
     loading.value = false;
@@ -60,10 +61,10 @@ async function load() {
 async function accept() {
   try {
     await api.post(`/api/auctions/${auctionId}/invitations/respond`, { accept: true, declineReason: null });
-    toast.success("Davet kabul edildi.");
+    toast.success(t("auctions.live.acceptedToast"));
     await load();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
+    toast.error(apiErrorMessage(error, t("auctions.live.actionError")));
   }
 }
 
@@ -71,16 +72,16 @@ async function decline() {
   try {
     await api.post(`/api/auctions/${auctionId}/invitations/respond`, {
       accept: false,
-      declineReason: declineReason.value || "Belirtilmedi",
+      declineReason: declineReason.value || t("common.notSpecified"),
     });
     showDecline.value = false;
     // Declining revokes read access to this auction (server-side), so re-fetching would 403.
     // Update the invitation status locally instead of reloading.
     const invitation = auction.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId);
     if (invitation) invitation.status = "Declined";
-    toast.success("Davet reddedildi.");
+    toast.success(t("auctions.live.declinedToast"));
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
+    toast.error(apiErrorMessage(error, t("auctions.live.actionError")));
   }
 }
 
@@ -100,9 +101,9 @@ async function placeBid(item: AuctionItemDto) {
     // Don't rely solely on the SignalR echo for the bidder's own UI — refresh directly so the new
     // best-amount/bid-count shows immediately even if the realtime connection is slow or not yet up.
     await load();
-    pushFeed(`Teklifiniz gönderildi: ${amount} ${auction.value.currencyCode}`);
+    pushFeed(t("auctions.live.feed.bidSubmitted", { amount, currency: auction.value.currencyCode }));
   } catch (error: any) {
-    bidErrors[item.id] = apiErrorMessage(error, "Teklif verilemedi.");
+    bidErrors[item.id] = apiErrorMessage(error, t("auctions.live.bidError"));
   } finally {
     placingBid[item.id] = false;
   }
@@ -127,25 +128,26 @@ onMounted(async () => {
   const conn = await connectAndJoin(auctionId);
 
   conn.on("BidPlaced", (bid: BidDto) => {
-    pushFeed(`${bid.isMine ? "Siz" : bid.companyName || "Bir katılımcı"} ${bid.amount} teklif verdi`);
+    const who = bid.isMine ? t("auctions.live.feed.you") : bid.companyName || t("auctions.live.feed.someone");
+    pushFeed(t("auctions.live.feed.bidPlaced", { who, amount: bid.amount }));
     flashItem.value = bid.auctionItemId;
     setTimeout(() => (flashItem.value = null), 1500);
     load();
   });
 
   conn.on("AuctionExtended", (payload: { newEndAt: string; reason: string }) => {
-    pushFeed(`⏱️ Süre uzatıldı: ${payload.reason}`);
+    pushFeed(t("auctions.live.feed.extended", { reason: payload.reason }));
     if (auction.value) auction.value.endAt = payload.newEndAt;
   });
 
   conn.on("AuctionEnded", () => {
-    pushFeed("🏁 İhale sona erdi");
+    pushFeed(t("auctions.live.feed.ended"));
     load();
   });
 
   conn.on("ItemAwarded", (payload: { auctionItemId: string; winningCompanyId: string }) => {
     const won = payload.winningCompanyId === currentUser.value?.companyId;
-    pushFeed(won ? "🎉 Bir kalemi kazandınız!" : "Bir kalem için kazanan belirlendi.");
+    pushFeed(won ? t("auctions.live.feed.wonItem") : t("auctions.live.feed.itemAwarded"));
     load();
   });
 });
@@ -158,7 +160,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div v-if="accessDenied" class="rounded-xl border border-slate-200 bg-slate-50 p-5">
-    <p class="text-sm font-medium text-slate-600">Bu ihaleye erişiminiz yok. Daveti reddetmiş olabilirsiniz.</p>
+    <p class="text-sm font-medium text-slate-600">{{ $t("auctions.live.accessDenied") }}</p>
   </div>
 
   <LoadingSpinner v-else-if="loading" />
@@ -170,8 +172,10 @@ onBeforeUnmount(() => {
         <p class="mt-1 text-sm text-slate-500">{{ auction.description }}</p>
       </div>
       <div class="text-right">
-        <div class="text-xs text-slate-500">Durum</div>
-        <div class="font-semibold" :class="auction.status === 'Live' ? 'text-emerald-600' : 'text-slate-700'">{{ auction.status }}</div>
+        <div class="text-xs text-slate-500">{{ $t("auctions.live.status") }}</div>
+        <div class="font-semibold" :class="auction.status === 'Live' ? 'text-emerald-600' : 'text-slate-700'">
+          {{ $t(`enums.auctionStatus.${auction.status}`) }}
+        </div>
       </div>
     </div>
 
@@ -179,29 +183,29 @@ onBeforeUnmount(() => {
       class="rounded-xl border p-5 text-center"
       :class="isUrgent && auction.status === 'Live' ? 'border-rose-300 bg-rose-50' : 'border-slate-200 bg-white'"
     >
-      <div class="text-xs uppercase tracking-wide text-slate-500">Bitişe Kalan Süre</div>
+      <div class="text-xs uppercase tracking-wide text-slate-500">{{ $t("auctions.live.timeLeft") }}</div>
       <div class="mt-1 font-mono text-3xl font-bold" :class="isUrgent ? 'text-rose-600' : 'text-slate-800'">
         {{ timeLeftLabel }}
       </div>
       <div v-if="isUrgent && auction.status === 'Live'" class="mt-1 text-xs text-rose-600">
-        Son dakika teklifleri süreyi otomatik uzatır (anti-sniping)
+        {{ $t("auctions.live.antiSniping") }}
       </div>
     </div>
 
     <div v-if="myInvitation?.status === 'Invited'" class="rounded-xl border border-amber-200 bg-amber-50 p-5">
-      <p class="text-sm font-medium text-amber-800">Bu ihaleye davetlisiniz. Katılmak için daveti kabul edin.</p>
+      <p class="text-sm font-medium text-amber-800">{{ $t("auctions.live.invitedBanner") }}</p>
       <div class="mt-3 flex gap-2">
-        <AppButton variant="success" @click="accept">Daveti Kabul Et</AppButton>
-        <AppButton variant="danger" @click="showDecline = true">Reddet</AppButton>
+        <AppButton @click="accept">{{ $t("auctions.live.acceptInvite") }}</AppButton>
+        <AppButton variant="danger" @click="showDecline = true">{{ $t("common.decline") }}</AppButton>
       </div>
       <div v-if="showDecline" class="mt-3 flex gap-2">
-        <input v-model="declineReason" placeholder="Red gerekçesi (zorunlu)" class="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <AppButton variant="danger" @click="decline">Onayla</AppButton>
+        <input v-model="declineReason" :placeholder="$t('auctions.live.declineReasonRequired')" class="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
+        <AppButton variant="danger" @click="decline">{{ $t("common.confirm") }}</AppButton>
       </div>
     </div>
 
     <div v-else-if="myInvitation?.status === 'Declined'" class="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
-      Bu ihale davetini reddettiniz; teklif veremezsiniz.
+      {{ $t("auctions.live.declinedBanner") }}
     </div>
 
     <div class="space-y-4">
@@ -214,10 +218,10 @@ onBeforeUnmount(() => {
         <div class="flex items-center justify-between">
           <div>
             <div class="font-semibold text-slate-800">{{ item.description }}</div>
-            <div class="text-xs text-slate-500">{{ item.quantity }} {{ item.unitOfMeasure }} · {{ item.bidCount }} teklif</div>
+            <div class="text-xs text-slate-500">{{ item.quantity }} {{ $t(`enums.unitOfMeasure.${item.unitOfMeasure}`) }} · {{ item.bidCount }} {{ $t("auctions.live.bidCount") }}</div>
           </div>
           <div class="text-right">
-            <div class="text-xs text-slate-500">Güncel En İyi Teklif</div>
+            <div class="text-xs text-slate-500">{{ $t("auctions.live.currentBest") }}</div>
             <div class="font-mono text-2xl font-bold text-emerald-700">
               {{ item.currentBestAmount ?? "-" }} <span class="text-sm">{{ auction.currencyCode }}</span>
             </div>
@@ -229,7 +233,7 @@ onBeforeUnmount(() => {
             v-model.number="bidAmounts[item.id]"
             type="number"
             step="0.01"
-            :placeholder="`Teklifiniz (${auction.currencyCode})`"
+            :placeholder="$t('auctions.live.yourBidPlaceholder', { currency: auction.currencyCode })"
             class="w-48 rounded-md border border-slate-300 px-3 py-2 text-sm"
           />
           <button
@@ -237,21 +241,21 @@ onBeforeUnmount(() => {
             :disabled="placingBid[item.id]"
             @click="placeBid(item)"
           >
-            {{ placingBid[item.id] ? "Gönderiliyor..." : "Teklif Ver" }}
+            {{ placingBid[item.id] ? $t("auctions.live.submitting") : $t("auctions.live.placeBid") }}
           </button>
         </div>
         <p v-if="bidErrors[item.id]" class="mt-2 text-sm text-rose-600">{{ bidErrors[item.id] }}</p>
-        <p v-if="!canBid" class="mt-3 text-xs text-slate-400">Teklif verebilmek için davetin kabul edilmiş olması gerekir.</p>
-        <p v-else-if="auction.status !== 'Live'" class="mt-3 text-xs text-slate-400">İhale şu anda canlı değil.</p>
+        <p v-if="!canBid" class="mt-3 text-xs text-slate-400">{{ $t("auctions.live.needAcceptedInvite") }}</p>
+        <p v-else-if="auction.status !== 'Live'" class="mt-3 text-xs text-slate-400">{{ $t("auctions.live.notLive") }}</p>
       </div>
     </div>
 
     <AppCard>
-      <h3 class="text-sm font-semibold text-slate-700">Canlı Akış</h3>
+      <h3 class="text-sm font-semibold text-slate-700">{{ $t("auctions.live.liveFeed") }}</h3>
       <ul v-if="feed.length > 0" class="mt-3 space-y-1 text-sm text-slate-600">
         <li v-for="(entry, i) in feed" :key="i">{{ entry.text }}</li>
       </ul>
-      <EmptyState v-else class="mt-3">Henüz olay yok</EmptyState>
+      <EmptyState v-else class="mt-3">{{ $t("auctions.live.emptyFeed") }}</EmptyState>
     </AppCard>
   </div>
 </template>

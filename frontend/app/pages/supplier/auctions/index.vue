@@ -3,6 +3,8 @@ import type { AuctionDetailDto, AuctionDto, PagedResult } from "~/types/api";
 
 const api = useApi();
 const toast = useToast();
+const { t } = useI18n();
+const { formatDateTime } = useDateFormat();
 const { currentUser } = useAuth();
 
 const auctions = ref<AuctionDto[]>([]);
@@ -36,7 +38,7 @@ async function load() {
       }
     }
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Kayıtlar yüklenemedi."));
+    toast.error(apiErrorMessage(error, t("auctions.supplierList.loadError")));
   } finally {
     loading.value = false;
   }
@@ -45,10 +47,10 @@ async function load() {
 async function accept(auctionId: string) {
   try {
     await api.post(`/api/auctions/${auctionId}/invitations/respond`, { accept: true, declineReason: null });
-    toast.success("Davet kabul edildi.");
+    toast.success(t("auctions.supplierList.acceptedToast"));
     await load();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
+    toast.error(apiErrorMessage(error, t("auctions.supplierList.actionError")));
   }
 }
 
@@ -56,15 +58,15 @@ async function decline(auctionId: string) {
   try {
     await api.post(`/api/auctions/${auctionId}/invitations/respond`, {
       accept: false,
-      declineReason: declineReason[auctionId] || "Belirtilmedi",
+      declineReason: declineReason[auctionId] || t("common.notSpecified"),
     });
     showDeclineFor.value = null;
     // Declining revokes list visibility for this auction (server-side); update locally instead of
     // reloading, so the row doesn't just vanish without explanation.
     myInvitationStatus[auctionId] = "Declined";
-    toast.success("Davet reddedildi.");
+    toast.success(t("auctions.supplierList.declinedToast"));
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
+    toast.error(apiErrorMessage(error, t("auctions.supplierList.actionError")));
   }
 }
 
@@ -73,7 +75,7 @@ onMounted(load);
 
 <template>
   <div class="space-y-6">
-    <h1 class="text-xl font-bold text-slate-800">İhale Davetlerim</h1>
+    <h1 class="text-xl font-bold text-slate-800">{{ $t("auctions.supplierList.title") }}</h1>
 
     <AppCard>
       <LoadingSpinner v-if="loading" />
@@ -81,11 +83,11 @@ onMounted(load);
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-              <th class="pb-2">Başlık</th>
-              <th class="pb-2">Alıcı</th>
-              <th class="pb-2">Durum</th>
-              <th class="pb-2">Davet Durumum</th>
-              <th class="pb-2">Bitiş</th>
+              <th class="pb-2">{{ $t("auctions.supplierList.table.title") }}</th>
+              <th class="pb-2">{{ $t("auctions.supplierList.table.owner") }}</th>
+              <th class="pb-2">{{ $t("common.status") }}</th>
+              <th class="pb-2">{{ $t("auctions.supplierList.table.myInviteStatus") }}</th>
+              <th class="pb-2">{{ $t("auctions.supplierList.table.endsAt") }}</th>
               <th class="pb-2"></th>
             </tr>
           </thead>
@@ -93,28 +95,30 @@ onMounted(load);
             <tr v-for="a in auctions" :key="a.id" class="border-b border-slate-50">
               <td class="py-2 font-medium text-slate-700">{{ a.title }}</td>
               <td class="py-2 text-slate-500">{{ a.ownerCompanyName }}</td>
-              <td class="py-2"><AppBadge :tone="statusTone[a.status]">{{ a.status }}</AppBadge></td>
+              <td class="py-2"><AppBadge :tone="statusTone[a.status]">{{ $t(`enums.auctionStatus.${a.status}`) }}</AppBadge></td>
               <td class="py-2">
-                <span class="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ myInvitationStatus[a.id] ?? "-" }}</span>
+                <span class="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                  {{ myInvitationStatus[a.id] ? $t(`enums.invitationStatus.${myInvitationStatus[a.id]}`) : "-" }}
+                </span>
               </td>
-              <td class="py-2 text-slate-500">{{ new Date(a.endAt).toLocaleString("tr-TR") }}</td>
+              <td class="py-2 text-slate-500">{{ formatDateTime(a.endAt) }}</td>
               <td class="py-2 text-right">
                 <div v-if="myInvitationStatus[a.id] === 'Invited'" class="flex justify-end gap-2">
-                  <button class="rounded bg-emerald-600 px-2 py-1 text-xs font-semibold text-white" @click="accept(a.id)">Kabul Et</button>
-                  <button class="rounded bg-rose-600 px-2 py-1 text-xs font-semibold text-white" @click="showDeclineFor = a.id">Reddet</button>
+                  <button class="rounded bg-emerald-600 px-2 py-1 text-xs font-semibold text-white" @click="accept(a.id)">{{ $t("common.accept") }}</button>
+                  <button class="rounded bg-rose-600 px-2 py-1 text-xs font-semibold text-white" @click="showDeclineFor = a.id">{{ $t("common.decline") }}</button>
                 </div>
-                <span v-if="myInvitationStatus[a.id] === 'Declined'" class="text-xs text-slate-400">Reddedildi</span>
-                <NuxtLink v-else :to="`/supplier/auctions/${a.id}`" class="text-indigo-600 hover:underline">Detay</NuxtLink>
+                <span v-if="myInvitationStatus[a.id] === 'Declined'" class="text-xs text-slate-400">{{ $t("auctions.supplierList.declined") }}</span>
+                <NuxtLink v-else :to="`/supplier/auctions/${a.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink>
 
                 <div v-if="showDeclineFor === a.id" class="mt-2 flex justify-end gap-2">
-                  <input v-model="declineReason[a.id]" placeholder="Red gerekçesi" class="w-40 rounded-md border border-slate-300 px-2 py-1 text-xs" />
-                  <button class="rounded bg-rose-600 px-2 py-1 text-xs font-semibold text-white" @click="decline(a.id)">Onayla</button>
+                  <input v-model="declineReason[a.id]" :placeholder="$t('common.declineReasonPlaceholder')" class="w-40 rounded-md border border-slate-300 px-2 py-1 text-xs" />
+                  <button class="rounded bg-rose-600 px-2 py-1 text-xs font-semibold text-white" @click="decline(a.id)">{{ $t("common.confirm") }}</button>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
-        <EmptyState v-if="auctions.length === 0">Davet yok</EmptyState>
+        <EmptyState v-if="auctions.length === 0">{{ $t("auctions.supplierList.empty") }}</EmptyState>
       </div>
     </AppCard>
   </div>

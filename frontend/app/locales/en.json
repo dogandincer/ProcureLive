@@ -24,7 +24,12 @@
     "actions": "Actions",
     "optional": "optional",
     "logout": "Log Out",
-    "stepOf": "Step {step}/{total}"
+    "stepOf": "Step {step}/{total}",
+    "notSpecified": "Not specified",
+    "accept": "Accept",
+    "decline": "Decline",
+    "confirm": "Confirm",
+    "declineReasonPlaceholder": "Decline reason"
   },
   "nav": {
     "panel": "Dashboard",
@@ -144,6 +149,35 @@
       "Billing": "Billing Address",
       "Shipping": "Shipping Address"
     },
+    "auctionStatus": {
+      "Draft": "Draft",
+      "Scheduled": "Scheduled",
+      "Live": "Live",
+      "Ended": "Ended",
+      "Awarded": "Awarded",
+      "Cancelled": "Cancelled"
+    },
+    "auctionType": {
+      "English": "English (Ascending)",
+      "Dutch": "Dutch (Descending)",
+      "ReverseSealed": "Reverse Sealed Bid",
+      "SealedBid": "Sealed Bid"
+    },
+    "bidStatus": {
+      "Active": "Active",
+      "Outbid": "Outbid",
+      "Withdrawn": "Withdrawn",
+      "Winning": "Winning",
+      "Rejected": "Rejected"
+    },
+    "invitationStatus": {
+      "Invited": "Invited",
+      "Accepted": "Accepted",
+      "Declined": "Declined",
+      "Participating": "Participating",
+      "Won": "Won",
+      "Lost": "Lost"
+    },
     "unitOfMeasure": {
       "Piece": "Piece",
       "Kilogram": "Kilogram",
@@ -156,6 +190,151 @@
       "Pallet": "Pallet",
       "Hour": "Hour",
       "Service": "Service"
+    }
+  },
+  "auctions": {
+    "title": "Auctions",
+    "new": "+ New Auction",
+    "form": {
+      "title": "Title",
+      "description": "Description",
+      "auctionType": "Auction Type",
+      "extensionMinutes": "Extension Rule (min)",
+      "ownerCompany": "Buyer Company",
+      "currency": "Currency",
+      "startAt": "Start",
+      "endAt": "End",
+      "createDraft": "Create Draft",
+      "creating": "Creating...",
+      "hint": "Once created, you can add items and invite companies from the detail page."
+    },
+    "table": {
+      "title": "Title",
+      "owner": "Buyer",
+      "type": "Type",
+      "items": "Items",
+      "invitations": "Invites",
+      "endsAt": "Ends At"
+    },
+    "empty": "No auctions yet",
+    "loadError": "Failed to load records.",
+    "createError": "Failed to create auction.",
+    "createdToast": "Auction draft created.",
+    "detail": {
+      "workflow": {
+        "draft": "Draft: Add Items & Invite Companies",
+        "scheduled": "Published: Waiting to Start",
+        "live": "Live: Collecting Bids"
+      },
+      "type": "Type",
+      "currency": "Currency",
+      "timeLeft": "Time Left",
+      "timeExpired": "Time's up",
+      "timeLeftFormat": "{minutes}m {seconds}s",
+      "extensionRule": "Extension Rule",
+      "minutesShort": "min",
+      "adminControl": "Admin Control:",
+      "publish": "Publish",
+      "extendNow": "Extend Time Now",
+      "cancelAuction": "Cancel Auction",
+      "bidCount": "bids",
+      "currentBest": "Current Best",
+      "compareBids": "Compare Bids (normalized across currencies)",
+      "compareTable": {
+        "company": "Company",
+        "amount": "Amount",
+        "normalized": "Normalized"
+      },
+      "selectWinner": "Select Winner",
+      "emptyBids": "No bids yet",
+      "addItem": "Add Item",
+      "form": {
+        "description": "Description",
+        "quantity": "Quantity"
+      },
+      "add": "Add",
+      "invitedCompanies": "Invited Companies",
+      "emptyInvites": "No invitations yet",
+      "selectCompany": "Select company...",
+      "invite": "Invite",
+      "liveLog": "Live Feed",
+      "emptyLog": "No events yet",
+      "actionError": "The action could not be completed.",
+      "loadError": "Failed to load auction.",
+      "itemAddedToast": "Item added.",
+      "invitedToast": "Company invited.",
+      "publishedToast": "Auction published.",
+      "cancelledToast": "Auction cancelled.",
+      "cancelReason": "Cancelled by admin",
+      "extendedToast": "Time extended by {minutes} min.",
+      "extendReason": "Manual admin extension (+{minutes} min)",
+      "winnerSelectedToast": "Winner selected.",
+      "log": {
+        "newBid": "New bid: {amount} ({status})",
+        "extended": "Time extended: {reason}",
+        "started": "Auction went live",
+        "ended": "Auction ended",
+        "awarded": "A winner was selected for an item"
+      }
+    },
+    "live": {
+      "accessDenied": "You don't have access to this auction. You may have declined the invitation.",
+      "status": "Status",
+      "timeLeft": "Time Remaining",
+      "antiSniping": "Last-minute bids automatically extend the time (anti-sniping)",
+      "invitedBanner": "You're invited to this auction. Accept the invitation to participate.",
+      "acceptInvite": "Accept Invitation",
+      "declineReasonRequired": "Decline reason (required)",
+      "declinedBanner": "You declined this auction invitation; you cannot bid.",
+      "bidCount": "bids",
+      "currentBest": "Current Best Bid",
+      "yourBidPlaceholder": "Your bid ({currency})",
+      "submitting": "Submitting...",
+      "placeBid": "Place Bid",
+      "needAcceptedInvite": "The invitation must be accepted to place a bid.",
+      "notLive": "The auction is not currently live.",
+      "liveFeed": "Live Feed",
+      "emptyFeed": "No events yet",
+      "loadError": "Failed to load auction.",
+      "actionError": "The action could not be completed.",
+      "acceptedToast": "Invitation accepted.",
+      "declinedToast": "Invitation declined.",
+      "bidError": "Bid could not be placed.",
+      "feed": {
+        "bidSubmitted": "Your bid was submitted: {amount} {currency}",
+        "you": "You",
+        "someone": "A participant",
+        "bidPlaced": "{who} bid {amount}",
+        "extended": "⏱️ Time extended: {reason}",
+        "ended": "🏁 Auction ended",
+        "wonItem": "🎉 You won an item!",
+        "itemAwarded": "A winner was selected for an item."
+      }
+    },
+    "supplierList": {
+      "title": "My Auction Invites",
+      "table": {
+        "title": "Title",
+        "owner": "Buyer",
+        "myInviteStatus": "My Invite Status",
+        "endsAt": "Ends At"
+      },
+      "declined": "Declined",
+      "empty": "No invites",
+      "loadError": "Failed to load records.",
+      "actionError": "The action could not be completed.",
+      "acceptedToast": "Invitation accepted.",
+      "declinedToast": "Invitation declined."
+    },
+    "history": {
+      "title": "My Auction History",
+      "table": {
+        "title": "Title",
+        "owner": "Buyer",
+        "endsAt": "Ends At"
+      },
+      "empty": "No completed auctions",
+      "loadError": "Failed to load records."
     }
   },
   "currencies": {

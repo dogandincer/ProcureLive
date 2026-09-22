@@ -193,6 +193,11 @@
       "MultipleChoice": "Multiple Choice",
       "FileUpload": "File Upload"
     },
+    "auditAction": {
+      "Create": "Create",
+      "Update": "Update",
+      "Delete": "Delete"
+    },
     "rfqQuoteStatus": {
       "Draft": "Draft",
       "Submitted": "Submitted",
@@ -712,6 +717,26 @@
       "declinedToast": "Invitation declined.",
       "quoteSavedToast": "Your quote was saved."
     }
+  },
+  "auditLog": {
+    "title": "Audit Log",
+    "filterPlaceholder": "Filter by entity name (e.g. Auction)",
+    "filter": "Filter",
+    "table": {
+      "time": "Time",
+      "entity": "Entity",
+      "action": "Action",
+      "user": "User"
+    },
+    "system": "System",
+    "hide": "Hide",
+    "oldValues": "Old Values",
+    "newValues": "New Values",
+    "empty": "No records found",
+    "pageInfo": "Page {page} / {totalPages} ({totalCount} records)",
+    "previous": "Previous",
+    "next": "Next",
+    "loadError": "Failed to load records."
   },
   "dashboardSupplier": {
     "greeting": "Hello, {name}",

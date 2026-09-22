@@ -193,6 +193,11 @@
       "MultipleChoice": "Çoktan Seçmeli",
       "FileUpload": "Dosya Yükleme"
     },
+    "auditAction": {
+      "Create": "Oluşturma",
+      "Update": "Güncelleme",
+      "Delete": "Silme"
+    },
     "rfqQuoteStatus": {
       "Draft": "Taslak",
       "Submitted": "Gönderildi",
@@ -712,6 +717,26 @@
       "declinedToast": "Davet reddedildi.",
       "quoteSavedToast": "Teklifiniz kaydedildi."
     }
+  },
+  "auditLog": {
+    "title": "Denetim Kaydı (Audit Log)",
+    "filterPlaceholder": "Varlık adına göre filtrele (örn. Auction)",
+    "filter": "Filtrele",
+    "table": {
+      "time": "Zaman",
+      "entity": "Varlık",
+      "action": "İşlem",
+      "user": "Kullanıcı"
+    },
+    "system": "Sistem",
+    "hide": "Gizle",
+    "oldValues": "Eski Değerler",
+    "newValues": "Yeni Değerler",
+    "empty": "Kayıt bulunamadı",
+    "pageInfo": "Sayfa {page} / {totalPages} ({totalCount} kayıt)",
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "loadError": "Kayıtlar yüklenemedi."
   },
   "dashboardSupplier": {
     "greeting": "Merhaba, {name}",

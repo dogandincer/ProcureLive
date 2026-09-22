@@ -5,6 +5,8 @@ const route = useRoute();
 const processId = route.params.id as string;
 const api = useApi();
 const toast = useToast();
+const { t } = useI18n();
+const { formatDate } = useDateFormat();
 const { currentUser } = useAuth();
 
 const process = ref<RfqProcessDetailDto | null>(null);
@@ -39,7 +41,7 @@ async function load() {
     if (error?.response?.status === 403) {
       accessDenied.value = true;
     } else {
-      toast.error(apiErrorMessage(error, "RFQ süreci yüklenemedi."));
+      toast.error(apiErrorMessage(error, t("rfq.quote.loadError")));
     }
   } finally {
     loading.value = false;
@@ -49,10 +51,10 @@ async function load() {
 async function accept() {
   try {
     await api.post(`/api/rfq/processes/${processId}/invitations/respond`, { accept: true, declineReason: null });
-    toast.success("Davet kabul edildi.");
+    toast.success(t("rfq.quote.acceptedToast"));
     await load();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
+    toast.error(apiErrorMessage(error, t("rfq.quote.actionError")));
   }
 }
 
@@ -60,15 +62,15 @@ async function decline() {
   try {
     await api.post(`/api/rfq/processes/${processId}/invitations/respond`, {
       accept: false,
-      declineReason: declineReason.value || "Belirtilmedi",
+      declineReason: declineReason.value || t("common.notSpecified"),
     });
     showDecline.value = false;
     // Declining revokes read access to this process (server-side), so re-fetching would 403.
     const invitation = process.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId);
     if (invitation) invitation.status = "Declined";
-    toast.success("Davet reddedildi.");
+    toast.success(t("rfq.quote.declinedToast"));
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
+    toast.error(apiErrorMessage(error, t("rfq.quote.actionError")));
   }
 }
 
@@ -87,10 +89,10 @@ async function submitQuote() {
         notes: null,
       })),
     });
-    toast.success("Teklifiniz kaydedildi.");
+    toast.success(t("rfq.quote.quoteSavedToast"));
     await load();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
+    toast.error(apiErrorMessage(error, t("rfq.quote.actionError")));
   } finally {
     submitting.value = false;
   }
@@ -101,7 +103,7 @@ onMounted(load);
 
 <template>
   <div v-if="accessDenied" class="rounded-xl border border-slate-200 bg-slate-50 p-5">
-    <p class="text-sm font-medium text-slate-600">Bu RFQ sürecine erişiminiz yok. Daveti reddetmiş olabilirsiniz.</p>
+    <p class="text-sm font-medium text-slate-600">{{ $t("rfq.quote.accessDenied") }}</p>
   </div>
 
   <LoadingSpinner v-else-if="loading" />
@@ -109,47 +111,47 @@ onMounted(load);
   <div v-else-if="process" class="space-y-6">
     <div>
       <h1 class="text-xl font-bold text-slate-800">{{ process.title }}</h1>
-      <p class="text-sm text-slate-500">Son Tarih: {{ new Date(process.dueDate).toLocaleDateString("tr-TR") }}</p>
+      <p class="text-sm text-slate-500">{{ $t("rfq.quote.dueDate") }}: {{ formatDate(process.dueDate) }}</p>
     </div>
 
     <div v-if="myInvitation?.status === 'Declined'" class="rounded-xl border border-slate-200 bg-slate-50 p-5">
-      <p class="text-sm font-medium text-slate-600">Bu RFQ davetini reddettiniz. Bu sürece artık erişiminiz yok.</p>
+      <p class="text-sm font-medium text-slate-600">{{ $t("rfq.quote.declinedBanner") }}</p>
     </div>
 
     <div v-else-if="myInvitation?.status === 'Invited'" class="rounded-xl border border-amber-200 bg-amber-50 p-5">
-      <p class="text-sm font-medium text-amber-800">Bu RFQ sürecine davetlisiniz.</p>
+      <p class="text-sm font-medium text-amber-800">{{ $t("rfq.quote.invitedBanner") }}</p>
       <div class="mt-3 flex gap-2">
-        <AppButton variant="success" @click="accept">Kabul Et</AppButton>
-        <AppButton variant="danger" @click="showDecline = true">Reddet</AppButton>
+        <AppButton @click="accept">{{ $t("common.accept") }}</AppButton>
+        <AppButton variant="danger" @click="showDecline = true">{{ $t("common.decline") }}</AppButton>
       </div>
       <div v-if="showDecline" class="mt-3 flex gap-2">
-        <input v-model="declineReason" placeholder="Red gerekçesi" class="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <AppButton variant="danger" @click="decline">Onayla</AppButton>
+        <input v-model="declineReason" :placeholder="$t('common.declineReasonPlaceholder')" class="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
+        <AppButton variant="danger" @click="decline">{{ $t("common.confirm") }}</AppButton>
       </div>
     </div>
 
     <form v-else-if="canQuote" class="space-y-4 rounded-xl border border-slate-200 bg-white p-5" @submit.prevent="submitQuote">
-      <p class="text-xs text-slate-400">Her kalem için farklı para biriminde teklif verebilirsiniz.</p>
+      <p class="text-xs text-slate-400">{{ $t("rfq.quote.multiCurrencyHint") }}</p>
 
       <div v-for="li in process.lineItems" :key="li.id" class="rounded-lg border border-slate-100 p-3">
         <div class="text-sm font-medium text-slate-700">{{ li.description }}</div>
-        <div class="text-xs text-slate-500">{{ li.quantity }} {{ li.unitOfMeasure }}</div>
+        <div class="text-xs text-slate-500">{{ li.quantity }} {{ $t(`enums.unitOfMeasure.${li.unitOfMeasure}`) }}</div>
         <div class="mt-2 flex flex-wrap gap-2">
-          <input v-model.number="lines[li.id].unitPrice" type="number" step="0.01" placeholder="Birim Fiyat" required class="w-32 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+          <input v-model.number="lines[li.id].unitPrice" type="number" step="0.01" :placeholder="$t('rfq.quote.unitPricePlaceholder')" required class="w-32 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
           <select v-model="lines[li.id].currencyId" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
             <option v-for="c in currencies" :key="c.id" :value="c.id">{{ c.code }}</option>
           </select>
-          <input v-model.number="lines[li.id].leadTimeDays" type="number" placeholder="Termin (gün)" class="w-32 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+          <input v-model.number="lines[li.id].leadTimeDays" type="number" :placeholder="$t('rfq.quote.leadTimePlaceholder')" class="w-32 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
         </div>
       </div>
 
       <AppButton type="submit" :loading="submitting">
-        {{ submitting ? "Gönderiliyor..." : "Teklifi Gönder" }}
+        {{ submitting ? $t("rfq.quote.submitting") : $t("rfq.quote.submit") }}
       </AppButton>
     </form>
 
     <div v-else class="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">
-      Bu süreçle etkileşiminiz bulunmuyor.
+      {{ $t("rfq.quote.noInteraction") }}
     </div>
   </div>
 </template>

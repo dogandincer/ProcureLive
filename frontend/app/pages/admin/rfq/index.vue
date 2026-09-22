@@ -3,6 +3,7 @@ import type { CompanyDto, CurrencyDto, PagedResult, RfqProcessDto } from "~/type
 
 const api = useApi();
 const toast = useToast();
+const { t } = useI18n();
 const processes = ref<RfqProcessDto[]>([]);
 const companies = ref<CompanyDto[]>([]);
 const currencies = ref<CurrencyDto[]>([]);
@@ -38,7 +39,7 @@ async function load() {
       form.currencyId = currencies.value.find((c) => c.isBaseCurrency)?.id ?? currencies.value[0].id;
     }
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Kayıtlar yüklenemedi."));
+    toast.error(apiErrorMessage(error, t("rfq.loadError")));
   } finally {
     loading.value = false;
   }
@@ -53,10 +54,10 @@ async function create() {
       dueDate: new Date(form.dueDate).toISOString(),
     });
     showForm.value = false;
-    toast.success("RFQ süreci oluşturuldu.");
+    toast.success(t("rfq.createdToast"));
     await navigateTo(`/admin/rfq/${id}`);
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
+    toast.error(apiErrorMessage(error, t("rfq.actionError")));
   }
 }
 
@@ -66,16 +67,16 @@ onMounted(load);
 <template>
   <div class="space-y-6">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800">RFQ (Hızlı Teklif Toplama)</h1>
+      <h1 class="text-xl font-bold text-slate-800">{{ $t("rfq.title") }}</h1>
       <AppButton @click="showForm = !showForm">
-        {{ showForm ? "Vazgeç" : "+ Yeni RFQ" }}
+        {{ showForm ? $t("common.cancel") : $t("rfq.new") }}
       </AppButton>
     </div>
 
     <form v-if="showForm" class="space-y-4 rounded-xl border border-slate-200 bg-white p-5" @submit.prevent="create">
-      <StepBadge :step="1" :total="4" label="Süreç Bilgileri" />
+      <StepBadge :step="1" :total="4" :label="$t('rfq.stepInfo')" />
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <input v-model="form.title" placeholder="Başlık" required class="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
+        <input v-model="form.title" :placeholder="$t('rfq.form.title')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
         <select v-model="form.ownerCompanyId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm">
           <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
         </select>
@@ -85,7 +86,7 @@ onMounted(load);
         <input v-model="form.dueDate" type="datetime-local" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
       </div>
       <AppButton type="submit" class="sm:col-span-2">
-        Oluştur ve Devam Et (Kalem → Davet → Yayınla)
+        {{ $t("rfq.createAndContinue") }}
       </AppButton>
     </form>
 
@@ -95,11 +96,11 @@ onMounted(load);
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-              <th class="pb-2">Başlık</th>
-              <th class="pb-2">Alıcı</th>
-              <th class="pb-2">Durum</th>
-              <th class="pb-2">Kalem</th>
-              <th class="pb-2">Teklif</th>
+              <th class="pb-2">{{ $t("rfq.table.title") }}</th>
+              <th class="pb-2">{{ $t("rfq.table.owner") }}</th>
+              <th class="pb-2">{{ $t("common.status") }}</th>
+              <th class="pb-2">{{ $t("rfq.table.items") }}</th>
+              <th class="pb-2">{{ $t("rfq.table.quotes") }}</th>
               <th class="pb-2"></th>
             </tr>
           </thead>
@@ -107,14 +108,14 @@ onMounted(load);
             <tr v-for="p in processes" :key="p.id" class="border-b border-slate-50">
               <td class="py-2 font-medium text-slate-700">{{ p.title }}</td>
               <td class="py-2 text-slate-500">{{ p.ownerCompanyName }}</td>
-              <td class="py-2"><AppBadge :tone="statusTone[p.status]">{{ p.status }}</AppBadge></td>
+              <td class="py-2"><AppBadge :tone="statusTone[p.status]">{{ $t(`enums.processStatus.${p.status}`) }}</AppBadge></td>
               <td class="py-2 text-slate-500">{{ p.lineItemCount }}</td>
               <td class="py-2 text-slate-500">{{ p.quoteCount }}</td>
-              <td class="py-2 text-right"><NuxtLink :to="`/admin/rfq/${p.id}`" class="text-indigo-600 hover:underline">Detay</NuxtLink></td>
+              <td class="py-2 text-right"><NuxtLink :to="`/admin/rfq/${p.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink></td>
             </tr>
           </tbody>
         </table>
-        <EmptyState v-if="processes.length === 0">Henüz RFQ süreci yok</EmptyState>
+        <EmptyState v-if="processes.length === 0">{{ $t("rfq.empty") }}</EmptyState>
       </div>
     </AppCard>
   </div>

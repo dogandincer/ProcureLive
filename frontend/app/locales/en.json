@@ -178,6 +178,26 @@
       "Won": "Won",
       "Lost": "Lost"
     },
+    "processStatus": {
+      "Draft": "Draft",
+      "Sent": "Sent",
+      "InProgress": "In Progress",
+      "Closed": "Closed",
+      "Evaluated": "Evaluated",
+      "Awarded": "Awarded"
+    },
+    "questionType": {
+      "Text": "Text",
+      "Number": "Number",
+      "Boolean": "Yes/No",
+      "MultipleChoice": "Multiple Choice",
+      "FileUpload": "File Upload"
+    },
+    "rfqQuoteStatus": {
+      "Draft": "Draft",
+      "Submitted": "Submitted",
+      "Withdrawn": "Withdrawn"
+    },
     "unitOfMeasure": {
       "Piece": "Piece",
       "Kilogram": "Kilogram",
@@ -510,6 +530,187 @@
       "company": "Company",
       "companyHint": "Required if role is Supplier - an existing company name",
       "companyNotFound": "Company not found: \"{name}\""
+    }
+  },
+  "rfi": {
+    "title": "RFI (Request for Information)",
+    "newTemplate": "+ Template",
+    "newProcess": "+ New RFI Process",
+    "templateForm": {
+      "name": "Template Name",
+      "description": "Description",
+      "save": "Save Template",
+      "hint": "Once saved, you can add questions from the list below."
+    },
+    "templatesHeading": "Templates",
+    "questionCount": "questions",
+    "hide": "Hide",
+    "requiredSuffix": ", required",
+    "weightLabel": "weight",
+    "emptyQuestions": "No questions yet",
+    "questionForm": {
+      "text": "Question text",
+      "weight": "Weight",
+      "optionsPlaceholder": "One option per line",
+      "requiredLabel": "Required question",
+      "add": "Add Question"
+    },
+    "emptyTemplates": "No templates yet",
+    "processForm": {
+      "titlePlaceholder": "Process Title",
+      "create": "Create"
+    },
+    "table": {
+      "title": "Title",
+      "template": "Template",
+      "invitations": "Invites",
+      "responses": "Responses"
+    },
+    "empty": "No RFI processes yet",
+    "loadError": "Failed to load records.",
+    "actionError": "The action could not be completed.",
+    "templateCreatedToast": "Template created.",
+    "questionAddedToast": "Question added.",
+    "processCreatedToast": "RFI process created.",
+    "detail": {
+      "templateLabel": "Template",
+      "statusLabel": "Status",
+      "closeProcess": "Close Process",
+      "invitees": "Invitees",
+      "emptyInvites": "No invitations yet",
+      "selectCompany": "Select company...",
+      "invite": "Invite",
+      "questions": "Questions",
+      "incomingResponses": "Incoming Responses",
+      "responseTable": {
+        "company": "Company",
+        "question": "Question",
+        "answer": "Answer"
+      },
+      "emptyResponses": "No responses yet",
+      "scoredEvaluation": "Scored Supplier Evaluation",
+      "scorePlaceholder": "Score (0-100)",
+      "commentPlaceholder": "Comment",
+      "score": "Score",
+      "evalTable": {
+        "company": "Company",
+        "score": "Score",
+        "comment": "Comment"
+      },
+      "emptyEvaluations": "No evaluations yet",
+      "loadError": "Failed to load RFI process.",
+      "responsesLoadError": "Failed to load responses.",
+      "actionError": "The action could not be completed.",
+      "invitedToast": "Company invited.",
+      "evaluationSavedToast": "Evaluation saved.",
+      "closedToast": "RFI process closed."
+    },
+    "supplierList": {
+      "title": "My RFI Invites",
+      "table": {
+        "title": "Title",
+        "dueDate": "Due Date"
+      },
+      "empty": "No invites",
+      "loadError": "Failed to load records."
+    },
+    "answer": {
+      "accessDenied": "You don't have access to this RFI process. You may have declined the invitation.",
+      "dueDate": "Due Date",
+      "declinedBanner": "You declined this RFI invitation. You no longer have access to this process.",
+      "invitedBanner": "You're invited to this RFI process.",
+      "fileUploadUnsupported": "File upload isn't supported in this screen yet.",
+      "submitting": "Submitting...",
+      "submit": "Submit Answers",
+      "noInteraction": "You have no interaction with this process.",
+      "loadError": "Failed to load RFI process.",
+      "actionError": "The action could not be completed.",
+      "acceptedToast": "Invitation accepted.",
+      "declinedToast": "Invitation declined.",
+      "answersSavedToast": "Your answers were saved."
+    }
+  },
+  "rfq": {
+    "title": "RFQ (Request for Quote)",
+    "new": "+ New RFQ",
+    "stepInfo": "Process Information",
+    "form": {
+      "title": "Title"
+    },
+    "createAndContinue": "Create and Continue (Items → Invite → Publish)",
+    "table": {
+      "title": "Title",
+      "owner": "Buyer",
+      "items": "Items",
+      "quotes": "Quotes"
+    },
+    "empty": "No RFQ processes yet",
+    "loadError": "Failed to load records.",
+    "actionError": "The action could not be completed.",
+    "createdToast": "RFQ process created.",
+    "detail": {
+      "statusLabel": "Status",
+      "currencyLabel": "Currency",
+      "publishStep4": "Publish (Step 4/4)",
+      "closeProcess": "Close Process",
+      "stepItems": "Items",
+      "emptyItems": "No items yet",
+      "add": "Add",
+      "itemsDraftOnly": "Items can only be added while in Draft status.",
+      "stepInvitees": "Invitees",
+      "emptyInvites": "No invitations yet",
+      "selectCompany": "Select company...",
+      "invite": "Invite",
+      "comparisonMatrix": "Quote Comparison Matrix",
+      "comparisonMatrixHint": "(normalized across currencies)",
+      "matrixTable": {
+        "company": "Company",
+        "unitPrice": "Unit Price",
+        "normalized": "Normalized",
+        "leadTime": "Lead Time (days)"
+      },
+      "emptyMatrix": "No quotes received yet.",
+      "quotes": "Quotes",
+      "winner": "Winner",
+      "selectWinner": "Select Winner",
+      "won": "Won",
+      "emptyQuotes": "No submitted quotes yet",
+      "closeBeforeAward": "You must close the process before selecting a winner.",
+      "loadError": "Failed to load RFQ process.",
+      "matrixLoadError": "Failed to load comparison matrix.",
+      "quotesLoadError": "Failed to load quotes.",
+      "actionError": "The action could not be completed.",
+      "winnerSelectedToast": "Winner selected.",
+      "itemAddedToast": "Item added.",
+      "invitedToast": "Company invited.",
+      "publishedToast": "RFQ published.",
+      "closedToast": "RFQ process closed."
+    },
+    "supplierList": {
+      "title": "My RFQ Invites",
+      "table": {
+        "title": "Title",
+        "dueDate": "Due Date"
+      },
+      "empty": "No invites",
+      "loadError": "Failed to load records."
+    },
+    "quote": {
+      "accessDenied": "You don't have access to this RFQ process. You may have declined the invitation.",
+      "dueDate": "Due Date",
+      "declinedBanner": "You declined this RFQ invitation. You no longer have access to this process.",
+      "invitedBanner": "You're invited to this RFQ process.",
+      "multiCurrencyHint": "You can quote each item in a different currency.",
+      "unitPricePlaceholder": "Unit Price",
+      "leadTimePlaceholder": "Lead Time (days)",
+      "submitting": "Submitting...",
+      "submit": "Submit Quote",
+      "noInteraction": "You have no interaction with this process.",
+      "loadError": "Failed to load RFQ process.",
+      "actionError": "The action could not be completed.",
+      "acceptedToast": "Invitation accepted.",
+      "declinedToast": "Invitation declined.",
+      "quoteSavedToast": "Your quote was saved."
     }
   },
   "dashboardSupplier": {

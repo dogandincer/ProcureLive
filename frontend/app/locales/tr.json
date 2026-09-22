@@ -178,6 +178,26 @@
       "Won": "Kazandı",
       "Lost": "Kaybetti"
     },
+    "processStatus": {
+      "Draft": "Taslak",
+      "Sent": "Gönderildi",
+      "InProgress": "Devam Ediyor",
+      "Closed": "Kapatıldı",
+      "Evaluated": "Değerlendirildi",
+      "Awarded": "Sonuçlandı"
+    },
+    "questionType": {
+      "Text": "Metin",
+      "Number": "Sayı",
+      "Boolean": "Evet/Hayır",
+      "MultipleChoice": "Çoktan Seçmeli",
+      "FileUpload": "Dosya Yükleme"
+    },
+    "rfqQuoteStatus": {
+      "Draft": "Taslak",
+      "Submitted": "Gönderildi",
+      "Withdrawn": "Geri Çekildi"
+    },
     "unitOfMeasure": {
       "Piece": "Adet",
       "Kilogram": "Kilogram",
@@ -510,6 +530,187 @@
       "company": "Cari",
       "companyHint": "Rol Supplier ise zorunlu - mevcut bir Cari adı",
       "companyNotFound": "Cari bulunamadı: \"{name}\""
+    }
+  },
+  "rfi": {
+    "title": "RFI (Bilgi Talebi)",
+    "newTemplate": "+ Şablon",
+    "newProcess": "+ Yeni RFI Süreci",
+    "templateForm": {
+      "name": "Şablon Adı",
+      "description": "Açıklama",
+      "save": "Şablonu Kaydet",
+      "hint": "Şablonu kaydettikten sonra aşağıdaki listeden soru ekleyebilirsiniz."
+    },
+    "templatesHeading": "Şablonlar",
+    "questionCount": "soru",
+    "hide": "Gizle",
+    "requiredSuffix": ", zorunlu",
+    "weightLabel": "ağırlık",
+    "emptyQuestions": "Henüz soru yok",
+    "questionForm": {
+      "text": "Soru metni",
+      "weight": "Ağırlık",
+      "optionsPlaceholder": "Her satıra bir seçenek",
+      "requiredLabel": "Zorunlu soru",
+      "add": "Soru Ekle"
+    },
+    "emptyTemplates": "Henüz şablon yok",
+    "processForm": {
+      "titlePlaceholder": "Süreç Başlığı",
+      "create": "Oluştur"
+    },
+    "table": {
+      "title": "Başlık",
+      "template": "Şablon",
+      "invitations": "Davet",
+      "responses": "Yanıt"
+    },
+    "empty": "Henüz RFI süreci yok",
+    "loadError": "Kayıtlar yüklenemedi.",
+    "actionError": "İşlem gerçekleştirilemedi.",
+    "templateCreatedToast": "Şablon oluşturuldu.",
+    "questionAddedToast": "Soru eklendi.",
+    "processCreatedToast": "RFI süreci oluşturuldu.",
+    "detail": {
+      "templateLabel": "Şablon",
+      "statusLabel": "Durum",
+      "closeProcess": "Süreci Kapat",
+      "invitees": "Davetliler",
+      "emptyInvites": "Henüz davet yok",
+      "selectCompany": "Cari seç...",
+      "invite": "Davet Et",
+      "questions": "Sorular",
+      "incomingResponses": "Gelen Yanıtlar",
+      "responseTable": {
+        "company": "Cari",
+        "question": "Soru",
+        "answer": "Yanıt"
+      },
+      "emptyResponses": "Henüz yanıt yok",
+      "scoredEvaluation": "Puanlı Tedarikçi Değerlendirmesi",
+      "scorePlaceholder": "Puan (0-100)",
+      "commentPlaceholder": "Yorum",
+      "score": "Puanla",
+      "evalTable": {
+        "company": "Cari",
+        "score": "Puan",
+        "comment": "Yorum"
+      },
+      "emptyEvaluations": "Henüz değerlendirme yok",
+      "loadError": "RFI süreci yüklenemedi.",
+      "responsesLoadError": "Yanıtlar yüklenemedi.",
+      "actionError": "İşlem gerçekleştirilemedi.",
+      "invitedToast": "Cari davet edildi.",
+      "evaluationSavedToast": "Değerlendirme kaydedildi.",
+      "closedToast": "RFI süreci kapatıldı."
+    },
+    "supplierList": {
+      "title": "RFI Davetlerim",
+      "table": {
+        "title": "Başlık",
+        "dueDate": "Son Tarih"
+      },
+      "empty": "Davet yok",
+      "loadError": "Kayıtlar yüklenemedi."
+    },
+    "answer": {
+      "accessDenied": "Bu RFI sürecine erişiminiz yok. Daveti reddetmiş olabilirsiniz.",
+      "dueDate": "Son Tarih",
+      "declinedBanner": "Bu RFI davetini reddettiniz. Bu sürece artık erişiminiz yok.",
+      "invitedBanner": "Bu RFI sürecine davetlisiniz.",
+      "fileUploadUnsupported": "Dosya yükleme bu ekranda henüz desteklenmiyor.",
+      "submitting": "Gönderiliyor...",
+      "submit": "Yanıtları Gönder",
+      "noInteraction": "Bu süreçle etkileşiminiz bulunmuyor.",
+      "loadError": "RFI süreci yüklenemedi.",
+      "actionError": "İşlem gerçekleştirilemedi.",
+      "acceptedToast": "Davet kabul edildi.",
+      "declinedToast": "Davet reddedildi.",
+      "answersSavedToast": "Yanıtlarınız kaydedildi."
+    }
+  },
+  "rfq": {
+    "title": "RFQ (Hızlı Teklif Toplama)",
+    "new": "+ Yeni RFQ",
+    "stepInfo": "Süreç Bilgileri",
+    "form": {
+      "title": "Başlık"
+    },
+    "createAndContinue": "Oluştur ve Devam Et (Kalem → Davet → Yayınla)",
+    "table": {
+      "title": "Başlık",
+      "owner": "Alıcı",
+      "items": "Kalem",
+      "quotes": "Teklif"
+    },
+    "empty": "Henüz RFQ süreci yok",
+    "loadError": "Kayıtlar yüklenemedi.",
+    "actionError": "İşlem gerçekleştirilemedi.",
+    "createdToast": "RFQ süreci oluşturuldu.",
+    "detail": {
+      "statusLabel": "Durum",
+      "currencyLabel": "Para Birimi",
+      "publishStep4": "Yayınla (Adım 4/4)",
+      "closeProcess": "Süreci Kapat",
+      "stepItems": "Kalemler",
+      "emptyItems": "Henüz kalem yok",
+      "add": "Ekle",
+      "itemsDraftOnly": "Kalemler yalnızca taslak (Draft) aşamasında eklenebilir.",
+      "stepInvitees": "Davetliler",
+      "emptyInvites": "Henüz davet yok",
+      "selectCompany": "Cari seç...",
+      "invite": "Davet Et",
+      "comparisonMatrix": "Teklif Karşılaştırma Matrisi",
+      "comparisonMatrixHint": "(çoklu para birimi normalize edilmiş)",
+      "matrixTable": {
+        "company": "Cari",
+        "unitPrice": "Birim Fiyat",
+        "normalized": "Normalize",
+        "leadTime": "Termin (gün)"
+      },
+      "emptyMatrix": "Henüz teklif gelmedi.",
+      "quotes": "Teklifler",
+      "winner": "Kazanan",
+      "selectWinner": "Kazanan Seç",
+      "won": "Kazandı",
+      "emptyQuotes": "Henüz gönderilmiş teklif yok",
+      "closeBeforeAward": "Kazanan seçmeden önce süreci kapatmanız gerekir.",
+      "loadError": "RFQ süreci yüklenemedi.",
+      "matrixLoadError": "Karşılaştırma matrisi yüklenemedi.",
+      "quotesLoadError": "Teklifler yüklenemedi.",
+      "actionError": "İşlem gerçekleştirilemedi.",
+      "winnerSelectedToast": "Kazanan seçildi.",
+      "itemAddedToast": "Kalem eklendi.",
+      "invitedToast": "Cari davet edildi.",
+      "publishedToast": "RFQ yayınlandı.",
+      "closedToast": "RFQ süreci kapatıldı."
+    },
+    "supplierList": {
+      "title": "RFQ Davetlerim",
+      "table": {
+        "title": "Başlık",
+        "dueDate": "Son Tarih"
+      },
+      "empty": "Davet yok",
+      "loadError": "Kayıtlar yüklenemedi."
+    },
+    "quote": {
+      "accessDenied": "Bu RFQ sürecine erişiminiz yok. Daveti reddetmiş olabilirsiniz.",
+      "dueDate": "Son Tarih",
+      "declinedBanner": "Bu RFQ davetini reddettiniz. Bu sürece artık erişiminiz yok.",
+      "invitedBanner": "Bu RFQ sürecine davetlisiniz.",
+      "multiCurrencyHint": "Her kalem için farklı para biriminde teklif verebilirsiniz.",
+      "unitPricePlaceholder": "Birim Fiyat",
+      "leadTimePlaceholder": "Termin (gün)",
+      "submitting": "Gönderiliyor...",
+      "submit": "Teklifi Gönder",
+      "noInteraction": "Bu süreçle etkileşiminiz bulunmuyor.",
+      "loadError": "RFQ süreci yüklenemedi.",
+      "actionError": "İşlem gerçekleştirilemedi.",
+      "acceptedToast": "Davet kabul edildi.",
+      "declinedToast": "Davet reddedildi.",
+      "quoteSavedToast": "Teklifiniz kaydedildi."
     }
   },
   "dashboardSupplier": {

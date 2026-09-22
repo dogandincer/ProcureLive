@@ -3,6 +3,7 @@ import type { CompanyDto, PagedResult, RfiProcessDto, RfiTemplateDto } from "~/t
 
 const api = useApi();
 const toast = useToast();
+const { t } = useI18n();
 const processes = ref<RfiProcessDto[]>([]);
 const templates = ref<RfiTemplateDto[]>([]);
 const companies = ref<CompanyDto[]>([]);
@@ -20,7 +21,7 @@ async function runAction(action: () => Promise<void>) {
   try {
     await action();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
+    toast.error(apiErrorMessage(error, t("rfi.actionError")));
   }
 }
 
@@ -44,7 +45,7 @@ async function load() {
     templates.value = templateList;
     companies.value = companyPage.items;
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Kayıtlar yüklenemedi."));
+    toast.error(apiErrorMessage(error, t("rfi.loadError")));
     return;
   } finally {
     loading.value = false;
@@ -61,7 +62,7 @@ async function createTemplate() {
     await api.post("/api/rfi/templates", { name: templateForm.name, description: templateForm.description || null, categoryId: null });
     Object.assign(templateForm, { name: "", description: "" });
     showTemplateForm.value = false;
-    toast.success("Şablon oluşturuldu.");
+    toast.success(t("rfi.templateCreatedToast"));
     await load();
   });
 }
@@ -86,7 +87,7 @@ async function addQuestion(template: RfiTemplateDto) {
       options,
     });
     Object.assign(questionForm, { questionText: "", questionType: "Text", isRequired: true, weight: 1, optionsText: "" });
-    toast.success("Soru eklendi.");
+    toast.success(t("rfi.questionAddedToast"));
     await load();
   });
 }
@@ -100,7 +101,7 @@ async function createProcess() {
       dueDate: new Date(processForm.dueDate).toISOString(),
     });
     showProcessForm.value = false;
-    toast.success("RFI süreci oluşturuldu.");
+    toast.success(t("rfi.processCreatedToast"));
     await navigateTo(`/admin/rfi/${id}`);
   });
 }
@@ -111,80 +112,82 @@ onMounted(load);
 <template>
   <div class="space-y-6">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800">RFI (Bilgi Talebi)</h1>
+      <h1 class="text-xl font-bold text-slate-800">{{ $t("rfi.title") }}</h1>
       <div class="flex gap-2">
         <AppButton variant="secondary" @click="showTemplateForm = !showTemplateForm">
-          + Şablon
+          {{ $t("rfi.newTemplate") }}
         </AppButton>
         <AppButton @click="showProcessForm = !showProcessForm">
-          + Yeni RFI Süreci
+          {{ $t("rfi.newProcess") }}
         </AppButton>
       </div>
     </div>
 
     <form v-if="showTemplateForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="createTemplate">
-      <input v-model="templateForm.name" placeholder="Şablon Adı" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-      <input v-model="templateForm.description" placeholder="Açıklama" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-      <AppButton type="submit" variant="secondary" class="sm:col-span-2">Şablonu Kaydet</AppButton>
-      <p class="text-xs text-slate-400 sm:col-span-2">Şablonu kaydettikten sonra aşağıdaki listeden soru ekleyebilirsiniz.</p>
+      <input v-model="templateForm.name" :placeholder="$t('rfi.templateForm.name')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      <input v-model="templateForm.description" :placeholder="$t('rfi.templateForm.description')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      <AppButton type="submit" variant="secondary" class="sm:col-span-2">{{ $t("rfi.templateForm.save") }}</AppButton>
+      <p class="text-xs text-slate-400 sm:col-span-2">{{ $t("rfi.templateForm.hint") }}</p>
     </form>
 
     <AppCard>
-      <h2 class="text-sm font-semibold text-slate-700">Şablonlar</h2>
+      <h2 class="text-sm font-semibold text-slate-700">{{ $t("rfi.templatesHeading") }}</h2>
       <LoadingSpinner v-if="loading" class="mt-3" />
       <template v-else>
         <ul v-if="templates.length > 0" class="mt-3 space-y-2">
-          <li v-for="t in templates" :key="t.id" class="rounded-lg border border-slate-100 p-3">
-            <button class="flex w-full items-center justify-between text-left" @click="toggleTemplate(t)">
-              <span class="text-sm font-medium text-slate-700">{{ t.name }}</span>
-              <span class="text-xs text-slate-400">{{ t.questions.length }} soru · {{ expandedTemplateId === t.id ? "Gizle" : "Detay" }}</span>
+          <li v-for="tpl in templates" :key="tpl.id" class="rounded-lg border border-slate-100 p-3">
+            <button class="flex w-full items-center justify-between text-left" @click="toggleTemplate(tpl)">
+              <span class="text-sm font-medium text-slate-700">{{ tpl.name }}</span>
+              <span class="text-xs text-slate-400">{{ tpl.questions.length }} {{ $t("rfi.questionCount") }} · {{ expandedTemplateId === tpl.id ? $t("rfi.hide") : $t("common.detail") }}</span>
             </button>
 
-            <div v-if="expandedTemplateId === t.id" class="mt-3 space-y-3 border-t border-slate-100 pt-3">
+            <div v-if="expandedTemplateId === tpl.id" class="mt-3 space-y-3 border-t border-slate-100 pt-3">
               <ol class="list-decimal space-y-1 pl-4 text-sm text-slate-600">
-                <li v-for="q in t.questions" :key="q.id">
+                <li v-for="q in tpl.questions" :key="q.id">
                   {{ q.questionText }}
-                  <span class="text-xs text-slate-400">({{ q.questionType }}, ağırlık {{ q.weight }}{{ q.isRequired ? ", zorunlu" : "" }})</span>
+                  <span class="text-xs text-slate-400">
+                    ({{ $t(`enums.questionType.${q.questionType}`) }}, {{ $t("rfi.weightLabel") }} {{ q.weight }}{{ q.isRequired ? $t("rfi.requiredSuffix") : "" }})
+                  </span>
                 </li>
-                <li v-if="t.questions.length === 0" class="text-slate-400">Henüz soru yok</li>
+                <li v-if="tpl.questions.length === 0" class="text-slate-400">{{ $t("rfi.emptyQuestions") }}</li>
               </ol>
 
-              <form class="grid grid-cols-1 gap-2 sm:grid-cols-2" @submit.prevent="addQuestion(t)">
-                <input v-model="questionForm.questionText" placeholder="Soru metni" required class="sm:col-span-2 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+              <form class="grid grid-cols-1 gap-2 sm:grid-cols-2" @submit.prevent="addQuestion(tpl)">
+                <input v-model="questionForm.questionText" :placeholder="$t('rfi.questionForm.text')" required class="sm:col-span-2 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
                 <select v-model="questionForm.questionType" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
-                  <option v-for="qt in questionTypes" :key="qt" :value="qt">{{ qt }}</option>
+                  <option v-for="qt in questionTypes" :key="qt" :value="qt">{{ $t(`enums.questionType.${qt}`) }}</option>
                 </select>
-                <input v-model.number="questionForm.weight" type="number" min="0" step="0.5" placeholder="Ağırlık" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+                <input v-model.number="questionForm.weight" type="number" min="0" step="0.5" :placeholder="$t('rfi.questionForm.weight')" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
                 <textarea
                   v-if="questionForm.questionType === 'MultipleChoice'"
                   v-model="questionForm.optionsText"
-                  placeholder="Her satıra bir seçenek"
+                  :placeholder="$t('rfi.questionForm.optionsPlaceholder')"
                   rows="3"
                   class="sm:col-span-2 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
                 />
                 <label class="flex items-center gap-2 text-xs text-slate-600">
                   <input v-model="questionForm.isRequired" type="checkbox" />
-                  Zorunlu soru
+                  {{ $t("rfi.questionForm.requiredLabel") }}
                 </label>
-                <AppButton type="submit">Soru Ekle</AppButton>
+                <AppButton type="submit">{{ $t("rfi.questionForm.add") }}</AppButton>
               </form>
             </div>
           </li>
         </ul>
-        <EmptyState v-else class="mt-3">Henüz şablon yok</EmptyState>
+        <EmptyState v-else class="mt-3">{{ $t("rfi.emptyTemplates") }}</EmptyState>
       </template>
     </AppCard>
 
     <form v-if="showProcessForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="createProcess">
       <select v-model="processForm.rfiTemplateId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm">
-        <option v-for="t in templates" :key="t.id" :value="t.id">{{ t.name }} ({{ t.questions.length }} soru)</option>
+        <option v-for="tpl in templates" :key="tpl.id" :value="tpl.id">{{ tpl.name }} ({{ tpl.questions.length }} {{ $t("rfi.questionCount") }})</option>
       </select>
       <select v-model="processForm.ownerCompanyId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm">
         <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
       </select>
-      <input v-model="processForm.title" placeholder="Süreç Başlığı" required class="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
+      <input v-model="processForm.title" :placeholder="$t('rfi.processForm.titlePlaceholder')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
       <input v-model="processForm.dueDate" type="datetime-local" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-      <AppButton type="submit">Oluştur</AppButton>
+      <AppButton type="submit">{{ $t("rfi.processForm.create") }}</AppButton>
     </form>
 
     <AppCard>
@@ -193,11 +196,11 @@ onMounted(load);
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-              <th class="pb-2">Başlık</th>
-              <th class="pb-2">Şablon</th>
-              <th class="pb-2">Durum</th>
-              <th class="pb-2">Davet</th>
-              <th class="pb-2">Yanıt</th>
+              <th class="pb-2">{{ $t("rfi.table.title") }}</th>
+              <th class="pb-2">{{ $t("rfi.table.template") }}</th>
+              <th class="pb-2">{{ $t("common.status") }}</th>
+              <th class="pb-2">{{ $t("rfi.table.invitations") }}</th>
+              <th class="pb-2">{{ $t("rfi.table.responses") }}</th>
               <th class="pb-2"></th>
             </tr>
           </thead>
@@ -205,14 +208,14 @@ onMounted(load);
             <tr v-for="p in processes" :key="p.id" class="border-b border-slate-50">
               <td class="py-2 font-medium text-slate-700">{{ p.title }}</td>
               <td class="py-2 text-slate-500">{{ p.templateName }}</td>
-              <td class="py-2"><AppBadge :tone="statusTone[p.status]">{{ p.status }}</AppBadge></td>
+              <td class="py-2"><AppBadge :tone="statusTone[p.status]">{{ $t(`enums.processStatus.${p.status}`) }}</AppBadge></td>
               <td class="py-2 text-slate-500">{{ p.invitationCount }}</td>
               <td class="py-2 text-slate-500">{{ p.responseCount }}</td>
-              <td class="py-2 text-right"><NuxtLink :to="`/admin/rfi/${p.id}`" class="text-indigo-600 hover:underline">Detay</NuxtLink></td>
+              <td class="py-2 text-right"><NuxtLink :to="`/admin/rfi/${p.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink></td>
             </tr>
           </tbody>
         </table>
-        <EmptyState v-if="processes.length === 0">Henüz RFI süreci yok</EmptyState>
+        <EmptyState v-if="processes.length === 0">{{ $t("rfi.empty") }}</EmptyState>
       </div>
     </AppCard>
   </div>

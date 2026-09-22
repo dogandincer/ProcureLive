@@ -5,6 +5,8 @@ const route = useRoute();
 const processId = route.params.id as string;
 const api = useApi();
 const toast = useToast();
+const { t } = useI18n();
+const { formatDate } = useDateFormat();
 const { currentUser } = useAuth();
 
 const process = ref<RfiProcessDetailDto | null>(null);
@@ -32,7 +34,7 @@ async function load() {
     if (error?.response?.status === 403) {
       accessDenied.value = true;
     } else {
-      toast.error(apiErrorMessage(error, "RFI süreci yüklenemedi."));
+      toast.error(apiErrorMessage(error, t("rfi.answer.loadError")));
     }
   } finally {
     loading.value = false;
@@ -42,10 +44,10 @@ async function load() {
 async function accept() {
   try {
     await api.post(`/api/rfi/processes/${processId}/invitations/respond`, { accept: true, declineReason: null });
-    toast.success("Davet kabul edildi.");
+    toast.success(t("rfi.answer.acceptedToast"));
     await load();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
+    toast.error(apiErrorMessage(error, t("rfi.answer.actionError")));
   }
 }
 
@@ -53,15 +55,15 @@ async function decline() {
   try {
     await api.post(`/api/rfi/processes/${processId}/invitations/respond`, {
       accept: false,
-      declineReason: declineReason.value || "Belirtilmedi",
+      declineReason: declineReason.value || t("common.notSpecified"),
     });
     showDecline.value = false;
     // Declining revokes read access to this process (server-side), so re-fetching would 403.
     const invitation = process.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId);
     if (invitation) invitation.status = "Declined";
-    toast.success("Davet reddedildi.");
+    toast.success(t("rfi.answer.declinedToast"));
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
+    toast.error(apiErrorMessage(error, t("rfi.answer.actionError")));
   }
 }
 
@@ -79,10 +81,10 @@ async function submitAnswers() {
         attachmentUrl: null,
       })),
     });
-    toast.success("Yanıtlarınız kaydedildi.");
+    toast.success(t("rfi.answer.answersSavedToast"));
     await load();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
+    toast.error(apiErrorMessage(error, t("rfi.answer.actionError")));
   } finally {
     submitting.value = false;
   }
@@ -93,7 +95,7 @@ onMounted(load);
 
 <template>
   <div v-if="accessDenied" class="rounded-xl border border-slate-200 bg-slate-50 p-5">
-    <p class="text-sm font-medium text-slate-600">Bu RFI sürecine erişiminiz yok. Daveti reddetmiş olabilirsiniz.</p>
+    <p class="text-sm font-medium text-slate-600">{{ $t("rfi.answer.accessDenied") }}</p>
   </div>
 
   <LoadingSpinner v-else-if="loading" />
@@ -101,22 +103,22 @@ onMounted(load);
   <div v-else-if="process" class="space-y-6">
     <div>
       <h1 class="text-xl font-bold text-slate-800">{{ process.title }}</h1>
-      <p class="text-sm text-slate-500">Son Tarih: {{ new Date(process.dueDate).toLocaleDateString("tr-TR") }}</p>
+      <p class="text-sm text-slate-500">{{ $t("rfi.answer.dueDate") }}: {{ formatDate(process.dueDate) }}</p>
     </div>
 
     <div v-if="myInvitation?.status === 'Declined'" class="rounded-xl border border-slate-200 bg-slate-50 p-5">
-      <p class="text-sm font-medium text-slate-600">Bu RFI davetini reddettiniz. Bu sürece artık erişiminiz yok.</p>
+      <p class="text-sm font-medium text-slate-600">{{ $t("rfi.answer.declinedBanner") }}</p>
     </div>
 
     <div v-else-if="myInvitation?.status === 'Invited'" class="rounded-xl border border-amber-200 bg-amber-50 p-5">
-      <p class="text-sm font-medium text-amber-800">Bu RFI sürecine davetlisiniz.</p>
+      <p class="text-sm font-medium text-amber-800">{{ $t("rfi.answer.invitedBanner") }}</p>
       <div class="mt-3 flex gap-2">
-        <AppButton variant="success" @click="accept">Kabul Et</AppButton>
-        <AppButton variant="danger" @click="showDecline = true">Reddet</AppButton>
+        <AppButton @click="accept">{{ $t("common.accept") }}</AppButton>
+        <AppButton variant="danger" @click="showDecline = true">{{ $t("common.decline") }}</AppButton>
       </div>
       <div v-if="showDecline" class="mt-3 flex gap-2">
-        <input v-model="declineReason" placeholder="Red gerekçesi" class="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <AppButton variant="danger" @click="decline">Onayla</AppButton>
+        <input v-model="declineReason" :placeholder="$t('common.declineReasonPlaceholder')" class="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
+        <AppButton variant="danger" @click="decline">{{ $t("common.confirm") }}</AppButton>
       </div>
     </div>
 
@@ -127,22 +129,22 @@ onMounted(load);
         <input v-if="q.questionType === 'Text'" v-model="answers[q.id].text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
         <input v-else-if="q.questionType === 'Number'" v-model.number="answers[q.id].number" type="number" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
         <select v-else-if="q.questionType === 'Boolean'" v-model="answers[q.id].bool" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
-          <option :value="true">Evet</option>
-          <option :value="false">Hayır</option>
+          <option :value="true">{{ $t("common.yes") }}</option>
+          <option :value="false">{{ $t("common.no") }}</option>
         </select>
         <select v-else-if="q.questionType === 'MultipleChoice'" v-model="answers[q.id].optionId" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
           <option v-for="o in q.options" :key="o.id" :value="o.id">{{ o.optionText }}</option>
         </select>
-        <p v-else class="text-xs text-slate-400">Dosya yükleme bu ekranda henüz desteklenmiyor.</p>
+        <p v-else class="text-xs text-slate-400">{{ $t("rfi.answer.fileUploadUnsupported") }}</p>
       </div>
 
       <AppButton type="submit" :loading="submitting">
-        {{ submitting ? "Gönderiliyor..." : "Yanıtları Gönder" }}
+        {{ submitting ? $t("rfi.answer.submitting") : $t("rfi.answer.submit") }}
       </AppButton>
     </form>
 
     <div v-else class="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">
-      Bu süreçle etkileşiminiz bulunmuyor.
+      {{ $t("rfi.answer.noInteraction") }}
     </div>
   </div>
 </template>

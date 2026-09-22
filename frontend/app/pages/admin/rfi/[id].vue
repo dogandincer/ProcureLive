@@ -5,6 +5,7 @@ const route = useRoute();
 const processId = route.params.id as string;
 const api = useApi();
 const toast = useToast();
+const { t } = useI18n();
 
 const process = ref<RfiProcessDetailDto | null>(null);
 const companies = ref<CompanyDto[]>([]);
@@ -18,7 +19,7 @@ async function runAction(action: () => Promise<void>) {
   try {
     await action();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "İşlem gerçekleştirilemedi."));
+    toast.error(apiErrorMessage(error, t("rfi.detail.actionError")));
   }
 }
 
@@ -34,7 +35,7 @@ async function load() {
     companies.value = companyPage.items;
     evaluations.value = evalList;
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "RFI süreci yüklenemedi."));
+    toast.error(apiErrorMessage(error, t("rfi.detail.loadError")));
   } finally {
     loading.value = false;
   }
@@ -44,7 +45,7 @@ async function loadResponses() {
   try {
     responses.value = await api.get<RfiResponseDto[]>(`/api/rfi/processes/${processId}/responses`);
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Yanıtlar yüklenemedi."));
+    toast.error(apiErrorMessage(error, t("rfi.detail.responsesLoadError")));
   }
 }
 
@@ -53,7 +54,7 @@ async function invite() {
   await runAction(async () => {
     await api.post(`/api/rfi/processes/${processId}/invitations`, { companyIds: [inviteCompanyId.value] });
     inviteCompanyId.value = "";
-    toast.success("Cari davet edildi.");
+    toast.success(t("rfi.detail.invitedToast"));
     await load();
   });
 }
@@ -66,7 +67,7 @@ async function submitEvaluation() {
       totalScore: evalForm.totalScore,
       comments: evalForm.comments || null,
     });
-    toast.success("Değerlendirme kaydedildi.");
+    toast.success(t("rfi.detail.evaluationSavedToast"));
     await load();
   });
 }
@@ -74,7 +75,7 @@ async function submitEvaluation() {
 async function close() {
   await runAction(async () => {
     await api.post(`/api/rfi/processes/${processId}/close`);
-    toast.success("RFI süreci kapatıldı.");
+    toast.success(t("rfi.detail.closedToast"));
     await load();
   });
 }
@@ -93,49 +94,53 @@ onMounted(async () => {
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-xl font-bold text-slate-800">{{ process.title }}</h1>
-        <p class="text-sm text-slate-500">Şablon: {{ process.templateName }} · Durum: {{ process.status }}</p>
+        <p class="text-sm text-slate-500">
+          {{ $t("rfi.detail.templateLabel") }}: {{ process.templateName }} · {{ $t("rfi.detail.statusLabel") }}: {{ $t(`enums.processStatus.${process.status}`) }}
+        </p>
       </div>
       <AppButton v-if="!['Closed', 'Evaluated'].includes(process.status)" variant="secondary" @click="close">
-        Süreci Kapat
+        {{ $t("rfi.detail.closeProcess") }}
       </AppButton>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <AppCard>
-        <h3 class="text-sm font-semibold text-slate-700">Davetliler</h3>
+        <h3 class="text-sm font-semibold text-slate-700">{{ $t("rfi.detail.invitees") }}</h3>
         <ul v-if="process.invitations.length > 0" class="mt-3 space-y-2 text-sm">
           <li v-for="inv in process.invitations" :key="inv.id" class="flex items-center justify-between">
             <span>{{ inv.companyName }}</span>
-            <span class="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ inv.status }}</span>
+            <span class="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ $t(`enums.invitationStatus.${inv.status}`) }}</span>
           </li>
         </ul>
-        <EmptyState v-else class="mt-3">Henüz davet yok</EmptyState>
+        <EmptyState v-else class="mt-3">{{ $t("rfi.detail.emptyInvites") }}</EmptyState>
         <div class="mt-3 flex gap-2">
           <select v-model="inviteCompanyId" class="flex-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
-            <option value="" disabled>Cari seç...</option>
+            <option value="" disabled>{{ $t("rfi.detail.selectCompany") }}</option>
             <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
           </select>
-          <AppButton @click="invite">Davet Et</AppButton>
+          <AppButton @click="invite">{{ $t("rfi.detail.invite") }}</AppButton>
         </div>
       </AppCard>
 
       <AppCard>
-        <h3 class="text-sm font-semibold text-slate-700">Sorular</h3>
+        <h3 class="text-sm font-semibold text-slate-700">{{ $t("rfi.detail.questions") }}</h3>
         <ol class="mt-3 list-decimal space-y-1 pl-4 text-sm text-slate-600">
-          <li v-for="q in process.questions" :key="q.id">{{ q.questionText }} <span class="text-xs text-slate-400">({{ q.questionType }}, ağırlık {{ q.weight }})</span></li>
+          <li v-for="q in process.questions" :key="q.id">
+            {{ q.questionText }} <span class="text-xs text-slate-400">({{ $t(`enums.questionType.${q.questionType}`) }}, {{ $t("rfi.weightLabel") }} {{ q.weight }})</span>
+          </li>
         </ol>
       </AppCard>
     </div>
 
     <AppCard>
-      <h3 class="text-sm font-semibold text-slate-700">Gelen Yanıtlar</h3>
+      <h3 class="text-sm font-semibold text-slate-700">{{ $t("rfi.detail.incomingResponses") }}</h3>
       <div class="mt-3 overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-              <th class="pb-2">Cari</th>
-              <th class="pb-2">Soru</th>
-              <th class="pb-2">Yanıt</th>
+              <th class="pb-2">{{ $t("rfi.detail.responseTable.company") }}</th>
+              <th class="pb-2">{{ $t("rfi.detail.responseTable.question") }}</th>
+              <th class="pb-2">{{ $t("rfi.detail.responseTable.answer") }}</th>
             </tr>
           </thead>
           <tbody>
@@ -143,34 +148,34 @@ onMounted(async () => {
               <td class="py-2 text-slate-700">{{ r.companyName }}</td>
               <td class="py-2 text-slate-500">{{ r.questionText }}</td>
               <td class="py-2 text-slate-700">
-                {{ r.selectedOptionText ?? (r.answerBool !== null ? (r.answerBool ? "Evet" : "Hayır") : (r.answerNumber ?? r.answerText)) }}
+                {{ r.selectedOptionText ?? (r.answerBool !== null ? (r.answerBool ? $t("common.yes") : $t("common.no")) : (r.answerNumber ?? r.answerText)) }}
               </td>
             </tr>
           </tbody>
         </table>
-        <EmptyState v-if="responses.length === 0">Henüz yanıt yok</EmptyState>
+        <EmptyState v-if="responses.length === 0">{{ $t("rfi.detail.emptyResponses") }}</EmptyState>
       </div>
     </AppCard>
 
     <AppCard>
-      <h3 class="text-sm font-semibold text-slate-700">Puanlı Tedarikçi Değerlendirmesi</h3>
+      <h3 class="text-sm font-semibold text-slate-700">{{ $t("rfi.detail.scoredEvaluation") }}</h3>
       <div class="mt-3 flex flex-wrap items-end gap-3">
         <select v-model="evalForm.companyId" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
-          <option value="" disabled>Cari seç...</option>
+          <option value="" disabled>{{ $t("rfi.detail.selectCompany") }}</option>
           <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
         </select>
-        <input v-model.number="evalForm.totalScore" type="number" min="0" max="100" step="0.5" placeholder="Puan (0-100)" class="w-32 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-        <input v-model="evalForm.comments" placeholder="Yorum" class="flex-1 min-w-[200px] rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-        <AppButton @click="submitEvaluation">Puanla</AppButton>
+        <input v-model.number="evalForm.totalScore" type="number" min="0" max="100" step="0.5" :placeholder="$t('rfi.detail.scorePlaceholder')" class="w-32 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+        <input v-model="evalForm.comments" :placeholder="$t('rfi.detail.commentPlaceholder')" class="flex-1 min-w-[200px] rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+        <AppButton @click="submitEvaluation">{{ $t("rfi.detail.score") }}</AppButton>
       </div>
 
       <div class="mt-4 overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-              <th class="pb-2">Cari</th>
-              <th class="pb-2">Puan</th>
-              <th class="pb-2">Yorum</th>
+              <th class="pb-2">{{ $t("rfi.detail.evalTable.company") }}</th>
+              <th class="pb-2">{{ $t("rfi.detail.evalTable.score") }}</th>
+              <th class="pb-2">{{ $t("rfi.detail.evalTable.comment") }}</th>
             </tr>
           </thead>
           <tbody>
@@ -181,7 +186,7 @@ onMounted(async () => {
             </tr>
           </tbody>
         </table>
-        <EmptyState v-if="evaluations.length === 0">Henüz değerlendirme yok</EmptyState>
+        <EmptyState v-if="evaluations.length === 0">{{ $t("rfi.detail.emptyEvaluations") }}</EmptyState>
       </div>
     </AppCard>
   </div>

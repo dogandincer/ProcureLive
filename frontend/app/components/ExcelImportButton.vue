@@ -8,12 +8,14 @@ const props = withDefaults(
     templateFilename?: string;
     label?: string;
   }>(),
-  { templateFilename: "sablon.xlsx", label: "Excel'den Aktar" },
+  { templateFilename: "sablon.xlsx" },
 );
 
 const emit = defineEmits<{ imported: [successCount: number] }>();
 
+const { t } = useI18n();
 const { parseFile, downloadTemplate } = useExcelImport();
+const displayLabel = computed(() => props.label ?? t("excelImport.defaultLabel"));
 
 const open = ref(false);
 const fileInputRef = ref<HTMLInputElement | null>(null);
@@ -59,7 +61,7 @@ async function onFileSelected(event: Event) {
     parsedRows.value = await parseFile(file, props.columns);
     stage.value = "preview";
   } catch (error: any) {
-    fileError.value = error?.message ?? "Dosya okunamadı.";
+    fileError.value = error?.message ?? t("excelImport.fileReadError");
   } finally {
     parsing.value = false;
     input.value = "";
@@ -75,7 +77,7 @@ async function confirmImport() {
       await props.importRow(row.values);
       results.value.push({ rowNumber: row.rowNumber, status: "success" });
     } catch (error: any) {
-      results.value.push({ rowNumber: row.rowNumber, status: "error", message: apiErrorMessage(error, "Satır aktarılamadı.") });
+      results.value.push({ rowNumber: row.rowNumber, status: "error", message: apiErrorMessage(error, t("excelImport.rowImportError")) });
     }
   }
 
@@ -91,13 +93,13 @@ async function confirmImport() {
       class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
       @click="openPanel"
     >
-      📥 {{ label }}
+      📥 {{ displayLabel }}
     </button>
 
     <div v-if="open" class="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/30 p-4" @click.self="closePanel">
       <div class="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-5 shadow-xl">
         <div class="flex items-center justify-between">
-          <h3 class="text-sm font-semibold text-slate-800">{{ label }}</h3>
+          <h3 class="text-sm font-semibold text-slate-800">{{ displayLabel }}</h3>
           <button class="text-sm text-slate-400 hover:text-slate-600" @click="closePanel">✕</button>
         </div>
 
@@ -107,10 +109,10 @@ async function confirmImport() {
             class="text-xs font-medium text-indigo-600 hover:underline"
             @click="downloadTemplate(columns, templateFilename)"
           >
-            📄 Şablon İndir (.xlsx)
+            📄 {{ $t("excelImport.downloadTemplate") }}
           </button>
           <p class="text-xs text-slate-500">
-            Şablondaki sütun başlıklarını kullanın. Beklenen sütunlar:
+            {{ $t("excelImport.expectedColumns") }}
             {{ columns.map((c) => c.label + (c.required ? "*" : "")).join(", ") }}
           </p>
           <input ref="fileInputRef" type="file" accept=".xlsx,.xls,.csv" class="hidden" @change="onFileSelected" />
@@ -120,24 +122,25 @@ async function confirmImport() {
             class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
             @click="triggerFilePicker"
           >
-            {{ parsing ? "Okunuyor..." : "Dosya Seç" }}
+            {{ parsing ? $t("excelImport.reading") : $t("excelImport.chooseFile") }}
           </button>
           <p v-if="fileError" class="text-sm text-rose-600">{{ fileError }}</p>
         </div>
 
         <div v-else-if="stage === 'preview'" class="mt-4 space-y-3">
           <p class="text-sm text-slate-600">
-            {{ parsedRows.length }} satır okundu — <span class="text-emerald-600">{{ validRows.length }} geçerli</span>,
-            <span v-if="invalidRows.length > 0" class="text-rose-600">{{ invalidRows.length }} hatalı</span>
+            {{ $t("excelImport.rowsRead", { count: parsedRows.length }) }}
+            <span class="text-emerald-600">{{ $t("excelImport.validCount", { count: validRows.length }) }}</span>,
+            <span v-if="invalidRows.length > 0" class="text-rose-600">{{ $t("excelImport.invalidCount", { count: invalidRows.length }) }}</span>
           </p>
 
           <div class="max-h-64 overflow-y-auto rounded-lg border border-slate-100">
             <table class="w-full text-xs">
               <thead class="sticky top-0 bg-slate-50">
                 <tr class="text-left text-slate-400">
-                  <th class="px-2 py-1">Satır</th>
+                  <th class="px-2 py-1">{{ $t("excelImport.rowHeader") }}</th>
                   <th v-for="c in columns" :key="c.key" class="px-2 py-1">{{ c.label }}</th>
-                  <th class="px-2 py-1">Durum</th>
+                  <th class="px-2 py-1">{{ $t("excelImport.statusHeader") }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -145,7 +148,7 @@ async function confirmImport() {
                   <td class="px-2 py-1 text-slate-400">{{ row.rowNumber }}</td>
                   <td v-for="c in columns" :key="c.key" class="px-2 py-1 text-slate-700">{{ row.values[c.key] ?? "-" }}</td>
                   <td class="px-2 py-1">
-                    <span v-if="row.errors.length === 0" class="text-emerald-600">Hazır</span>
+                    <span v-if="row.errors.length === 0" class="text-emerald-600">{{ $t("excelImport.ready") }}</span>
                     <span v-else class="text-rose-600">{{ row.errors.join(" ") }}</span>
                   </td>
                 </tr>
@@ -160,25 +163,27 @@ async function confirmImport() {
               class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
               @click="confirmImport"
             >
-              {{ importing ? "Aktarılıyor..." : `İçe Aktar (${validRows.length} satır)` }}
+              {{ importing ? $t("excelImport.importing") : $t("excelImport.importRows", { count: validRows.length }) }}
             </button>
             <button type="button" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600" @click="openPanel">
-              Vazgeç
+              {{ $t("excelImport.cancel") }}
             </button>
           </div>
         </div>
 
         <div v-else-if="stage === 'done'" class="mt-4 space-y-3">
           <p class="text-sm font-medium text-slate-700">
-            <span class="text-emerald-600">{{ successCount }} başarılı</span>
-            <span v-if="errorCount > 0">, <span class="text-rose-600">{{ errorCount }} hatalı</span></span>
+            <span class="text-emerald-600">{{ $t("excelImport.successCount", { count: successCount }) }}</span>
+            <span v-if="errorCount > 0">, <span class="text-rose-600">{{ $t("excelImport.errorCount", { count: errorCount }) }}</span></span>
           </p>
           <ul v-if="errorCount > 0" class="max-h-48 space-y-1 overflow-y-auto text-xs">
             <li v-for="r in results.filter((x) => x.status === 'error')" :key="r.rowNumber" class="text-rose-600">
-              Satır {{ r.rowNumber }}: {{ r.message }}
+              {{ $t("excelImport.rowLabel", { number: r.rowNumber }) }}: {{ r.message }}
             </li>
           </ul>
-          <button type="button" class="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-white" @click="closePanel">Kapat</button>
+          <button type="button" class="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-white" @click="closePanel">
+            {{ $t("excelImport.close") }}
+          </button>
         </div>
       </div>
     </div>

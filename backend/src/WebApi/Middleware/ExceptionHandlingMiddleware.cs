@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using ProcureLive.Application.Common.Exceptions;
+using ProcureLive.Application.Common.Localization;
 using ValidationException = ProcureLive.Application.Common.Exceptions.ValidationException;
 
 namespace ProcureLive.WebApi.Middleware;
@@ -32,30 +33,35 @@ public sealed class ExceptionHandlingMiddleware
     {
         context.Response.ContentType = "application/json";
 
+        string language = LanguageResolver.Resolve(context.Request.Headers.AcceptLanguage.ToString());
+
         object payload;
 
         switch (exception)
         {
             case ValidationException validationException:
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                payload = new { title = "Doğrulama hatası.", errors = validationException.Errors };
+                Dictionary<string, string[]> translatedErrors = validationException.Errors.ToDictionary(
+                    e => e.Key,
+                    e => e.Value.Select(message => MessageTranslator.Translate(message, language)).ToArray());
+                payload = new { title = MessageTranslator.Translate("Doğrulama hatası.", language), errors = translatedErrors };
                 break;
             case NotFoundException notFoundException:
                 context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                payload = new { title = notFoundException.Message };
+                payload = new { title = MessageTranslator.Translate(notFoundException.Message, language) };
                 break;
             case ForbiddenAccessException forbiddenException:
                 context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                payload = new { title = forbiddenException.Message };
+                payload = new { title = MessageTranslator.Translate(forbiddenException.Message, language) };
                 break;
             case ConflictException conflictException:
                 context.Response.StatusCode = (int)HttpStatusCode.Conflict;
-                payload = new { title = conflictException.Message };
+                payload = new { title = MessageTranslator.Translate(conflictException.Message, language) };
                 break;
             default:
                 _logger.LogError(exception, "İşlenmeyen bir hata oluştu.");
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                payload = new { title = "Beklenmeyen bir sunucu hatası oluştu." };
+                payload = new { title = MessageTranslator.Translate("Beklenmeyen bir sunucu hatası oluştu.", language) };
                 break;
         }
 

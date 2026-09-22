@@ -5,6 +5,8 @@ definePageMeta({ middleware: [] });
 
 const api = useApi();
 const toast = useToast();
+const { t } = useI18n();
+const { formatDateTime } = useDateFormat();
 
 const auctions = ref<AuctionDto[]>([]);
 const companyCount = ref(0);
@@ -28,7 +30,7 @@ async function load() {
     companyCount.value = companyPage.totalCount;
     productCount.value = productPage.totalCount;
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Panel verileri yüklenemedi."));
+    toast.error(apiErrorMessage(error, t("dashboardAdmin.loadError")));
   } finally {
     loading.value = false;
   }
@@ -44,7 +46,7 @@ async function getRecommendation() {
       estimatedItemCount: estimatedItems.value,
     });
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Öneri alınamadı."));
+    toast.error(apiErrorMessage(error, t("dashboardAdmin.recommendationError")));
   } finally {
     recommendationLoading.value = false;
   }
@@ -65,41 +67,41 @@ onMounted(load);
 <template>
   <div class="space-y-6">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800">Admin Paneli</h1>
+      <h1 class="text-xl font-bold text-slate-800">{{ $t("dashboardAdmin.title") }}</h1>
       <NuxtLink
         to="/admin/auctions"
         class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
       >
-        + Yeni İhale
+        {{ $t("dashboardAdmin.newAuction") }}
       </NuxtLink>
     </div>
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <AppCard>
-        <div class="text-sm text-slate-500">Kayıtlı Cari</div>
+        <div class="text-sm text-slate-500">{{ $t("dashboardAdmin.registeredCompanies") }}</div>
         <div class="mt-1 text-2xl font-bold text-slate-800">{{ companyCount }}</div>
       </AppCard>
       <AppCard>
-        <div class="text-sm text-slate-500">Katalogdaki Ürün</div>
+        <div class="text-sm text-slate-500">{{ $t("dashboardAdmin.catalogProducts") }}</div>
         <div class="mt-1 text-2xl font-bold text-slate-800">{{ productCount }}</div>
       </AppCard>
       <AppCard>
-        <div class="text-sm text-slate-500">Son İhaleler</div>
+        <div class="text-sm text-slate-500">{{ $t("dashboardAdmin.recentAuctions") }}</div>
         <div class="mt-1 text-2xl font-bold text-slate-800">{{ auctions.length }}</div>
       </AppCard>
     </div>
 
     <AppCard>
-      <h2 class="text-sm font-semibold text-slate-700">Son İhaleler</h2>
+      <h2 class="text-sm font-semibold text-slate-700">{{ $t("dashboardAdmin.recentAuctions") }}</h2>
       <LoadingSpinner v-if="loading" class="mt-3" />
       <div v-else class="mt-3 overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-              <th class="pb-2">Başlık</th>
-              <th class="pb-2">Tür</th>
-              <th class="pb-2">Durum</th>
-              <th class="pb-2">Bitiş</th>
+              <th class="pb-2">{{ $t("dashboardAdmin.table.title") }}</th>
+              <th class="pb-2">{{ $t("dashboardAdmin.table.type") }}</th>
+              <th class="pb-2">{{ $t("dashboardAdmin.table.status") }}</th>
+              <th class="pb-2">{{ $t("dashboardAdmin.table.endsAt") }}</th>
               <th class="pb-2"></th>
             </tr>
           </thead>
@@ -110,41 +112,41 @@ onMounted(load);
               <td class="py-2">
                 <AppBadge :tone="statusTone[a.status]">{{ a.status }}</AppBadge>
               </td>
-              <td class="py-2 text-slate-500">{{ new Date(a.endAt).toLocaleString("tr-TR") }}</td>
+              <td class="py-2 text-slate-500">{{ formatDateTime(a.endAt) }}</td>
               <td class="py-2 text-right">
-                <NuxtLink :to="`/admin/auctions/${a.id}`" class="text-indigo-600 hover:underline">Detay</NuxtLink>
+                <NuxtLink :to="`/admin/auctions/${a.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink>
               </td>
             </tr>
           </tbody>
         </table>
-        <EmptyState v-if="auctions.length === 0">Henüz ihale yok</EmptyState>
+        <EmptyState v-if="auctions.length === 0">{{ $t("dashboardAdmin.emptyAuctions") }}</EmptyState>
       </div>
     </AppCard>
 
     <AppCard>
       <h2 class="text-sm font-semibold text-slate-700">
-        🤖 En Uygun İhale Modeli Önerisi
-        <span class="ml-1 text-xs font-normal text-slate-400">(veri-hazır placeholder, Faz 4 AI altyapısı)</span>
+        🤖 {{ $t("dashboardAdmin.recommendation.heading") }}
+        <span class="ml-1 text-xs font-normal text-slate-400">{{ $t("dashboardAdmin.recommendation.hint") }}</span>
       </h2>
       <div class="mt-3 flex flex-wrap items-end gap-3">
         <div>
-          <label class="mb-1 block text-xs font-medium text-slate-500">Tahmini Katılımcı</label>
+          <label class="mb-1 block text-xs font-medium text-slate-500">{{ $t("dashboardAdmin.recommendation.estimatedParticipants") }}</label>
           <input v-model.number="estimatedParticipants" type="number" min="1" class="w-28 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
         </div>
         <div>
-          <label class="mb-1 block text-xs font-medium text-slate-500">Tahmini Kalem Sayısı</label>
+          <label class="mb-1 block text-xs font-medium text-slate-500">{{ $t("dashboardAdmin.recommendation.estimatedItems") }}</label>
           <input v-model.number="estimatedItems" type="number" min="1" class="w-28 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
         </div>
         <AppButton variant="secondary" :loading="recommendationLoading" @click="getRecommendation">
-          {{ recommendationLoading ? "Hesaplanıyor..." : "Öner" }}
+          {{ recommendationLoading ? $t("dashboardAdmin.recommendation.calculating") : $t("dashboardAdmin.recommendation.suggest") }}
         </AppButton>
       </div>
 
       <div v-if="recommendation" class="mt-4 rounded-lg bg-indigo-50 p-4">
         <div class="text-sm font-semibold text-indigo-800">
-          Önerilen: {{ recommendation.recommendedAuctionType }}
+          {{ $t("dashboardAdmin.recommendation.recommended") }}: {{ recommendation.recommendedAuctionType }}
           <span class="ml-2 text-xs font-normal text-indigo-500">
-            (güven skoru: {{ Math.round(recommendation.confidenceScore * 100) }}%)
+            ({{ $t("dashboardAdmin.recommendation.confidence") }}: {{ Math.round(recommendation.confidenceScore * 100) }}%)
           </span>
         </div>
         <p class="mt-1 text-sm text-indigo-700">{{ recommendation.rationale }}</p>

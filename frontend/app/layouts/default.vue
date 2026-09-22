@@ -4,6 +4,7 @@ import type { NotificationDto } from "~/types/api";
 const { currentUser, isInternalRole, isSupplierRole, isAdminRole, logout } = useAuth();
 const api = useApi();
 const { connect } = useNotificationHub();
+const { t } = useI18n();
 
 const notifications = ref<NotificationDto[]>([]);
 const unreadCount = ref(0);
@@ -12,46 +13,46 @@ const unreadOnly = ref(false);
 const sidebarOpen = ref(false);
 
 interface NavSection {
-  section: string | null;
-  links: { to: string; label: string }[];
+  sectionKey: string | null;
+  links: { to: string; labelKey: string }[];
 }
 
 const adminSections: NavSection[] = [
-  { section: null, links: [{ to: "/admin", label: "Panel" }] },
+  { sectionKey: null, links: [{ to: "/admin", labelKey: "nav.panel" }] },
   {
-    section: "Tedarik Zinciri",
+    sectionKey: "nav.supplyChainGroup",
     links: [
-      { to: "/admin/companies", label: "Cariler" },
-      { to: "/admin/users", label: "Kullanıcılar" },
+      { to: "/admin/companies", labelKey: "nav.companies" },
+      { to: "/admin/users", labelKey: "nav.users" },
     ],
   },
   {
-    section: "Katalog",
+    sectionKey: "nav.catalogGroup",
     links: [
-      { to: "/admin/products", label: "Stok / Ürünler" },
-      { to: "/admin/categories", label: "Kategoriler" },
-      { to: "/admin/currencies", label: "Para Birimleri" },
+      { to: "/admin/products", labelKey: "nav.products" },
+      { to: "/admin/categories", labelKey: "nav.categories" },
+      { to: "/admin/currencies", labelKey: "nav.currencies" },
     ],
   },
   {
-    section: "Süreçler",
+    sectionKey: "nav.processesGroup",
     links: [
-      { to: "/admin/auctions", label: "İhaleler" },
-      { to: "/admin/rfi", label: "RFI" },
-      { to: "/admin/rfq", label: "RFQ" },
+      { to: "/admin/auctions", labelKey: "nav.auctions" },
+      { to: "/admin/rfi", labelKey: "nav.rfi" },
+      { to: "/admin/rfq", labelKey: "nav.rfq" },
     ],
   },
 ];
 
 const supplierSections: NavSection[] = [
   {
-    section: null,
+    sectionKey: null,
     links: [
-      { to: "/supplier", label: "Panelim" },
-      { to: "/supplier/auctions", label: "İhale Davetlerim" },
-      { to: "/supplier/history", label: "İhale Geçmişim" },
-      { to: "/supplier/rfi", label: "RFI Davetlerim" },
-      { to: "/supplier/rfq", label: "RFQ Davetlerim" },
+      { to: "/supplier", labelKey: "nav.myPanel" },
+      { to: "/supplier/auctions", labelKey: "nav.auctionInvites" },
+      { to: "/supplier/history", labelKey: "nav.auctionHistory" },
+      { to: "/supplier/rfi", labelKey: "nav.rfiInvites" },
+      { to: "/supplier/rfq", labelKey: "nav.rfqInvites" },
     ],
   },
 ];
@@ -59,8 +60,11 @@ const supplierSections: NavSection[] = [
 const navSections = computed<NavSection[]>(() => {
   if (!isInternalRole()) return supplierSections;
   if (!isAdminRole()) return adminSections;
-  return [...adminSections, { section: "Sistem", links: [{ to: "/admin/audit-log", label: "Denetim Kaydı" }] }];
+  return [...adminSections, { sectionKey: "nav.systemGroup", links: [{ to: "/admin/audit-log", labelKey: "nav.auditLog" }] }];
 });
+
+const roleLabels: Record<string, string> = { Admin: "roles.admin", Buyer: "roles.buyer", Supplier: "roles.supplier" };
+const roleDisplay = computed(() => currentUser.value?.roles.map((r) => t(roleLabels[r] ?? r)).join(", ") ?? "");
 
 function closeSidebarOnNavigate() {
   sidebarOpen.value = false;
@@ -133,11 +137,11 @@ onMounted(async () => {
       class="fixed inset-y-0 left-0 z-40 w-64 shrink-0 -translate-x-full border-r border-slate-200 bg-white transition-transform md:static md:translate-x-0"
       :class="{ 'translate-x-0': sidebarOpen }"
     >
-      <div class="px-5 py-4 text-lg font-bold text-indigo-700">ProcureLive</div>
+      <div class="px-5 py-4 text-lg font-bold text-indigo-700">{{ $t("app.name") }}</div>
       <nav class="mt-2 flex flex-col gap-4 px-3">
         <div v-for="(group, i) in navSections" :key="i">
-          <div v-if="group.section" class="mb-1 px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            {{ group.section }}
+          <div v-if="group.sectionKey" class="mb-1 px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            {{ $t(group.sectionKey) }}
           </div>
           <div class="flex flex-col gap-1">
             <NuxtLink
@@ -148,7 +152,7 @@ onMounted(async () => {
               active-class="bg-indigo-50 text-indigo-700"
               @click="closeSidebarOnNavigate"
             >
-              {{ link.label }}
+              {{ $t(link.labelKey) }}
             </NuxtLink>
           </div>
         </div>
@@ -164,12 +168,13 @@ onMounted(async () => {
           <div class="min-w-0 truncate text-sm text-slate-500">
             {{ currentUser?.firstName }} {{ currentUser?.lastName }}
             <span class="ml-2 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-              {{ currentUser?.roles.join(", ") }}
+              {{ roleDisplay }}
             </span>
           </div>
         </div>
 
         <div class="flex shrink-0 items-center gap-2 sm:gap-4">
+          <LanguageSwitcher />
           <div class="relative">
             <button
               class="relative rounded-full p-2 text-slate-500 hover:bg-slate-100"
@@ -189,24 +194,24 @@ onMounted(async () => {
               class="absolute right-0 z-20 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-slate-200 bg-white shadow-lg"
             >
               <div class="flex items-center justify-between border-b border-slate-100 px-4 py-2">
-                <span class="text-sm font-semibold">Bildirimler</span>
+                <span class="text-sm font-semibold">{{ $t("notifications.title") }}</span>
                 <div class="flex items-center gap-3">
                   <label class="flex items-center gap-1 text-xs text-slate-500">
                     <input v-model="unreadOnly" type="checkbox" />
-                    Okunmamış
+                    {{ $t("notifications.unreadOnly") }}
                   </label>
                   <button
                     v-if="unreadCount > 0"
                     class="text-xs font-medium text-indigo-600 hover:underline"
                     @click="markAllRead"
                   >
-                    Tümünü okundu işaretle
+                    {{ $t("notifications.markAllRead") }}
                   </button>
                 </div>
               </div>
               <div class="max-h-96 overflow-y-auto">
                 <p v-if="notifications.length === 0" class="px-4 py-6 text-center text-sm text-slate-400">
-                  {{ unreadOnly ? "Okunmamış bildirim yok" : "Bildirim yok" }}
+                  {{ unreadOnly ? $t("notifications.emptyUnread") : $t("notifications.empty") }}
                 </p>
                 <button
                   v-for="n in notifications"
@@ -222,7 +227,7 @@ onMounted(async () => {
             </div>
           </div>
 
-          <button class="text-sm font-medium text-slate-500 hover:text-rose-600" @click="logout">Çıkış</button>
+          <button class="text-sm font-medium text-slate-500 hover:text-rose-600" @click="logout">{{ $t("common.logout") }}</button>
         </div>
       </header>
 

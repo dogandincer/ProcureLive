@@ -4,6 +4,7 @@ import type { ExcelColumn } from "~/composables/useExcelImport";
 
 const api = useApi();
 const toast = useToast();
+const { t } = useI18n();
 const companies = ref<CompanyDto[]>([]);
 const showForm = ref(false);
 const submitting = ref(false);
@@ -13,13 +14,13 @@ const form = reactive({ name: "", taxNumber: "", taxOffice: "", companyType: "Su
 const statuses = ["PendingApproval", "Active", "Passive"];
 const statusDrafts = reactive<Record<string, string>>({});
 
-const importColumns: ExcelColumn[] = [
-  { key: "name", label: "Firma Adı", required: true },
-  { key: "taxNumber", label: "Vergi No", required: true },
-  { key: "taxOffice", label: "Vergi Dairesi", required: true },
-  { key: "companyType", label: "Tür", required: true, hint: "Supplier veya Internal" },
-  { key: "website", label: "Web Sitesi" },
-];
+const importColumns = computed<ExcelColumn[]>(() => [
+  { key: "name", label: t("companies.import.name"), required: true },
+  { key: "taxNumber", label: t("companies.import.taxNumber"), required: true },
+  { key: "taxOffice", label: t("companies.import.taxOffice"), required: true },
+  { key: "companyType", label: t("companies.import.type"), required: true, hint: t("companies.import.typeHint") },
+  { key: "website", label: t("companies.import.website") },
+]);
 
 async function importCompanyRow(row: Record<string, string | number | boolean | null>) {
   await api.post("/api/companies", {
@@ -40,7 +41,7 @@ async function load() {
       statusDrafts[c.id] = c.status;
     }
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Kayıtlar yüklenemedi."));
+    toast.error(apiErrorMessage(error, t("companies.loadError")));
   } finally {
     loading.value = false;
   }
@@ -54,10 +55,10 @@ async function saveStatus(company: CompanyDto) {
       status: statusDrafts[company.id],
       website: company.website,
     });
-    toast.success("Cari durumu güncellendi.");
+    toast.success(t("toast.companyStatusUpdated"));
     await load();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Durum güncellenemedi."));
+    toast.error(apiErrorMessage(error, t("companies.statusUpdateError")));
   }
 }
 
@@ -73,10 +74,10 @@ async function create() {
     });
     Object.assign(form, { name: "", taxNumber: "", taxOffice: "", website: "" });
     showForm.value = false;
-    toast.success("Cari oluşturuldu.");
+    toast.success(t("toast.companyCreated"));
     await load();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Cari oluşturulamadı."));
+    toast.error(apiErrorMessage(error, t("companies.createError")));
   } finally {
     submitting.value = false;
   }
@@ -88,26 +89,26 @@ onMounted(load);
 <template>
   <div class="space-y-6">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800">Cariler</h1>
+      <h1 class="text-xl font-bold text-slate-800">{{ $t("companies.title") }}</h1>
       <div class="flex gap-2">
         <ExcelImportButton :columns="importColumns" template-filename="cariler-sablon.xlsx" :import-row="importCompanyRow" @imported="load" />
         <AppButton @click="showForm = !showForm">
-          {{ showForm ? "Vazgeç" : "+ Yeni Cari" }}
+          {{ showForm ? $t("common.cancel") : $t("companies.new") }}
         </AppButton>
       </div>
     </div>
 
     <form v-if="showForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="create">
-      <input v-model="form.name" placeholder="Firma Adı" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-      <input v-model="form.taxNumber" placeholder="Vergi No" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-      <input v-model="form.taxOffice" placeholder="Vergi Dairesi" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      <input v-model="form.name" :placeholder="$t('companies.form.name')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      <input v-model="form.taxNumber" :placeholder="$t('companies.form.taxNumber')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      <input v-model="form.taxOffice" :placeholder="$t('companies.form.taxOffice')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
       <select v-model="form.companyType" class="rounded-md border border-slate-300 px-3 py-2 text-sm">
-        <option value="Supplier">Supplier (Tedarikçi)</option>
-        <option value="Internal">Internal (İç Alım)</option>
+        <option value="Supplier">{{ $t("companies.form.typeSupplier") }}</option>
+        <option value="Internal">{{ $t("companies.form.typeInternal") }}</option>
       </select>
-      <input v-model="form.website" placeholder="Web sitesi (opsiyonel)" class="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
+      <input v-model="form.website" :placeholder="$t('companies.form.website')" class="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
       <AppButton type="submit" class="sm:col-span-2" :loading="submitting">
-        {{ submitting ? "Kaydediliyor..." : "Kaydet" }}
+        {{ submitting ? $t("common.saving") : $t("common.save") }}
       </AppButton>
     </form>
 
@@ -117,10 +118,10 @@ onMounted(load);
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-              <th class="pb-2">Ad</th>
-              <th class="pb-2">Vergi No</th>
-              <th class="pb-2">Tür</th>
-              <th class="pb-2">Durum</th>
+              <th class="pb-2">{{ $t("companies.table.name") }}</th>
+              <th class="pb-2">{{ $t("companies.table.taxNumber") }}</th>
+              <th class="pb-2">{{ $t("companies.table.type") }}</th>
+              <th class="pb-2">{{ $t("common.status") }}</th>
               <th class="pb-2"></th>
             </tr>
           </thead>
@@ -132,22 +133,22 @@ onMounted(load);
               <td class="py-2">
                 <div class="flex items-center gap-2">
                   <select v-model="statusDrafts[c.id]" class="rounded-md border border-slate-300 px-2 py-1 text-xs">
-                    <option v-for="s in statuses" :key="s" :value="s">{{ s }}</option>
+                    <option v-for="s in statuses" :key="s" :value="s">{{ $t(`enums.companyStatus.${s}`) }}</option>
                   </select>
                   <button
                     v-if="statusDrafts[c.id] !== c.status"
                     class="rounded bg-indigo-600 px-2 py-1 text-xs font-semibold text-white"
                     @click="saveStatus(c)"
                   >
-                    Kaydet
+                    {{ $t("common.save") }}
                   </button>
                 </div>
               </td>
-              <td class="py-2 text-right"><NuxtLink :to="`/admin/companies/${c.id}`" class="text-indigo-600 hover:underline">Detay</NuxtLink></td>
+              <td class="py-2 text-right"><NuxtLink :to="`/admin/companies/${c.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink></td>
             </tr>
           </tbody>
         </table>
-        <EmptyState v-if="companies.length === 0">Henüz cari yok</EmptyState>
+        <EmptyState v-if="companies.length === 0">{{ $t("companies.empty") }}</EmptyState>
       </div>
     </AppCard>
   </div>

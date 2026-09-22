@@ -1,0 +1,353 @@
+{
+  "app": {
+    "name": "ProcureLive",
+    "tagline": "B2B E-Procurement and Live Auction System"
+  },
+  "common": {
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "close": "Close",
+    "loading": "Loading...",
+    "detail": "Details",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "new": "New",
+    "status": "Status",
+    "active": "Active",
+    "passive": "Inactive",
+    "yes": "Yes",
+    "no": "No",
+    "back": "Back",
+    "search": "Search",
+    "actions": "Actions",
+    "optional": "optional",
+    "logout": "Log Out",
+    "stepOf": "Step {step}/{total}"
+  },
+  "nav": {
+    "panel": "Dashboard",
+    "myPanel": "My Dashboard",
+    "supplyChainGroup": "Supply Chain",
+    "companies": "Companies",
+    "users": "Users",
+    "catalogGroup": "Catalog",
+    "products": "Stock / Products",
+    "categories": "Categories",
+    "currencies": "Currencies",
+    "processesGroup": "Processes",
+    "auctions": "Auctions",
+    "auctionInvites": "My Auction Invites",
+    "auctionHistory": "My Auction History",
+    "rfi": "RFI",
+    "rfiInvites": "My RFI Invites",
+    "rfq": "RFQ",
+    "rfqInvites": "My RFQ Invites",
+    "systemGroup": "System",
+    "auditLog": "Audit Log"
+  },
+  "language": {
+    "label": "Language",
+    "tr": "Turkish",
+    "en": "English"
+  },
+  "roles": {
+    "admin": "Admin",
+    "buyer": "Buyer",
+    "supplier": "Supplier"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "unreadOnly": "Unread",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications",
+    "emptyUnread": "No unread notifications"
+  },
+  "excelImport": {
+    "defaultLabel": "Import from Excel",
+    "downloadTemplate": "Download Template (.xlsx)",
+    "expectedColumns": "Use the column headers from the template. Expected columns:",
+    "chooseFile": "Choose File",
+    "reading": "Reading...",
+    "fileReadError": "Could not read the file.",
+    "rowsRead": "{count} rows read —",
+    "validCount": "{count} valid",
+    "invalidCount": "{count} invalid",
+    "rowHeader": "Row",
+    "statusHeader": "Status",
+    "ready": "Ready",
+    "importing": "Importing...",
+    "importRows": "Import ({count} rows)",
+    "cancel": "Cancel",
+    "close": "Close",
+    "successCount": "{count} succeeded",
+    "errorCount": "{count} failed",
+    "rowLabel": "Row {number}",
+    "rowImportError": "Row could not be imported."
+  },
+  "login": {
+    "email": "Email",
+    "password": "Password",
+    "submit": "Log In",
+    "submitting": "Logging in...",
+    "defaultError": "Login failed. Incorrect email or password."
+  },
+  "toast": {
+    "companyStatusUpdated": "Company status updated.",
+    "companyCreated": "Company created.",
+    "contactCreated": "Contact person added.",
+    "addressCreated": "Address added.",
+    "userCreated": "User created.",
+    "userRoleUpdated": "User role updated.",
+    "userDeactivated": "User deactivated.",
+    "userActivated": "User activated.",
+    "productCreated": "Product created.",
+    "categoryCreated": "Category created.",
+    "currencyCreated": "Currency created.",
+    "rateCreated": "Exchange rate added."
+  },
+  "dashboardAdmin": {
+    "title": "Admin Dashboard",
+    "newAuction": "+ New Auction",
+    "registeredCompanies": "Registered Companies",
+    "catalogProducts": "Catalog Products",
+    "recentAuctions": "Recent Auctions",
+    "table": {
+      "title": "Title",
+      "type": "Type",
+      "status": "Status",
+      "endsAt": "Ends At"
+    },
+    "emptyAuctions": "No auctions yet",
+    "recommendation": {
+      "heading": "Best-fit Auction Model Recommendation",
+      "hint": "(data-ready placeholder, Phase 4 AI infrastructure)",
+      "estimatedParticipants": "Estimated Participants",
+      "estimatedItems": "Estimated Item Count",
+      "suggest": "Suggest",
+      "calculating": "Calculating...",
+      "recommended": "Recommended",
+      "confidence": "confidence score"
+    },
+    "loadError": "Failed to load dashboard data.",
+    "recommendationError": "Failed to get recommendation."
+  },
+  "enums": {
+    "companyStatus": {
+      "PendingApproval": "Pending Approval",
+      "Active": "Active",
+      "Passive": "Inactive"
+    },
+    "addressType": {
+      "HeadOffice": "Head Office",
+      "Billing": "Billing Address",
+      "Shipping": "Shipping Address"
+    },
+    "unitOfMeasure": {
+      "Piece": "Piece",
+      "Kilogram": "Kilogram",
+      "Gram": "Gram",
+      "Liter": "Liter",
+      "Meter": "Meter",
+      "SquareMeter": "Square Meter",
+      "CubicMeter": "Cubic Meter",
+      "Box": "Box",
+      "Pallet": "Pallet",
+      "Hour": "Hour",
+      "Service": "Service"
+    }
+  },
+  "currencies": {
+    "title": "Currencies & Exchange Rates",
+    "currenciesHeading": "Currencies",
+    "ratesHeading": "Exchange Rates (against base currency)",
+    "newShort": "+ New",
+    "form": {
+      "code": "Code (e.g. GBP)",
+      "symbol": "Symbol (£)",
+      "name": "Name (British Pound)",
+      "makeBase": "Make this the system base currency",
+      "rateDate": "Date",
+      "rate": "Rate (e.g. 34.50)",
+      "source": "Source (optional)"
+    },
+    "table": {
+      "code": "Code",
+      "name": "Name",
+      "symbol": "Symbol",
+      "currency": "Currency",
+      "date": "Date",
+      "rate": "Rate",
+      "source": "Source"
+    },
+    "base": "Base",
+    "emptyCurrencies": "No currencies yet",
+    "emptyRates": "No exchange rates defined yet",
+    "needNonBaseCurrency": "Add a non-base currency first to define an exchange rate.",
+    "loadError": "Failed to load records.",
+    "createError": "Failed to create currency.",
+    "rateCreateError": "Failed to create exchange rate.",
+    "import": {
+      "code": "Code",
+      "codeHint": "3-letter ISO code, e.g. CHF",
+      "name": "Name",
+      "symbol": "Symbol"
+    }
+  },
+  "categories": {
+    "title": "Categories",
+    "new": "+ New Category",
+    "form": {
+      "name": "Category Name",
+      "code": "Code (e.g. ELECTRONICS)",
+      "noParent": "No parent category (root category)"
+    },
+    "table": {
+      "name": "Name",
+      "code": "Code"
+    },
+    "empty": "No categories yet",
+    "loadError": "Failed to load records.",
+    "createError": "Failed to create category.",
+    "import": {
+      "name": "Category Name",
+      "code": "Code",
+      "parentCategory": "Parent Category",
+      "parentCategoryHint": "Optional - an existing category name, or one appearing earlier in this file",
+      "parentNotFound": "Parent category not found: \"{name}\""
+    }
+  },
+  "products": {
+    "title": "Stock / Products",
+    "new": "+ New Product",
+    "form": {
+      "sku": "SKU",
+      "name": "Product Name",
+      "brand": "Brand (optional)"
+    },
+    "table": {
+      "sku": "SKU",
+      "name": "Name",
+      "category": "Category",
+      "unit": "Unit"
+    },
+    "empty": "No products yet",
+    "loadError": "Failed to load records.",
+    "createError": "Failed to create product.",
+    "import": {
+      "name": "Product Name",
+      "category": "Category",
+      "categoryHint": "An existing category name (from the Categories screen)",
+      "unit": "Unit",
+      "brand": "Brand",
+      "categoryNotFound": "Category not found: \"{name}\""
+    }
+  },
+  "companies": {
+    "title": "Companies",
+    "new": "+ New Company",
+    "form": {
+      "name": "Company Name",
+      "taxNumber": "Tax Number",
+      "taxOffice": "Tax Office",
+      "typeSupplier": "Supplier",
+      "typeInternal": "Internal (Purchasing)",
+      "website": "Website (optional)"
+    },
+    "table": {
+      "name": "Name",
+      "taxNumber": "Tax Number",
+      "type": "Type"
+    },
+    "empty": "No companies yet",
+    "loadError": "Failed to load records.",
+    "statusUpdateError": "Failed to update status.",
+    "createError": "Failed to create company.",
+    "import": {
+      "name": "Company Name",
+      "taxNumber": "Tax Number",
+      "taxOffice": "Tax Office",
+      "type": "Type",
+      "typeHint": "Supplier or Internal",
+      "website": "Website"
+    },
+    "detail": {
+      "loadError": "Failed to load company.",
+      "contactAddError": "Failed to add contact person.",
+      "addressAddError": "Failed to add address.",
+      "contacts": "Contact Persons",
+      "addresses": "Addresses",
+      "primary": "Primary",
+      "primaryContactLabel": "Primary contact person",
+      "emptyContacts": "No contact persons yet",
+      "emptyAddresses": "No addresses yet",
+      "form": {
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "title": "Title (optional)",
+        "email": "Email",
+        "phone": "Phone (optional)",
+        "country": "Country",
+        "city": "City",
+        "district": "District (optional)",
+        "postalCode": "Postal Code (optional)",
+        "line1": "Address Line 1",
+        "line2": "Address Line 2 (optional)"
+      }
+    }
+  },
+  "users": {
+    "title": "Users",
+    "new": "+ New User",
+    "form": {
+      "email": "Email",
+      "password": "Password",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "selectCompany": "Select company..."
+    },
+    "table": {
+      "email": "Email",
+      "fullName": "Full Name",
+      "company": "Company",
+      "role": "Role"
+    },
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "empty": "No users yet",
+    "loadError": "Failed to load records.",
+    "createError": "Failed to create user.",
+    "roleUpdateError": "Failed to update role.",
+    "deactivateError": "Failed to deactivate user.",
+    "activateError": "Failed to activate user.",
+    "import": {
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "At least 8 characters",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "role": "Role",
+      "company": "Company",
+      "companyHint": "Required if role is Supplier - an existing company name",
+      "companyNotFound": "Company not found: \"{name}\""
+    }
+  },
+  "dashboardSupplier": {
+    "greeting": "Hello, {name}",
+    "auctionInvites": "My Auction Invites",
+    "rfiInvites": "My RFI Invites",
+    "rfqInvites": "My RFQ Invites",
+    "viewAll": "View all →",
+    "liveNow": "Live Auctions Right Now",
+    "goToAuction": "Go to Auction",
+    "recentInvites": "My Recent Auction Invites",
+    "table": {
+      "title": "Title",
+      "status": "Status",
+      "endsAt": "Ends At"
+    },
+    "emptyInvites": "No invites",
+    "loadError": "Failed to load dashboard data."
+  }
+}

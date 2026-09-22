@@ -15,6 +15,7 @@ export function apiErrorMessage(error: any, fallback: string): string {
 export function useApi() {
   const config = useRuntimeConfig();
   const { accessToken, logout } = useAuth();
+  const { locale } = useI18n();
 
   async function request<T>(path: string, options: Parameters<typeof $fetch>[1] = {}): Promise<T> {
     try {
@@ -23,6 +24,7 @@ export function useApi() {
         ...options,
         headers: {
           ...(accessToken.value ? { Authorization: `Bearer ${accessToken.value}` } : {}),
+          "Accept-Language": locale.value,
           ...(options.headers as Record<string, string> | undefined),
         },
       });

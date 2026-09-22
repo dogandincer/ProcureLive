@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Localization;
 using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Infrastructure.Services;
@@ -50,6 +51,15 @@ public sealed class CurrentUserService : ICurrentUserService
         Principal?.FindAll(ClaimTypes.Role).Select(c => c.Value).ToArray() ?? Array.Empty<string>();
 
     public string? IpAddress => _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+
+    public string Language
+    {
+        get
+        {
+            string? header = _httpContextAccessor.HttpContext?.Request.Headers.AcceptLanguage.ToString();
+            return LanguageResolver.Resolve(header);
+        }
+    }
 
     public bool IsInRole(string role) => Principal?.IsInRole(role) ?? false;
 }

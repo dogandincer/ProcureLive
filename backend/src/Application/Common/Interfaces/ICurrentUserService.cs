@@ -18,5 +18,8 @@ public interface ICurrentUserService
 
     string? IpAddress { get; }
 
+    /// <summary>Normalized to "tr" or "en" from the Accept-Language request header; defaults to "tr".</summary>
+    string Language { get; }
+
     bool IsInRole(string role);
 }

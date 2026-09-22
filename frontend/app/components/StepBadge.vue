@@ -8,6 +8,6 @@ defineProps<{ step: number; total: number; label: string }>();
       {{ step }}
     </span>
     <span class="text-sm font-semibold text-slate-700">{{ label }}</span>
-    <span class="text-xs text-slate-400">Adım {{ step }}/{{ total }}</span>
+    <span class="text-xs text-slate-400">{{ $t("common.stepOf", { step, total }) }}</span>
   </div>
 </template>

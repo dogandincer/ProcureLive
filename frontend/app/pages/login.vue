@@ -3,6 +3,7 @@ definePageMeta({ layout: false });
 
 const { login, homePathForRole } = useAuth();
 const toast = useToast();
+const { t } = useI18n();
 
 const email = ref("admin@procurelive.local");
 const password = ref("");
@@ -15,7 +16,7 @@ async function submit() {
     await login(email.value, password.value);
     await navigateTo(homePathForRole());
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Giriş başarısız. E-posta veya şifre hatalı."));
+    toast.error(apiErrorMessage(error, t("login.defaultError")));
   } finally {
     loading.value = false;
   }
@@ -23,14 +24,16 @@ async function submit() {
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-slate-100">
+  <div class="relative flex min-h-screen items-center justify-center bg-slate-100">
+    <LanguageSwitcher class="absolute right-4 top-4 sm:right-6 sm:top-6" />
+
     <form class="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm" @submit.prevent="submit">
-      <h1 class="text-xl font-bold text-indigo-700">ProcureLive</h1>
-      <p class="mt-1 text-sm text-slate-500">B2B E-Tedarik ve Anlık İhale Sistemi</p>
+      <h1 class="text-xl font-bold text-indigo-700">{{ $t("app.name") }}</h1>
+      <p class="mt-1 text-sm text-slate-500">{{ $t("app.tagline") }}</p>
 
       <div class="mt-6 space-y-4">
         <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">E-posta</label>
+          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("login.email") }}</label>
           <input
             v-model="email"
             type="email"
@@ -40,7 +43,7 @@ async function submit() {
         </div>
 
         <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">Şifre</label>
+          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("login.password") }}</label>
           <input
             v-model="password"
             type="password"
@@ -50,7 +53,7 @@ async function submit() {
         </div>
 
         <AppButton type="submit" class="w-full" :loading="loading">
-          {{ loading ? "Giriş yapılıyor..." : "Giriş Yap" }}
+          {{ loading ? $t("login.submitting") : $t("login.submit") }}
         </AppButton>
       </div>
     </form>

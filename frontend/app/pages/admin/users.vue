@@ -4,6 +4,7 @@ import type { ExcelColumn } from "~/composables/useExcelImport";
 
 const api = useApi();
 const toast = useToast();
+const { t } = useI18n();
 const { isAdminRole } = useAuth();
 const users = ref<UserDto[]>([]);
 const companies = ref<CompanyDto[]>([]);
@@ -18,16 +19,19 @@ const companyDrafts = reactive<Record<string, string>>({});
 const roles = isAdminRole() ? ["Admin", "Buyer", "Supplier"] : ["Supplier"];
 const form = reactive({ email: "", password: "", firstName: "", lastName: "", role: roles[0], companyId: "" });
 
+const roleLabelKeys: Record<string, string> = { Admin: "roles.admin", Buyer: "roles.buyer", Supplier: "roles.supplier" };
+const roleLabel = (r: string) => t(roleLabelKeys[r] ?? r);
+
 const companyName = (companyId: string | null) => companies.value.find((c) => c.id === companyId)?.name ?? "-";
 
-const importColumns: ExcelColumn[] = [
-  { key: "email", label: "E-posta", required: true },
-  { key: "password", label: "Şifre", required: true, hint: "En az 8 karakter" },
-  { key: "firstName", label: "Ad", required: true },
-  { key: "lastName", label: "Soyad", required: true },
-  { key: "role", label: "Rol", required: true, hint: roles.join("/") },
-  { key: "company", label: "Cari", hint: "Rol Supplier ise zorunlu - mevcut bir Cari adı" },
-];
+const importColumns = computed<ExcelColumn[]>(() => [
+  { key: "email", label: t("users.import.email"), required: true },
+  { key: "password", label: t("users.import.password"), required: true, hint: t("users.import.passwordHint") },
+  { key: "firstName", label: t("users.import.firstName"), required: true },
+  { key: "lastName", label: t("users.import.lastName"), required: true },
+  { key: "role", label: t("users.import.role"), required: true, hint: roles.join("/") },
+  { key: "company", label: t("users.import.company"), hint: t("users.import.companyHint") },
+]);
 
 async function importUserRow(row: Record<string, string | number | boolean | null>) {
   const companyNameValue = String(row.company ?? "").trim();
@@ -36,7 +40,7 @@ async function importUserRow(row: Record<string, string | number | boolean | nul
   if (companyNameValue) {
     const match = companies.value.find((c) => c.name.toLocaleLowerCase("tr") === companyNameValue.toLocaleLowerCase("tr"));
     if (!match) {
-      throw { data: { title: `Cari bulunamadı: "${companyNameValue}"` } };
+      throw { data: { title: t("users.import.companyNotFound", { name: companyNameValue }) } };
     }
     companyId = match.id;
   }
@@ -65,7 +69,7 @@ async function load() {
       companyDrafts[u.id] = u.companyId ?? "";
     }
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Kayıtlar yüklenemedi."));
+    toast.error(apiErrorMessage(error, t("users.loadError")));
   } finally {
     loading.value = false;
   }
@@ -84,10 +88,10 @@ async function create() {
     });
     Object.assign(form, { email: "", password: "", firstName: "", lastName: "", role: roles[0], companyId: "" });
     showForm.value = false;
-    toast.success("Kullanıcı oluşturuldu.");
+    toast.success(t("toast.userCreated"));
     await load();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Kullanıcı oluşturulamadı."));
+    toast.error(apiErrorMessage(error, t("users.createError")));
   } finally {
     submitting.value = false;
   }
@@ -103,30 +107,30 @@ async function saveRole(user: UserDto) {
       });
     }
     await api.post(`/api/users/${user.id}/roles`, { roles: [roleDrafts[user.id]] });
-    toast.success("Kullanıcı rolü güncellendi.");
+    toast.success(t("toast.userRoleUpdated"));
     await load();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Rol güncellenemedi."));
+    toast.error(apiErrorMessage(error, t("users.roleUpdateError")));
   }
 }
 
 async function deactivate(user: UserDto) {
   try {
     await api.post(`/api/users/${user.id}/deactivate`);
-    toast.success("Kullanıcı devre dışı bırakıldı.");
+    toast.success(t("toast.userDeactivated"));
     await load();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Kullanıcı devre dışı bırakılamadı."));
+    toast.error(apiErrorMessage(error, t("users.deactivateError")));
   }
 }
 
 async function activate(user: UserDto) {
   try {
     await api.post(`/api/users/${user.id}/activate`);
-    toast.success("Kullanıcı etkinleştirildi.");
+    toast.success(t("toast.userActivated"));
     await load();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Kullanıcı etkinleştirilemedi."));
+    toast.error(apiErrorMessage(error, t("users.activateError")));
   }
 }
 
@@ -136,29 +140,29 @@ onMounted(load);
 <template>
   <div class="space-y-6">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800">Kullanıcılar</h1>
+      <h1 class="text-xl font-bold text-slate-800">{{ $t("users.title") }}</h1>
       <div class="flex gap-2">
         <ExcelImportButton :columns="importColumns" template-filename="kullanicilar-sablon.xlsx" :import-row="importUserRow" @imported="load" />
         <AppButton @click="showForm = !showForm">
-          {{ showForm ? "Vazgeç" : "+ Yeni Kullanıcı" }}
+          {{ showForm ? $t("common.cancel") : $t("users.new") }}
         </AppButton>
       </div>
     </div>
 
     <form v-if="showForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="create">
-      <input v-model="form.email" type="email" placeholder="E-posta" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-      <input v-model="form.password" type="password" placeholder="Şifre" required minlength="8" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-      <input v-model="form.firstName" placeholder="Ad" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-      <input v-model="form.lastName" placeholder="Soyad" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      <input v-model="form.email" type="email" :placeholder="$t('users.form.email')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      <input v-model="form.password" type="password" :placeholder="$t('users.form.password')" required minlength="8" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      <input v-model="form.firstName" :placeholder="$t('users.form.firstName')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      <input v-model="form.lastName" :placeholder="$t('users.form.lastName')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
       <select v-model="form.role" class="rounded-md border border-slate-300 px-3 py-2 text-sm">
-        <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
+        <option v-for="r in roles" :key="r" :value="r">{{ roleLabel(r) }}</option>
       </select>
       <select v-if="form.role === 'Supplier'" v-model="form.companyId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm">
-        <option value="" disabled>Cari seç...</option>
+        <option value="" disabled>{{ $t("users.form.selectCompany") }}</option>
         <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
       </select>
       <AppButton type="submit" class="sm:col-span-2" :loading="submitting">
-        {{ submitting ? "Kaydediliyor..." : "Kaydet" }}
+        {{ submitting ? $t("common.saving") : $t("common.save") }}
       </AppButton>
     </form>
 
@@ -168,11 +172,11 @@ onMounted(load);
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-              <th class="pb-2">E-posta</th>
-              <th class="pb-2">Ad Soyad</th>
-              <th class="pb-2">Cari</th>
-              <th class="pb-2">Rol</th>
-              <th class="pb-2">Durum</th>
+              <th class="pb-2">{{ $t("users.table.email") }}</th>
+              <th class="pb-2">{{ $t("users.table.fullName") }}</th>
+              <th class="pb-2">{{ $t("users.table.company") }}</th>
+              <th class="pb-2">{{ $t("users.table.role") }}</th>
+              <th class="pb-2">{{ $t("common.status") }}</th>
               <th class="pb-2"></th>
             </tr>
           </thead>
@@ -184,14 +188,14 @@ onMounted(load);
               <td class="py-2">
                 <div v-if="isAdminRole()" class="flex flex-wrap items-center gap-2">
                   <select v-model="roleDrafts[u.id]" class="rounded-md border border-slate-300 px-2 py-1 text-xs">
-                    <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
+                    <option v-for="r in roles" :key="r" :value="r">{{ roleLabel(r) }}</option>
                   </select>
                   <select
                     v-if="roleDrafts[u.id] === 'Supplier'"
                     v-model="companyDrafts[u.id]"
                     class="rounded-md border border-slate-300 px-2 py-1 text-xs"
                   >
-                    <option value="" disabled>Cari seç...</option>
+                    <option value="" disabled>{{ $t("users.form.selectCompany") }}</option>
                     <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
                   </select>
                   <button
@@ -200,26 +204,26 @@ onMounted(load);
                     :disabled="roleDrafts[u.id] === 'Supplier' && !companyDrafts[u.id]"
                     @click="saveRole(u)"
                   >
-                    Kaydet
+                    {{ $t("common.save") }}
                   </button>
                 </div>
-                <span v-else class="text-xs text-slate-500">{{ u.roles.join(", ") }}</span>
+                <span v-else class="text-xs text-slate-500">{{ u.roles.map(roleLabel).join(", ") }}</span>
               </td>
               <td class="py-2">
-                <AppBadge :tone="u.isActive ? 'emerald' : 'slate'">{{ u.isActive ? "Aktif" : "Pasif" }}</AppBadge>
+                <AppBadge :tone="u.isActive ? 'emerald' : 'slate'">{{ u.isActive ? $t("common.active") : $t("common.passive") }}</AppBadge>
               </td>
               <td class="py-2 text-right">
                 <button v-if="isAdminRole() && u.isActive" class="text-xs font-medium text-rose-600 hover:underline" @click="deactivate(u)">
-                  Devre Dışı Bırak
+                  {{ $t("users.deactivate") }}
                 </button>
                 <button v-else-if="isAdminRole() && !u.isActive" class="text-xs font-medium text-emerald-600 hover:underline" @click="activate(u)">
-                  Etkinleştir
+                  {{ $t("users.activate") }}
                 </button>
               </td>
             </tr>
           </tbody>
         </table>
-        <EmptyState v-if="users.length === 0">Henüz kullanıcı yok</EmptyState>
+        <EmptyState v-if="users.length === 0">{{ $t("users.empty") }}</EmptyState>
       </div>
     </AppCard>
   </div>

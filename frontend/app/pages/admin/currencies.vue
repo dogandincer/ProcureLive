@@ -4,6 +4,7 @@ import type { ExcelColumn } from "~/composables/useExcelImport";
 
 const api = useApi();
 const toast = useToast();
+const { t } = useI18n();
 const currencies = ref<CurrencyDto[]>([]);
 const rates = ref<ExchangeRateDto[]>([]);
 const showCurrencyForm = ref(false);
@@ -16,11 +17,11 @@ const rateForm = reactive({ currencyId: "", rateDate: new Date().toISOString().s
 
 const nonBaseCurrencies = computed(() => currencies.value.filter((c) => !c.isBaseCurrency));
 
-const importColumns: ExcelColumn[] = [
-  { key: "code", label: "Kod", required: true, hint: "3 harfli ISO kodu, örn. CHF" },
-  { key: "name", label: "Ad", required: true },
-  { key: "symbol", label: "Sembol", required: true },
-];
+const importColumns = computed<ExcelColumn[]>(() => [
+  { key: "code", label: t("currencies.import.code"), required: true, hint: t("currencies.import.codeHint") },
+  { key: "name", label: t("currencies.import.name"), required: true },
+  { key: "symbol", label: t("currencies.import.symbol"), required: true },
+]);
 
 async function importCurrencyRow(row: Record<string, string | number | boolean | null>) {
   await api.post("/api/currencies", {
@@ -44,7 +45,7 @@ async function load() {
       rateForm.currencyId = nonBaseCurrencies.value[0].id;
     }
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Kayıtlar yüklenemedi."));
+    toast.error(apiErrorMessage(error, t("currencies.loadError")));
   } finally {
     loading.value = false;
   }
@@ -61,10 +62,10 @@ async function createCurrency() {
     });
     Object.assign(currencyForm, { code: "", name: "", symbol: "", isBaseCurrency: false });
     showCurrencyForm.value = false;
-    toast.success("Para birimi oluşturuldu.");
+    toast.success(t("toast.currencyCreated"));
     await load();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Para birimi oluşturulamadı."));
+    toast.error(apiErrorMessage(error, t("currencies.createError")));
   } finally {
     submitting.value = false;
   }
@@ -83,10 +84,10 @@ async function createRate() {
     rateForm.rateToBase = null;
     rateForm.source = "";
     showRateForm.value = false;
-    toast.success("Döviz kuru eklendi.");
+    toast.success(t("toast.rateCreated"));
     await load();
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, "Kur oluşturulamadı."));
+    toast.error(apiErrorMessage(error, t("currencies.rateCreateError")));
   } finally {
     submitting.value = false;
   }
@@ -98,32 +99,32 @@ onMounted(load);
 <template>
   <div class="space-y-6">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800">Para Birimleri &amp; Kurlar</h1>
+      <h1 class="text-xl font-bold text-slate-800">{{ $t("currencies.title") }}</h1>
     </div>
 
     <LoadingSpinner v-if="loading" />
     <div v-else class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <AppCard>
         <div class="flex items-center justify-between">
-          <h2 class="text-sm font-semibold text-slate-700">Para Birimleri</h2>
+          <h2 class="text-sm font-semibold text-slate-700">{{ $t("currencies.currenciesHeading") }}</h2>
           <div class="flex items-center gap-2">
             <ExcelImportButton :columns="importColumns" template-filename="para-birimleri-sablon.xlsx" :import-row="importCurrencyRow" @imported="load" />
             <button class="text-xs font-medium text-indigo-600 hover:underline" @click="showCurrencyForm = !showCurrencyForm">
-              {{ showCurrencyForm ? "Vazgeç" : "+ Yeni" }}
+              {{ showCurrencyForm ? $t("common.cancel") : $t("currencies.newShort") }}
             </button>
           </div>
         </div>
 
         <form v-if="showCurrencyForm" class="mt-3 grid grid-cols-2 gap-2" @submit.prevent="createCurrency">
-          <input v-model="currencyForm.code" placeholder="Kod (örn. GBP)" maxlength="3" required class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-          <input v-model="currencyForm.symbol" placeholder="Sembol (£)" required class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-          <input v-model="currencyForm.name" placeholder="Ad (İngiliz Sterlini)" required class="col-span-2 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+          <input v-model="currencyForm.code" :placeholder="$t('currencies.form.code')" maxlength="3" required class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+          <input v-model="currencyForm.symbol" :placeholder="$t('currencies.form.symbol')" required class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+          <input v-model="currencyForm.name" :placeholder="$t('currencies.form.name')" required class="col-span-2 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
           <label class="col-span-2 flex items-center gap-2 text-xs text-slate-600">
             <input v-model="currencyForm.isBaseCurrency" type="checkbox" />
-            Sistem baz para birimi yap
+            {{ $t("currencies.form.makeBase") }}
           </label>
           <AppButton type="submit" variant="secondary" class="col-span-2" :loading="submitting">
-            {{ submitting ? "Kaydediliyor..." : "Kaydet" }}
+            {{ submitting ? $t("common.saving") : $t("common.save") }}
           </AppButton>
         </form>
 
@@ -131,9 +132,9 @@ onMounted(load);
           <table class="mt-3 w-full text-sm">
             <thead>
               <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-                <th class="pb-1">Kod</th>
-                <th class="pb-1">Ad</th>
-                <th class="pb-1">Sembol</th>
+                <th class="pb-1">{{ $t("currencies.table.code") }}</th>
+                <th class="pb-1">{{ $t("currencies.table.name") }}</th>
+                <th class="pb-1">{{ $t("currencies.table.symbol") }}</th>
                 <th class="pb-1"></th>
               </tr>
             </thead>
@@ -143,20 +144,20 @@ onMounted(load);
                 <td class="py-1 text-slate-600">{{ c.name }}</td>
                 <td class="py-1 text-slate-500">{{ c.symbol }}</td>
                 <td class="py-1 text-right">
-                  <AppBadge v-if="c.isBaseCurrency" tone="indigo">Baz</AppBadge>
+                  <AppBadge v-if="c.isBaseCurrency" tone="indigo">{{ $t("currencies.base") }}</AppBadge>
                 </td>
               </tr>
             </tbody>
           </table>
-          <EmptyState v-if="currencies.length === 0">Henüz para birimi yok</EmptyState>
+          <EmptyState v-if="currencies.length === 0">{{ $t("currencies.emptyCurrencies") }}</EmptyState>
         </div>
       </AppCard>
 
       <AppCard>
         <div class="flex items-center justify-between">
-          <h2 class="text-sm font-semibold text-slate-700">Döviz Kurları (baz para birimine göre)</h2>
+          <h2 class="text-sm font-semibold text-slate-700">{{ $t("currencies.ratesHeading") }}</h2>
           <button class="text-xs font-medium text-indigo-600 hover:underline" @click="showRateForm = !showRateForm">
-            {{ showRateForm ? "Vazgeç" : "+ Yeni" }}
+            {{ showRateForm ? $t("common.cancel") : $t("currencies.newShort") }}
           </button>
         </div>
 
@@ -165,22 +166,22 @@ onMounted(load);
             <option v-for="c in nonBaseCurrencies" :key="c.id" :value="c.id">{{ c.code }}</option>
           </select>
           <input v-model="rateForm.rateDate" type="date" required class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-          <input v-model.number="rateForm.rateToBase" type="number" step="0.000001" placeholder="Kur (örn. 34.50)" required class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-          <input v-model="rateForm.source" placeholder="Kaynak (opsiyonel)" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+          <input v-model.number="rateForm.rateToBase" type="number" step="0.000001" :placeholder="$t('currencies.form.rate')" required class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+          <input v-model="rateForm.source" :placeholder="$t('currencies.form.source')" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
           <AppButton type="submit" variant="secondary" class="col-span-2" :loading="submitting">
-            {{ submitting ? "Kaydediliyor..." : "Kaydet" }}
+            {{ submitting ? $t("common.saving") : $t("common.save") }}
           </AppButton>
         </form>
-        <p v-if="nonBaseCurrencies.length === 0" class="mt-2 text-xs text-slate-400">Kur tanımlamak için önce baz olmayan bir para birimi ekleyin.</p>
+        <p v-if="nonBaseCurrencies.length === 0" class="mt-2 text-xs text-slate-400">{{ $t("currencies.needNonBaseCurrency") }}</p>
 
         <div class="overflow-x-auto">
           <table class="mt-3 w-full text-sm">
             <thead>
               <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-                <th class="pb-1">Para Birimi</th>
-                <th class="pb-1">Tarih</th>
-                <th class="pb-1">Kur</th>
-                <th class="pb-1">Kaynak</th>
+                <th class="pb-1">{{ $t("currencies.table.currency") }}</th>
+                <th class="pb-1">{{ $t("currencies.table.date") }}</th>
+                <th class="pb-1">{{ $t("currencies.table.rate") }}</th>
+                <th class="pb-1">{{ $t("currencies.table.source") }}</th>
               </tr>
             </thead>
             <tbody>
@@ -192,7 +193,7 @@ onMounted(load);
               </tr>
             </tbody>
           </table>
-          <EmptyState v-if="rates.length === 0">Henüz kur tanımlı değil</EmptyState>
+          <EmptyState v-if="rates.length === 0">{{ $t("currencies.emptyRates") }}</EmptyState>
         </div>
       </AppCard>
     </div>

@@ -1,0 +1,353 @@
+{
+  "app": {
+    "name": "ProcureLive",
+    "tagline": "B2B E-Tedarik ve Anlık İhale Sistemi"
+  },
+  "common": {
+    "save": "Kaydet",
+    "saving": "Kaydediliyor...",
+    "cancel": "Vazgeç",
+    "close": "Kapat",
+    "loading": "Yükleniyor...",
+    "detail": "Detay",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "add": "Ekle",
+    "new": "Yeni",
+    "status": "Durum",
+    "active": "Aktif",
+    "passive": "Pasif",
+    "yes": "Evet",
+    "no": "Hayır",
+    "back": "Geri",
+    "search": "Ara",
+    "actions": "İşlemler",
+    "optional": "opsiyonel",
+    "logout": "Çıkış",
+    "stepOf": "Adım {step}/{total}"
+  },
+  "nav": {
+    "panel": "Panel",
+    "myPanel": "Panelim",
+    "supplyChainGroup": "Tedarik Zinciri",
+    "companies": "Cariler",
+    "users": "Kullanıcılar",
+    "catalogGroup": "Katalog",
+    "products": "Stok / Ürünler",
+    "categories": "Kategoriler",
+    "currencies": "Para Birimleri",
+    "processesGroup": "Süreçler",
+    "auctions": "İhaleler",
+    "auctionInvites": "İhale Davetlerim",
+    "auctionHistory": "İhale Geçmişim",
+    "rfi": "RFI",
+    "rfiInvites": "RFI Davetlerim",
+    "rfq": "RFQ",
+    "rfqInvites": "RFQ Davetlerim",
+    "systemGroup": "Sistem",
+    "auditLog": "Denetim Kaydı"
+  },
+  "language": {
+    "label": "Dil",
+    "tr": "Türkçe",
+    "en": "İngilizce"
+  },
+  "roles": {
+    "admin": "Admin",
+    "buyer": "Alıcı",
+    "supplier": "Tedarikçi"
+  },
+  "notifications": {
+    "title": "Bildirimler",
+    "unreadOnly": "Okunmamış",
+    "markAllRead": "Tümünü okundu işaretle",
+    "empty": "Bildirim yok",
+    "emptyUnread": "Okunmamış bildirim yok"
+  },
+  "excelImport": {
+    "defaultLabel": "Excel'den Aktar",
+    "downloadTemplate": "Şablon İndir (.xlsx)",
+    "expectedColumns": "Şablondaki sütun başlıklarını kullanın. Beklenen sütunlar:",
+    "chooseFile": "Dosya Seç",
+    "reading": "Okunuyor...",
+    "fileReadError": "Dosya okunamadı.",
+    "rowsRead": "{count} satır okundu —",
+    "validCount": "{count} geçerli",
+    "invalidCount": "{count} hatalı",
+    "rowHeader": "Satır",
+    "statusHeader": "Durum",
+    "ready": "Hazır",
+    "importing": "Aktarılıyor...",
+    "importRows": "İçe Aktar ({count} satır)",
+    "cancel": "Vazgeç",
+    "close": "Kapat",
+    "successCount": "{count} başarılı",
+    "errorCount": "{count} hatalı",
+    "rowLabel": "Satır {number}",
+    "rowImportError": "Satır aktarılamadı."
+  },
+  "login": {
+    "email": "E-posta",
+    "password": "Şifre",
+    "submit": "Giriş Yap",
+    "submitting": "Giriş yapılıyor...",
+    "defaultError": "Giriş başarısız. E-posta veya şifre hatalı."
+  },
+  "toast": {
+    "companyStatusUpdated": "Cari durumu güncellendi.",
+    "companyCreated": "Cari oluşturuldu.",
+    "contactCreated": "Yetkili kişi eklendi.",
+    "addressCreated": "Adres eklendi.",
+    "userCreated": "Kullanıcı oluşturuldu.",
+    "userRoleUpdated": "Kullanıcı rolü güncellendi.",
+    "userDeactivated": "Kullanıcı devre dışı bırakıldı.",
+    "userActivated": "Kullanıcı etkinleştirildi.",
+    "productCreated": "Ürün oluşturuldu.",
+    "categoryCreated": "Kategori oluşturuldu.",
+    "currencyCreated": "Para birimi oluşturuldu.",
+    "rateCreated": "Döviz kuru eklendi."
+  },
+  "dashboardAdmin": {
+    "title": "Admin Paneli",
+    "newAuction": "+ Yeni İhale",
+    "registeredCompanies": "Kayıtlı Cari",
+    "catalogProducts": "Katalogdaki Ürün",
+    "recentAuctions": "Son İhaleler",
+    "table": {
+      "title": "Başlık",
+      "type": "Tür",
+      "status": "Durum",
+      "endsAt": "Bitiş"
+    },
+    "emptyAuctions": "Henüz ihale yok",
+    "recommendation": {
+      "heading": "En Uygun İhale Modeli Önerisi",
+      "hint": "(veri-hazır placeholder, Faz 4 AI altyapısı)",
+      "estimatedParticipants": "Tahmini Katılımcı",
+      "estimatedItems": "Tahmini Kalem Sayısı",
+      "suggest": "Öner",
+      "calculating": "Hesaplanıyor...",
+      "recommended": "Önerilen",
+      "confidence": "güven skoru"
+    },
+    "loadError": "Panel verileri yüklenemedi.",
+    "recommendationError": "Öneri alınamadı."
+  },
+  "enums": {
+    "companyStatus": {
+      "PendingApproval": "Onay Bekliyor",
+      "Active": "Aktif",
+      "Passive": "Pasif"
+    },
+    "addressType": {
+      "HeadOffice": "Merkez Ofis",
+      "Billing": "Fatura Adresi",
+      "Shipping": "Teslimat Adresi"
+    },
+    "unitOfMeasure": {
+      "Piece": "Adet",
+      "Kilogram": "Kilogram",
+      "Gram": "Gram",
+      "Liter": "Litre",
+      "Meter": "Metre",
+      "SquareMeter": "Metrekare",
+      "CubicMeter": "Metreküp",
+      "Box": "Kutu",
+      "Pallet": "Palet",
+      "Hour": "Saat",
+      "Service": "Hizmet"
+    }
+  },
+  "currencies": {
+    "title": "Para Birimleri & Kurlar",
+    "currenciesHeading": "Para Birimleri",
+    "ratesHeading": "Döviz Kurları (baz para birimine göre)",
+    "newShort": "+ Yeni",
+    "form": {
+      "code": "Kod (örn. GBP)",
+      "symbol": "Sembol (£)",
+      "name": "Ad (İngiliz Sterlini)",
+      "makeBase": "Sistem baz para birimi yap",
+      "rateDate": "Tarih",
+      "rate": "Kur (örn. 34.50)",
+      "source": "Kaynak (opsiyonel)"
+    },
+    "table": {
+      "code": "Kod",
+      "name": "Ad",
+      "symbol": "Sembol",
+      "currency": "Para Birimi",
+      "date": "Tarih",
+      "rate": "Kur",
+      "source": "Kaynak"
+    },
+    "base": "Baz",
+    "emptyCurrencies": "Henüz para birimi yok",
+    "emptyRates": "Henüz kur tanımlı değil",
+    "needNonBaseCurrency": "Kur tanımlamak için önce baz olmayan bir para birimi ekleyin.",
+    "loadError": "Kayıtlar yüklenemedi.",
+    "createError": "Para birimi oluşturulamadı.",
+    "rateCreateError": "Kur oluşturulamadı.",
+    "import": {
+      "code": "Kod",
+      "codeHint": "3 harfli ISO kodu, örn. CHF",
+      "name": "Ad",
+      "symbol": "Sembol"
+    }
+  },
+  "categories": {
+    "title": "Kategoriler",
+    "new": "+ Yeni Kategori",
+    "form": {
+      "name": "Kategori Adı",
+      "code": "Kod (örn. ELEKTRONIK)",
+      "noParent": "Üst kategori yok (kök kategori)"
+    },
+    "table": {
+      "name": "Ad",
+      "code": "Kod"
+    },
+    "empty": "Henüz kategori yok",
+    "loadError": "Kayıtlar yüklenemedi.",
+    "createError": "Kategori oluşturulamadı.",
+    "import": {
+      "name": "Kategori Adı",
+      "code": "Kod",
+      "parentCategory": "Üst Kategori",
+      "parentCategoryHint": "Opsiyonel - mevcut veya bu dosyada daha önce geçen bir kategori adı",
+      "parentNotFound": "Üst kategori bulunamadı: \"{name}\""
+    }
+  },
+  "products": {
+    "title": "Stok / Ürünler",
+    "new": "+ Yeni Ürün",
+    "form": {
+      "sku": "SKU",
+      "name": "Ürün Adı",
+      "brand": "Marka (opsiyonel)"
+    },
+    "table": {
+      "sku": "SKU",
+      "name": "Ad",
+      "category": "Kategori",
+      "unit": "Birim"
+    },
+    "empty": "Henüz ürün yok",
+    "loadError": "Kayıtlar yüklenemedi.",
+    "createError": "Ürün oluşturulamadı.",
+    "import": {
+      "name": "Ürün Adı",
+      "category": "Kategori",
+      "categoryHint": "Mevcut bir kategori adı (Kategoriler ekranından)",
+      "unit": "Birim",
+      "brand": "Marka",
+      "categoryNotFound": "Kategori bulunamadı: \"{name}\""
+    }
+  },
+  "companies": {
+    "title": "Cariler",
+    "new": "+ Yeni Cari",
+    "form": {
+      "name": "Firma Adı",
+      "taxNumber": "Vergi No",
+      "taxOffice": "Vergi Dairesi",
+      "typeSupplier": "Supplier (Tedarikçi)",
+      "typeInternal": "Internal (İç Alım)",
+      "website": "Web sitesi (opsiyonel)"
+    },
+    "table": {
+      "name": "Ad",
+      "taxNumber": "Vergi No",
+      "type": "Tür"
+    },
+    "empty": "Henüz cari yok",
+    "loadError": "Kayıtlar yüklenemedi.",
+    "statusUpdateError": "Durum güncellenemedi.",
+    "createError": "Cari oluşturulamadı.",
+    "import": {
+      "name": "Firma Adı",
+      "taxNumber": "Vergi No",
+      "taxOffice": "Vergi Dairesi",
+      "type": "Tür",
+      "typeHint": "Supplier veya Internal",
+      "website": "Web Sitesi"
+    },
+    "detail": {
+      "loadError": "Cari yüklenemedi.",
+      "contactAddError": "Yetkili kişi eklenemedi.",
+      "addressAddError": "Adres eklenemedi.",
+      "contacts": "Yetkili Kişiler",
+      "addresses": "Adresler",
+      "primary": "Birincil",
+      "primaryContactLabel": "Birincil iletişim kişisi",
+      "emptyContacts": "Henüz yetkili kişi yok",
+      "emptyAddresses": "Henüz adres yok",
+      "form": {
+        "firstName": "Ad",
+        "lastName": "Soyad",
+        "title": "Unvan (opsiyonel)",
+        "email": "E-posta",
+        "phone": "Telefon (opsiyonel)",
+        "country": "Ülke",
+        "city": "Şehir",
+        "district": "İlçe (opsiyonel)",
+        "postalCode": "Posta Kodu (opsiyonel)",
+        "line1": "Adres Satırı 1",
+        "line2": "Adres Satırı 2 (opsiyonel)"
+      }
+    }
+  },
+  "users": {
+    "title": "Kullanıcılar",
+    "new": "+ Yeni Kullanıcı",
+    "form": {
+      "email": "E-posta",
+      "password": "Şifre",
+      "firstName": "Ad",
+      "lastName": "Soyad",
+      "selectCompany": "Cari seç..."
+    },
+    "table": {
+      "email": "E-posta",
+      "fullName": "Ad Soyad",
+      "company": "Cari",
+      "role": "Rol"
+    },
+    "deactivate": "Devre Dışı Bırak",
+    "activate": "Etkinleştir",
+    "empty": "Henüz kullanıcı yok",
+    "loadError": "Kayıtlar yüklenemedi.",
+    "createError": "Kullanıcı oluşturulamadı.",
+    "roleUpdateError": "Rol güncellenemedi.",
+    "deactivateError": "Kullanıcı devre dışı bırakılamadı.",
+    "activateError": "Kullanıcı etkinleştirilemedi.",
+    "import": {
+      "email": "E-posta",
+      "password": "Şifre",
+      "passwordHint": "En az 8 karakter",
+      "firstName": "Ad",
+      "lastName": "Soyad",
+      "role": "Rol",
+      "company": "Cari",
+      "companyHint": "Rol Supplier ise zorunlu - mevcut bir Cari adı",
+      "companyNotFound": "Cari bulunamadı: \"{name}\""
+    }
+  },
+  "dashboardSupplier": {
+    "greeting": "Merhaba, {name}",
+    "auctionInvites": "İhale Davetlerim",
+    "rfiInvites": "RFI Davetlerim",
+    "rfqInvites": "RFQ Davetlerim",
+    "viewAll": "Tümünü gör →",
+    "liveNow": "Şu Anda Canlı İhaleler",
+    "goToAuction": "İhaleye Git",
+    "recentInvites": "Son İhale Davetlerim",
+    "table": {
+      "title": "Başlık",
+      "status": "Durum",
+      "endsAt": "Bitiş"
+    },
+    "emptyInvites": "Davet yok",
+    "loadError": "Panel verileri yüklenemedi."
+  }
+}

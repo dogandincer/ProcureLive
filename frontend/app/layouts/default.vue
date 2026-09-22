@@ -4,7 +4,7 @@ import type { NotificationDto } from "~/types/api";
 const { currentUser, isInternalRole, isSupplierRole, isAdminRole, logout } = useAuth();
 const api = useApi();
 const { connect } = useNotificationHub();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const notifications = ref<NotificationDto[]>([]);
 const unreadCount = ref(0);
@@ -114,6 +114,10 @@ async function markAllRead() {
 }
 
 watch(unreadOnly, loadNotifications);
+
+// Notification title/body are translated server-side per the request's Accept-Language, so a
+// language switch needs a fresh fetch to re-render already-loaded notifications in the new language.
+watch(locale, loadNotifications);
 
 onMounted(async () => {
   await loadNotifications();

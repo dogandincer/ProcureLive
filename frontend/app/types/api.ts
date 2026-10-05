@@ -400,6 +400,24 @@ export interface RfqComparisonRowDto {
   leadTimeDays: number | null;
 }
 
+export interface RfqAiRecommendationDto {
+  recommendedQuoteId: string;
+  recommendedCompanyName: string;
+  confidenceScore: number;
+  rationale: string;
+  scores: RfqQuoteScoreDto[];
+}
+
+export interface RfqQuoteScoreDto {
+  quoteId: string;
+  companyName: string;
+  totalScore: number;
+  priceScore: number;
+  leadTimeScore: number;
+  totalNormalizedCost: number;
+  averageLeadTimeDays: number | null;
+}
+
 export interface AuctionModelRecommendationDto {
   recommendedAuctionType: string;
   confidenceScore: number;

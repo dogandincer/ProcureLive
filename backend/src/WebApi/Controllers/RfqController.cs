@@ -10,6 +10,7 @@ using ProcureLive.Application.Rfq.Commands.InviteCompaniesToRfq;
 using ProcureLive.Application.Rfq.Commands.PublishRfqProcess;
 using ProcureLive.Application.Rfq.Commands.RespondToRfqInvitation;
 using ProcureLive.Application.Rfq.Commands.SubmitRfqQuote;
+using ProcureLive.Application.Rfq.Queries.GetRfqAiRecommendation;
 using ProcureLive.Application.Rfq.Queries.GetRfqComparisonMatrix;
 using ProcureLive.Application.Rfq.Queries.GetRfqProcessById;
 using ProcureLive.Application.Rfq.Queries.GetRfqProcessesList;
@@ -128,6 +129,13 @@ public sealed class RfqController : ControllerBase
     public async Task<ActionResult<IReadOnlyCollection<RfqComparisonRowDto>>> GetComparisonMatrix(Guid id, CancellationToken cancellationToken)
     {
         return Ok(await _sender.Send(new GetRfqComparisonMatrixQuery(id), cancellationToken));
+    }
+
+    [HttpGet("{id:guid}/ai-recommendation")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<RfqAiRecommendationDto>> GetAiRecommendation(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await _sender.Send(new GetRfqAiRecommendationQuery(id), cancellationToken));
     }
 
     [HttpPost("{id:guid}/close")]

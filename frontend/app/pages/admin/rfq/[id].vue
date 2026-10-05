@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { CompanyDto, PagedResult, RfqComparisonRowDto, RfqProcessDetailDto, RfqQuoteDto } from "~/types/api";
+import type { CompanyDto, PagedResult, RfqAiRecommendationDto, RfqComparisonRowDto, RfqProcessDetailDto, RfqQuoteDto } from "~/types/api";
+import { SparklesIcon } from "@heroicons/vue/24/outline";
 import type { ExcelColumn } from "~/composables/useExcelImport";
 
 const route = useRoute();
@@ -12,6 +13,8 @@ const process = ref<RfqProcessDetailDto | null>(null);
 const companies = ref<CompanyDto[]>([]);
 const matrix = ref<RfqComparisonRowDto[]>([]);
 const quotes = ref<RfqQuoteDto[]>([]);
+const aiRecommendation = ref<RfqAiRecommendationDto | null>(null);
+const aiLoading = ref(false);
 const inviteCompanyId = ref("");
 const newLine = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece" });
 const loading = ref(true);
@@ -73,8 +76,20 @@ async function award(quoteId: string) {
   await runAction(async () => {
     await api.post(`/api/rfq/processes/${processId}/award`, { winningQuoteId: quoteId, notes: null });
     toast.success(t("rfq.detail.winnerSelectedToast"));
+    aiRecommendation.value = null;
     await load();
   });
+}
+
+async function getAiRecommendation() {
+  aiLoading.value = true;
+  try {
+    aiRecommendation.value = await api.get<RfqAiRecommendationDto>(`/api/rfq/processes/${processId}/ai-recommendation`);
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("rfq.detail.aiRecommendation.error")));
+  } finally {
+    aiLoading.value = false;
+  }
 }
 
 async function addLine() {
@@ -248,8 +263,92 @@ onMounted(async () => {
       <EmptyState v-if="matrix.length === 0">{{ $t("rfq.detail.emptyMatrix") }}</EmptyState>
     </AppCard>
 
+    <!-- AI Recommendation panel — shown when Closed and there are submitted quotes -->
+    <AppCard v-if="process.status === 'Closed' && quotes.filter((q) => q.status === 'Submitted').length > 0">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <SparklesIcon class="h-5 w-5 text-indigo-500" />
+          <h3 class="text-sm font-semibold text-slate-700">{{ $t("rfq.detail.aiRecommendation.title") }}</h3>
+        </div>
+        <button
+          :disabled="aiLoading"
+          class="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+          @click="getAiRecommendation"
+        >
+          <SparklesIcon class="h-3.5 w-3.5" />
+          {{ aiLoading ? $t("rfq.detail.aiRecommendation.analyzing") : $t("rfq.detail.aiRecommendation.analyze") }}
+        </button>
+      </div>
+
+      <div v-if="aiRecommendation" class="mt-4 space-y-4">
+        <!-- Winner summary -->
+        <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs text-indigo-500 font-medium uppercase tracking-wide">{{ $t("rfq.detail.aiRecommendation.recommended") }}</p>
+              <p class="mt-0.5 text-base font-bold text-indigo-800">{{ aiRecommendation.recommendedCompanyName }}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-xs text-indigo-500 font-medium uppercase tracking-wide">{{ $t("rfq.detail.aiRecommendation.confidence") }}</p>
+              <p class="mt-0.5 text-base font-bold text-indigo-800">{{ aiRecommendation.confidenceScore.toFixed(0) }}%</p>
+            </div>
+          </div>
+          <!-- Confidence bar -->
+          <div class="mt-2 h-1.5 rounded-full bg-indigo-200">
+            <div
+              class="h-1.5 rounded-full bg-indigo-500 transition-all"
+              :style="{ width: `${aiRecommendation.confidenceScore}%` }"
+            />
+          </div>
+        </div>
+
+        <!-- Rationale -->
+        <p class="text-sm text-slate-600 leading-relaxed">{{ aiRecommendation.rationale }}</p>
+
+        <!-- Score table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="border-b border-slate-100 text-left text-slate-400 uppercase tracking-wide">
+                <th class="pb-1 pr-3">{{ $t("rfq.detail.aiRecommendation.company") }}</th>
+                <th class="pb-1 pr-3 text-right">{{ $t("rfq.detail.aiRecommendation.totalScore") }}</th>
+                <th class="pb-1 pr-3 text-right">{{ $t("rfq.detail.aiRecommendation.priceScore") }}</th>
+                <th class="pb-1 pr-3 text-right">{{ $t("rfq.detail.aiRecommendation.leadScore") }}</th>
+                <th class="pb-1 text-right">{{ $t("rfq.detail.aiRecommendation.totalCost") }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="s in aiRecommendation.scores"
+                :key="s.quoteId"
+                class="border-b border-slate-50"
+                :class="{ 'bg-indigo-50/60 font-semibold': s.quoteId === aiRecommendation!.recommendedQuoteId }"
+              >
+                <td class="py-1.5 pr-3">
+                  <span v-if="s.quoteId === aiRecommendation!.recommendedQuoteId" class="mr-1 text-indigo-500">★</span>
+                  {{ s.companyName }}
+                </td>
+                <td class="py-1.5 pr-3 text-right font-mono text-indigo-700">{{ s.totalScore.toFixed(1) }}</td>
+                <td class="py-1.5 pr-3 text-right font-mono text-slate-600">{{ s.priceScore.toFixed(1) }}</td>
+                <td class="py-1.5 pr-3 text-right font-mono text-slate-600">{{ s.leadTimeScore.toFixed(1) }}</td>
+                <td class="py-1.5 text-right font-mono text-slate-500">{{ s.totalNormalizedCost.toFixed(2) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-[11px] text-slate-400">{{ $t("rfq.detail.aiRecommendation.weightNote") }}</p>
+      </div>
+
+      <p v-else class="mt-2 text-xs text-slate-400">{{ $t("rfq.detail.aiRecommendation.hint") }}</p>
+    </AppCard>
+
     <AppCard>
-      <h3 class="text-sm font-semibold text-slate-700">{{ $t("rfq.detail.quotes") }}</h3>
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-slate-700">{{ $t("rfq.detail.quotes") }}</h3>
+        <span v-if="process.status === 'Closed'" class="text-[11px] text-slate-400">
+          {{ $t("rfq.detail.thankYouEmailNote") }}
+        </span>
+      </div>
       <p v-if="process.status === 'Awarded'" class="mt-1 text-xs text-emerald-700">
         {{ $t("rfq.detail.winner") }}: {{ quotes.find((q) => q.id === process!.winningQuoteId)?.companyName ?? "-" }}
       </p>

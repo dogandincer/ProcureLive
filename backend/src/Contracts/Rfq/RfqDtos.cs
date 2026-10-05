@@ -80,6 +80,23 @@ public sealed record SubmitRfqQuoteRequest(
     string? Notes,
     IReadOnlyCollection<RfqQuoteLineItemInput> LineItems);
 
+/// <summary>Rule-based AI recommendation for an RFQ process: which quote to select and why.</summary>
+public sealed record RfqAiRecommendationDto(
+    Guid RecommendedQuoteId,
+    string RecommendedCompanyName,
+    decimal ConfidenceScore,
+    string Rationale,
+    IReadOnlyCollection<RfqQuoteScoreDto> Scores);
+
+public sealed record RfqQuoteScoreDto(
+    Guid QuoteId,
+    string CompanyName,
+    decimal TotalScore,
+    decimal PriceScore,
+    decimal LeadTimeScore,
+    decimal TotalNormalizedCost,
+    double? AverageLeadTimeDays);
+
 /// <summary>Admin comparison matrix row: one supplier's quote for one line item, normalized for cross-currency comparison.</summary>
 public sealed record RfqComparisonRowDto(
     Guid RfqLineItemId,

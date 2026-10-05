@@ -715,6 +715,7 @@
       "won": "Kazandı",
       "emptyQuotes": "Henüz gönderilmiş teklif yok",
       "closeBeforeAward": "Kazanan seçmeden önce süreci kapatmanız gerekir.",
+      "thankYouEmailNote": "Kazanan seçilince kaybeden tedarikçilere teşekkür maili gönderilecek.",
       "loadError": "RFQ süreci yüklenemedi.",
       "matrixLoadError": "Karşılaştırma matrisi yüklenemedi.",
       "quotesLoadError": "Teklifler yüklenemedi.",
@@ -723,7 +724,22 @@
       "itemAddedToast": "Kalem eklendi.",
       "invitedToast": "Cari davet edildi.",
       "publishedToast": "RFQ yayınlandı.",
-      "closedToast": "RFQ süreci kapatıldı."
+      "closedToast": "RFQ süreci kapatıldı.",
+      "aiRecommendation": {
+        "title": "AI Teklif Analizi",
+        "analyze": "AI Analizi Yap",
+        "analyzing": "Analiz Ediliyor...",
+        "recommended": "Önerilen Tedarikçi",
+        "confidence": "Güven Skoru",
+        "company": "Tedarikçi",
+        "totalScore": "Toplam Puan",
+        "priceScore": "Fiyat Puanı",
+        "leadScore": "Teslimat Puanı",
+        "totalCost": "Norm. Toplam",
+        "weightNote": "Ağırlıklar: Fiyat %70, Teslimat Süresi %30. Normalize edilmiş baz para birimi üzerinden hesaplanır.",
+        "hint": "Gönderilmiş teklifleri analiz etmek için butona tıklayın.",
+        "error": "AI analizi gerçekleştirilemedi."
+      }
     },
     "supplierList": {
       "title": "RFQ Davetlerim",

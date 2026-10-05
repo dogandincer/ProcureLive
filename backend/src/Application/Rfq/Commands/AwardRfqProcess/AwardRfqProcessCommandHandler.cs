@@ -13,15 +13,18 @@ public sealed class AwardRfqProcessCommandHandler : IRequestHandler<AwardRfqProc
     private readonly IApplicationDbContext _context;
     private readonly IDateTime _dateTime;
     private readonly INotificationRealtimeService _notificationService;
+    private readonly IEmailSender _emailSender;
 
     public AwardRfqProcessCommandHandler(
         IApplicationDbContext context,
         IDateTime dateTime,
-        INotificationRealtimeService notificationService)
+        INotificationRealtimeService notificationService,
+        IEmailSender emailSender)
     {
         _context = context;
         _dateTime = dateTime;
         _notificationService = notificationService;
+        _emailSender = emailSender;
     }
 
     public async Task Handle(AwardRfqProcessCommand request, CancellationToken cancellationToken)
@@ -86,6 +89,45 @@ public sealed class AwardRfqProcessCommandHandler : IRequestHandler<AwardRfqProc
                 "RFQ Sonuçlandı",
                 $"\"{process.Title}\" RFQ sürecinde başka bir tedarikçinin teklifi seçildi.",
                 nameof(RfqProcess), process.Id, cancellationToken);
+        }
+
+        // Send thank-you emails to losing companies via their primary (or first) contact
+        await SendThankYouEmailsAsync(process.Title, losingCompanyIds, cancellationToken);
+    }
+
+    private async Task SendThankYouEmailsAsync(
+        string processTitle,
+        IReadOnlyCollection<Guid> losingCompanyIds,
+        CancellationToken cancellationToken)
+    {
+        if (losingCompanyIds.Count == 0) return;
+
+        var contacts = await _context.ContactPersons
+            .Where(cp => losingCompanyIds.Contains(cp.CompanyId))
+            .Select(cp => new { cp.CompanyId, cp.Company.Name, cp.Email, cp.IsPrimary })
+            .ToListAsync(cancellationToken);
+
+        // Pick primary contact if available, otherwise first contact per company
+        var emailsToSend = contacts
+            .GroupBy(c => c.CompanyId)
+            .Select(g => g.OrderByDescending(c => c.IsPrimary).First())
+            .ToList();
+
+        foreach (var contact in emailsToSend)
+        {
+            string subject = $"{processTitle} – Katılımınız İçin Teşekkürler";
+            string body = $"""
+                Sayın {contact.Name} yetkilileri,
+
+                "{processTitle}" başlıklı RFQ sürecine gösterdiğiniz ilgi ve sunduğunuz teklif için teşekkür ederiz.
+
+                Değerlendirme sonucunda bu süreçte farklı bir tedarikçinin teklifi seçilmiştir. Katkınız bizim için değerlidir ve gelecekteki süreçlerde yeniden bir arada olmayı umuyoruz.
+
+                Saygılarımızla,
+                ProcureLive Satın Alma Ekibi
+                """;
+
+            await _emailSender.SendAsync(contact.Email, subject, body, cancellationToken);
         }
     }
 }

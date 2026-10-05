@@ -715,6 +715,7 @@
       "won": "Won",
       "emptyQuotes": "No submitted quotes yet",
       "closeBeforeAward": "You must close the process before selecting a winner.",
+      "thankYouEmailNote": "Thank-you emails will be sent to losing suppliers when a winner is selected.",
       "loadError": "Failed to load RFQ process.",
       "matrixLoadError": "Failed to load comparison matrix.",
       "quotesLoadError": "Failed to load quotes.",
@@ -723,7 +724,22 @@
       "itemAddedToast": "Item added.",
       "invitedToast": "Company invited.",
       "publishedToast": "RFQ published.",
-      "closedToast": "RFQ process closed."
+      "closedToast": "RFQ process closed.",
+      "aiRecommendation": {
+        "title": "AI Bid Analysis",
+        "analyze": "Run AI Analysis",
+        "analyzing": "Analyzing...",
+        "recommended": "Recommended Supplier",
+        "confidence": "Confidence Score",
+        "company": "Supplier",
+        "totalScore": "Total Score",
+        "priceScore": "Price Score",
+        "leadScore": "Lead Time Score",
+        "totalCost": "Norm. Total",
+        "weightNote": "Weights: Price 70%, Lead Time 30%. Calculated on normalized base currency totals.",
+        "hint": "Click the button to analyze submitted quotes.",
+        "error": "AI analysis could not be completed."
+      }
     },
     "supplierList": {
       "title": "My RFQ Invites",

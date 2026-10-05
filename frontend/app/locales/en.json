@@ -114,10 +114,22 @@
   },
   "dashboardAdmin": {
     "title": "Admin Dashboard",
-    "newAuction": "+ New Auction",
+    "subtitle": "Procurement process overview",
+    "newAuction": "New Auction",
     "registeredCompanies": "Registered Companies",
     "catalogProducts": "Catalog Products",
     "recentAuctions": "Recent Auctions",
+    "recentAuctionsSub": "Last 10 auctions",
+    "stat": {
+      "companies": "Companies",
+      "companiesSub": "Suppliers & buyers",
+      "products": "Catalog Products",
+      "productsSub": "Active stock items",
+      "totalAuctions": "Recent Auctions",
+      "recentSub": "Last 10 records",
+      "liveAuctions": "Live Auctions",
+      "liveSub": "Currently active"
+    },
     "table": {
       "title": "Title",
       "type": "Type",
@@ -127,13 +139,13 @@
     "emptyAuctions": "No auctions yet",
     "recommendation": {
       "heading": "Best-fit Auction Model Recommendation",
-      "hint": "(data-ready placeholder, Phase 4 AI infrastructure)",
+      "hint": "AI-powered auction type recommendation",
       "estimatedParticipants": "Estimated Participants",
       "estimatedItems": "Estimated Item Count",
-      "suggest": "Suggest",
+      "suggest": "Get Recommendation",
       "calculating": "Calculating...",
       "recommended": "Recommended",
-      "confidence": "confidence score"
+      "confidence": "confidence"
     },
     "loadError": "Failed to load dashboard data.",
     "recommendationError": "Failed to get recommendation."
@@ -249,7 +261,8 @@
       "workflow": {
         "draft": "Draft: Add Items & Invite Companies",
         "scheduled": "Published: Waiting to Start",
-        "live": "Live: Collecting Bids"
+        "live": "Live: Collecting Bids",
+        "ended": "Ended: Bid Evaluation"
       },
       "type": "Type",
       "currency": "Currency",
@@ -275,7 +288,8 @@
       "addItem": "Add Item",
       "form": {
         "description": "Description",
-        "quantity": "Quantity"
+        "quantity": "Quantity",
+        "targetPrice": "Target Price (optional)"
       },
       "add": "Add",
       "invitedCompanies": "Invited Companies",
@@ -301,6 +315,19 @@
         "ended": "Auction ended",
         "awarded": "A winner was selected for an item"
       }
+    },
+    "evaluation": {
+      "heading": "Bid Evaluation",
+      "progress": "{awarded} / {total} items evaluated",
+      "target": "Target Price",
+      "bids": "bids",
+      "awarded": "Evaluated",
+      "noBids": "No bids submitted for this item",
+      "bestOffer": "Best",
+      "winner": "Winner",
+      "selectWinner": "Select Winner",
+      "unitPrice": "Unit Price",
+      "normalized": "Normalized"
     },
     "live": {
       "accessDenied": "You don't have access to this auction. You may have declined the invitation.",

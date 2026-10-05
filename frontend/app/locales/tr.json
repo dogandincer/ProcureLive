@@ -114,10 +114,22 @@
   },
   "dashboardAdmin": {
     "title": "Admin Paneli",
-    "newAuction": "+ Yeni İhale",
+    "subtitle": "Satın alma süreçlerine genel bakış",
+    "newAuction": "Yeni İhale",
     "registeredCompanies": "Kayıtlı Cari",
     "catalogProducts": "Katalogdaki Ürün",
     "recentAuctions": "Son İhaleler",
+    "recentAuctionsSub": "Son 10 ihale",
+    "stat": {
+      "companies": "Kayıtlı Cari",
+      "companiesSub": "Tedarikçi ve alıcı",
+      "products": "Katalog Ürünü",
+      "productsSub": "Aktif stok kalemleri",
+      "totalAuctions": "Son İhaleler",
+      "recentSub": "Son 10 kayıt",
+      "liveAuctions": "Canlı İhale",
+      "liveSub": "Şu an aktif"
+    },
     "table": {
       "title": "Başlık",
       "type": "Tür",
@@ -127,13 +139,13 @@
     "emptyAuctions": "Henüz ihale yok",
     "recommendation": {
       "heading": "En Uygun İhale Modeli Önerisi",
-      "hint": "(veri-hazır placeholder, Faz 4 AI altyapısı)",
+      "hint": "Yapay zeka destekli ihale türü tavsiyesi",
       "estimatedParticipants": "Tahmini Katılımcı",
       "estimatedItems": "Tahmini Kalem Sayısı",
-      "suggest": "Öner",
+      "suggest": "Öneri Al",
       "calculating": "Hesaplanıyor...",
       "recommended": "Önerilen",
-      "confidence": "güven skoru"
+      "confidence": "güven"
     },
     "loadError": "Panel verileri yüklenemedi.",
     "recommendationError": "Öneri alınamadı."
@@ -249,7 +261,8 @@
       "workflow": {
         "draft": "Taslak: Kalem & Cari Davet Edin",
         "scheduled": "Yayınlandı: Başlangıç Bekleniyor",
-        "live": "Canlı: Teklifler Toplanıyor"
+        "live": "Canlı: Teklifler Toplanıyor",
+        "ended": "Sona Erdi: Teklif Değerlendirme"
       },
       "type": "Tür",
       "currency": "Para Birimi",
@@ -275,7 +288,8 @@
       "addItem": "Kalem Ekle",
       "form": {
         "description": "Açıklama",
-        "quantity": "Miktar"
+        "quantity": "Miktar",
+        "targetPrice": "Hedef Fiyat (opsiyonel)"
       },
       "add": "Ekle",
       "invitedCompanies": "Davetli Cariler",
@@ -301,6 +315,19 @@
         "ended": "İhale sona erdi",
         "awarded": "Bir kalem için kazanan seçildi"
       }
+    },
+    "evaluation": {
+      "heading": "Teklif Değerlendirme",
+      "progress": "{awarded} / {total} kalem değerlendirildi",
+      "target": "Hedef Fiyat",
+      "bids": "teklif",
+      "awarded": "Değerlendirildi",
+      "noBids": "Bu kalem için henüz teklif yok",
+      "bestOffer": "En İyi",
+      "winner": "Kazanan",
+      "selectWinner": "Kazanan Seç",
+      "unitPrice": "Birim Fiyat",
+      "normalized": "Normalize"
     },
     "live": {
       "accessDenied": "Bu ihaleye erişiminiz yok. Daveti reddetmiş olabilirsiniz.",

@@ -7,6 +7,19 @@ import type {
   CompanyDto,
   PagedResult,
 } from "~/types/api";
+import {
+  ClockIcon,
+  CurrencyDollarIcon,
+  BoltIcon,
+  ChevronRightIcon,
+  ChevronDownIcon,
+  PlusIcon,
+  UserPlusIcon,
+  ArrowsRightLeftIcon,
+  TrophyIcon,
+  DocumentMagnifyingGlassIcon,
+} from "@heroicons/vue/24/outline";
+import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/vue/24/solid";
 
 const route = useRoute();
 const auctionId = route.params.id as string;
@@ -14,6 +27,7 @@ const auctionId = route.params.id as string;
 const api = useApi();
 const toast = useToast();
 const { t } = useI18n();
+const { formatDateTime } = useDateFormat();
 const { connectAndJoin, disconnect } = useAuctionHub();
 const { isAdminRole } = useAuth();
 
@@ -27,6 +41,9 @@ const comparisons = reactive<Record<string, BidComparisonDto[]>>({});
 const inviteCompanyId = ref("");
 const newItem = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece", targetPrice: null as number | null });
 const extendMinutes = ref(5);
+
+// Track which item's award map (itemId -> bidId) to show awarded state inline
+const awardedBidPerItem = reactive<Record<string, string>>({});
 
 async function runAction(action: () => Promise<void>) {
   try {
@@ -54,6 +71,8 @@ const workflowStep = computed(() => {
       return { step: 2, label: t("auctions.detail.workflow.scheduled") };
     case "Live":
       return { step: 3, label: t("auctions.detail.workflow.live") };
+    case "Ended":
+      return { step: 4, label: t("auctions.detail.workflow.ended") };
     default:
       return null;
   }
@@ -72,6 +91,19 @@ const timeLeftLabel = computed(() => {
   return t("auctions.detail.timeLeftFormat", { minutes, seconds });
 });
 
+// Whether this auction is in the "evaluate" stage
+const isEvaluationStage = computed(() =>
+  auction.value ? ["Ended", "Awarded"].includes(auction.value.status) : false,
+);
+
+const evaluationSummary = computed(() => {
+  if (!isEvaluationStage.value || !auction.value) return null;
+  const items = auction.value.items;
+  const total = items.length;
+  const awarded = items.filter((it) => awardedBidPerItem[it.id] || (comparisons[it.id] && comparisons[it.id].some((b) => b.status === "Winning"))).length;
+  return { total, awarded };
+});
+
 async function load() {
   loading.value = true;
   try {
@@ -81,11 +113,20 @@ async function load() {
     ]);
     auction.value = detail;
     companies.value = companyPage.items;
+
+    // Auto-load all comparisons when in evaluation stage
+    if (["Ended", "Awarded"].includes(detail.status)) {
+      await loadAllComparisons(detail.items);
+    }
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("auctions.detail.loadError")));
   } finally {
     loading.value = false;
   }
+}
+
+async function loadAllComparisons(items: AuctionItemDto[]) {
+  await Promise.allSettled(items.map((it) => loadComparison(it.id)));
 }
 
 async function addItem() {
@@ -146,12 +187,16 @@ async function extend() {
 async function loadComparison(itemId: string) {
   await runAction(async () => {
     comparisons[itemId] = await api.get<BidComparisonDto[]>(`/api/auctions/${auctionId}/items/${itemId}/bids/compare`);
+    // Detect any already-winning bids
+    const winner = comparisons[itemId].find((b) => b.status === "Winning");
+    if (winner) awardedBidPerItem[itemId] = winner.bidId;
   });
 }
 
 async function award(itemId: string, bidId: string) {
   await runAction(async () => {
     await api.post(`/api/auctions/${auctionId}/items/${itemId}/award`, { winningBidId: bidId, notes: null });
+    awardedBidPerItem[itemId] = bidId;
     toast.success(t("auctions.detail.winnerSelectedToast"));
     await load();
     await loadComparison(itemId);
@@ -206,148 +251,249 @@ onBeforeUnmount(() => {
   <LoadingSpinner v-if="loading" />
 
   <div v-else-if="auction" class="space-y-6">
-    <div class="flex items-start justify-between">
+    <!-- Page header with breadcrumb -->
+    <div class="flex flex-wrap items-start justify-between gap-3">
       <div>
+        <div class="mb-1 flex items-center gap-1 text-xs text-slate-400">
+          <NuxtLink to="/admin/auctions" class="hover:text-slate-600">{{ $t("nav.auctions") }}</NuxtLink>
+          <ChevronRightIcon class="h-3 w-3" />
+          <span class="text-slate-500">{{ auction.title }}</span>
+        </div>
         <h1 class="text-xl font-bold text-slate-800">{{ auction.title }}</h1>
-        <p class="mt-1 text-sm text-slate-500">{{ auction.description }}</p>
-        <StepBadge v-if="workflowStep" class="mt-2" :step="workflowStep.step" :total="3" :label="workflowStep.label" />
+        <p v-if="auction.description" class="mt-1 text-sm text-slate-500">{{ auction.description }}</p>
+        <StepBadge v-if="workflowStep" class="mt-2" :step="workflowStep.step" :total="4" :label="workflowStep.label" />
       </div>
-      <AppBadge :tone="statusTone[auction.status]">{{ $t(`enums.auctionStatus.${auction.status}`) }}</AppBadge>
+      <AppBadge :tone="statusTone[auction.status]" class="mt-1">
+        {{ $t(`enums.auctionStatus.${auction.status}`) }}
+      </AppBadge>
     </div>
 
-    <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-      <AppCard>
-        <div class="text-xs text-slate-500">{{ $t("auctions.detail.type") }}</div>
+    <!-- KPI row -->
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+          <ArrowsRightLeftIcon class="h-3.5 w-3.5" />
+          {{ $t("auctions.detail.type") }}
+        </div>
         <div class="mt-1 font-semibold text-slate-800">{{ $t(`enums.auctionType.${auction.auctionType}`) }}</div>
-      </AppCard>
-      <AppCard>
-        <div class="text-xs text-slate-500">{{ $t("auctions.detail.currency") }}</div>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+          <CurrencyDollarIcon class="h-3.5 w-3.5" />
+          {{ $t("auctions.detail.currency") }}
+        </div>
         <div class="mt-1 font-semibold text-slate-800">{{ auction.currencyCode }}</div>
-      </AppCard>
-      <AppCard>
-        <div class="text-xs text-slate-500">{{ $t("auctions.detail.timeLeft") }}</div>
-        <div class="mt-1 font-mono font-semibold text-emerald-700">{{ timeLeftLabel }}</div>
-      </AppCard>
-      <AppCard>
-        <div class="text-xs text-slate-500">{{ $t("auctions.detail.extensionRule") }}</div>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+          <ClockIcon class="h-3.5 w-3.5" />
+          {{ $t("auctions.detail.timeLeft") }}
+        </div>
+        <div class="mt-1 font-mono font-semibold" :class="auction.status === 'Live' ? 'text-emerald-600' : 'text-slate-500'">
+          {{ auction.status === "Live" ? timeLeftLabel : formatDateTime(auction.endAt) }}
+        </div>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+          <BoltIcon class="h-3.5 w-3.5" />
+          {{ $t("auctions.detail.extensionRule") }}
+        </div>
         <div class="mt-1 font-semibold text-slate-800">{{ auction.extensionRuleMinutes }} {{ $t("auctions.detail.minutesShort") }}</div>
-      </AppCard>
+      </div>
     </div>
 
-    <div v-if="isAdminRole()" class="flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
-      <span class="text-sm font-medium text-amber-800">{{ $t("auctions.detail.adminControl") }}</span>
+    <!-- Admin controls -->
+    <div v-if="isAdminRole() && !['Ended', 'Awarded', 'Cancelled'].includes(auction.status)" class="flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+      <span class="text-sm font-medium text-amber-800 mr-1">{{ $t("auctions.detail.adminControl") }}</span>
       <AppButton v-if="auction.status === 'Draft'" @click="publish">
         {{ $t("auctions.detail.publish") }}
       </AppButton>
       <template v-if="auction.status === 'Live'">
-        <input v-model.number="extendMinutes" type="number" min="1" class="w-20 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-        <AppButton variant="secondary" @click="extend">
-          {{ $t("auctions.detail.extendNow") }}
-        </AppButton>
+        <div class="flex items-center gap-2">
+          <input v-model.number="extendMinutes" type="number" min="1" class="w-20 rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+          <AppButton variant="secondary" @click="extend">
+            {{ $t("auctions.detail.extendNow") }}
+          </AppButton>
+        </div>
       </template>
-      <AppButton
-        v-if="!['Ended', 'Awarded', 'Cancelled'].includes(auction.status)"
-        variant="danger"
-        @click="cancelAuction"
-      >
+      <AppButton variant="danger" @click="cancelAuction">
         {{ $t("auctions.detail.cancelAuction") }}
       </AppButton>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div class="lg:col-span-2 space-y-4">
-        <AppCard v-for="item in auction.items" :key="item.id">
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="font-semibold text-slate-800">{{ item.description }}</div>
-              <div class="text-xs text-slate-500">{{ item.quantity }} {{ unitLabel(item.unitOfMeasure) }} · {{ item.bidCount }} {{ $t("auctions.detail.bidCount") }}</div>
-            </div>
-            <div class="text-right">
-              <div class="text-xs text-slate-500">{{ $t("auctions.detail.currentBest") }}</div>
-              <div class="font-mono text-lg font-bold text-emerald-700">
-                {{ item.currentBestAmount ?? "-" }}
-              </div>
-            </div>
-          </div>
-
-          <button class="mt-3 text-xs font-medium text-indigo-600 hover:underline" @click="loadComparison(item.id)">
-            {{ $t("auctions.detail.compareBids") }}
-          </button>
-
-          <div v-if="comparisons[item.id]" class="mt-2 overflow-x-auto">
-            <table class="w-full text-xs">
-              <thead>
-                <tr class="border-b border-slate-100 text-left uppercase text-slate-400">
-                  <th class="pb-1">{{ $t("auctions.detail.compareTable.company") }}</th>
-                  <th class="pb-1">{{ $t("auctions.detail.compareTable.amount") }}</th>
-                  <th class="pb-1">{{ $t("auctions.detail.compareTable.normalized") }}</th>
-                  <th class="pb-1">{{ $t("common.status") }}</th>
-                  <th class="pb-1"></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="b in comparisons[item.id]" :key="b.bidId" class="border-b border-slate-50">
-                  <td class="py-1">{{ b.companyName }}</td>
-                  <td class="py-1 font-mono">{{ b.amount }} {{ b.currencyCode }}</td>
-                  <td class="py-1 font-mono">{{ b.normalizedAmountInBaseCurrency.toFixed(2) }}</td>
-                  <td class="py-1">{{ $t(`enums.bidStatus.${b.status}`) }}</td>
-                  <td class="py-1 text-right">
-                    <button
-                      v-if="auction.status !== 'Awarded'"
-                      class="rounded bg-indigo-600 px-2 py-0.5 text-white"
-                      @click="award(item.id, b.bidId)"
-                    >
-                      {{ $t("auctions.detail.selectWinner") }}
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <EmptyState v-if="comparisons[item.id].length === 0">{{ $t("auctions.detail.emptyBids") }}</EmptyState>
-          </div>
-        </AppCard>
-
-        <form v-if="auction.status === 'Draft'" class="rounded-xl border border-dashed border-slate-300 bg-white p-5" @submit.prevent="addItem">
-          <h3 class="text-sm font-semibold text-slate-700">{{ $t("auctions.detail.addItem") }}</h3>
-          <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4">
-            <input v-model="newItem.description" :placeholder="$t('auctions.detail.form.description')" required class="sm:col-span-2 rounded-md border border-slate-300 px-3 py-2 text-sm" />
-            <input v-model.number="newItem.quantity" type="number" min="0.01" step="0.01" :placeholder="$t('auctions.detail.form.quantity')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-            <select v-model="newItem.unitOfMeasure" class="rounded-md border border-slate-300 px-3 py-2 text-sm">
-              <option v-for="u in unitOfMeasures" :key="u" :value="u">{{ unitLabel(u) }}</option>
-            </select>
-          </div>
-          <AppButton type="submit" variant="secondary" class="mt-3">{{ $t("auctions.detail.add") }}</AppButton>
-        </form>
+    <!-- ============================================================ -->
+    <!-- EVALUATION MODE: Ended / Awarded                            -->
+    <!-- ============================================================ -->
+    <template v-if="isEvaluationStage">
+      <div class="rounded-xl border border-indigo-200 bg-indigo-50 px-5 py-4">
+        <div class="flex items-center gap-2">
+          <TrophyIcon class="h-5 w-5 text-indigo-500" />
+          <span class="font-semibold text-indigo-800">{{ $t("auctions.evaluation.heading") }}</span>
+        </div>
+        <div v-if="evaluationSummary" class="mt-1 text-sm text-indigo-600">
+          <CheckCircleSolid v-if="evaluationSummary.awarded === evaluationSummary.total" class="inline h-4 w-4 text-emerald-500 mr-1" />
+          {{ $t("auctions.evaluation.progress", { awarded: evaluationSummary.awarded, total: evaluationSummary.total }) }}
+        </div>
       </div>
 
       <div class="space-y-4">
-        <AppCard>
-          <h3 class="text-sm font-semibold text-slate-700">{{ $t("auctions.detail.invitedCompanies") }}</h3>
-          <ul v-if="auction.invitations.length > 0" class="mt-3 space-y-2 text-sm">
-            <li v-for="inv in auction.invitations" :key="inv.id" class="flex items-center justify-between">
-              <span>{{ inv.companyName }}</span>
-              <span class="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ $t(`enums.invitationStatus.${inv.status}`) }}</span>
-            </li>
-          </ul>
-          <EmptyState v-else class="mt-3">{{ $t("auctions.detail.emptyInvites") }}</EmptyState>
-
-          <div v-if="['Draft', 'Scheduled'].includes(auction.status)" class="mt-3 flex gap-2">
-            <select v-model="inviteCompanyId" class="flex-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
-              <option value="" disabled>{{ $t("auctions.detail.selectCompany") }}</option>
-              <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
-            <AppButton @click="invite">{{ $t("auctions.detail.invite") }}</AppButton>
-          </div>
-        </AppCard>
-
-        <AppCard>
-          <h3 class="text-sm font-semibold text-slate-700">{{ $t("auctions.detail.liveLog") }}</h3>
-          <ul v-if="liveLog.length > 0" class="mt-3 space-y-1 text-xs text-slate-500">
-            <li v-for="(entry, i) in liveLog" :key="i">{{ entry }}</li>
-          </ul>
-          <EmptyState v-else class="mt-3">{{ $t("auctions.detail.emptyLog") }}</EmptyState>
-        </AppCard>
+        <BidComparisonPanel
+          v-for="item in auction.items"
+          :key="item.id"
+          :item="item"
+          :bids="comparisons[item.id] ?? []"
+          :auction-status="auction.status"
+          :currency-code="auction.currencyCode"
+          :awarded-bid-id="awardedBidPerItem[item.id] ?? null"
+          @award="(bidId) => award(item.id, bidId)"
+        />
       </div>
-    </div>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- LIVE / DRAFT / SCHEDULED MODE                               -->
+    <!-- ============================================================ -->
+    <template v-else>
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <!-- Items -->
+        <div class="lg:col-span-2 space-y-4">
+          <AppCard
+            v-for="item in auction.items"
+            :key="item.id"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <div class="font-semibold text-slate-800">{{ item.description }}</div>
+                <div class="mt-0.5 text-xs text-slate-500">
+                  {{ item.quantity }} {{ unitLabel(item.unitOfMeasure) }} · {{ item.bidCount }} {{ $t("auctions.detail.bidCount") }}
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <div class="text-xs text-slate-500">{{ $t("auctions.detail.currentBest") }}</div>
+                <div class="font-mono text-lg font-bold text-emerald-600">
+                  {{ item.currentBestAmount != null ? item.currentBestAmount.toLocaleString() : "—" }}
+                </div>
+              </div>
+            </div>
+
+            <button
+              class="mt-3 flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700"
+              @click="loadComparison(item.id)"
+            >
+              <DocumentMagnifyingGlassIcon class="h-3.5 w-3.5" />
+              {{ $t("auctions.detail.compareBids") }}
+            </button>
+
+            <div v-if="comparisons[item.id]" class="mt-3 overflow-x-auto">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="border-b border-slate-100 text-left uppercase text-slate-400">
+                    <th class="pb-1.5">{{ $t("auctions.detail.compareTable.company") }}</th>
+                    <th class="pb-1.5">{{ $t("auctions.detail.compareTable.amount") }}</th>
+                    <th class="pb-1.5">{{ $t("auctions.detail.compareTable.normalized") }}</th>
+                    <th class="pb-1.5">{{ $t("common.status") }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="b in comparisons[item.id]" :key="b.bidId" class="border-b border-slate-50">
+                    <td class="py-1.5">{{ b.companyName }}</td>
+                    <td class="py-1.5 font-mono">{{ b.amount }} {{ b.currencyCode }}</td>
+                    <td class="py-1.5 font-mono">{{ b.normalizedAmountInBaseCurrency.toFixed(2) }}</td>
+                    <td class="py-1.5">
+                      <AppBadge tone="slate">{{ $t(`enums.bidStatus.${b.status}`) }}</AppBadge>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <EmptyState v-if="comparisons[item.id].length === 0">{{ $t("auctions.detail.emptyBids") }}</EmptyState>
+            </div>
+          </AppCard>
+
+          <!-- Add item form (Draft only) -->
+          <form
+            v-if="auction.status === 'Draft'"
+            class="rounded-xl border border-dashed border-slate-300 bg-white p-5 shadow-sm"
+            @submit.prevent="addItem"
+          >
+            <h3 class="text-sm font-semibold text-slate-700">{{ $t("auctions.detail.addItem") }}</h3>
+            <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4">
+              <input
+                v-model="newItem.description"
+                :placeholder="$t('auctions.detail.form.description')"
+                required
+                class="sm:col-span-2 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+              />
+              <input
+                v-model.number="newItem.quantity"
+                type="number"
+                min="0.01"
+                step="0.01"
+                :placeholder="$t('auctions.detail.form.quantity')"
+                required
+                class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+              />
+              <select v-model="newItem.unitOfMeasure" class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+                <option v-for="u in unitOfMeasures" :key="u" :value="u">{{ unitLabel(u) }}</option>
+              </select>
+            </div>
+            <div class="mt-3 flex items-center gap-3">
+              <input
+                v-model.number="newItem.targetPrice"
+                type="number"
+                min="0"
+                step="0.01"
+                :placeholder="$t('auctions.detail.form.targetPrice')"
+                class="w-40 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+              />
+              <AppButton type="submit" variant="secondary">
+                <PlusIcon class="h-4 w-4" />
+                {{ $t("auctions.detail.add") }}
+              </AppButton>
+            </div>
+          </form>
+        </div>
+
+        <!-- Sidebar: invitations + live log -->
+        <div class="space-y-4">
+          <AppCard :title="$t('auctions.detail.invitedCompanies')">
+            <ul v-if="auction.invitations.length > 0" class="divide-y divide-slate-50 -mx-5 -mb-5 mt-1">
+              <li
+                v-for="inv in auction.invitations"
+                :key="inv.id"
+                class="flex items-center justify-between px-5 py-2.5"
+              >
+                <span class="text-sm text-slate-700">{{ inv.companyName }}</span>
+                <AppBadge tone="slate">{{ $t(`enums.invitationStatus.${inv.status}`) }}</AppBadge>
+              </li>
+            </ul>
+            <EmptyState v-else class="mt-3">{{ $t("auctions.detail.emptyInvites") }}</EmptyState>
+
+            <div v-if="['Draft', 'Scheduled'].includes(auction.status)" class="mt-4 flex gap-2">
+              <select
+                v-model="inviteCompanyId"
+                class="flex-1 rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-indigo-400 focus:outline-none"
+              >
+                <option value="" disabled>{{ $t("auctions.detail.selectCompany") }}</option>
+                <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
+              </select>
+              <AppButton @click="invite">
+                <UserPlusIcon class="h-4 w-4" />
+                {{ $t("auctions.detail.invite") }}
+              </AppButton>
+            </div>
+          </AppCard>
+
+          <AppCard :title="$t('auctions.detail.liveLog')">
+            <ul v-if="liveLog.length > 0" class="space-y-1">
+              <li v-for="(entry, i) in liveLog" :key="i" class="flex items-start gap-1.5 text-xs text-slate-500">
+                <BoltIcon class="mt-0.5 h-3 w-3 shrink-0 text-amber-400" />
+                {{ entry }}
+              </li>
+            </ul>
+            <EmptyState v-else class="mt-3">{{ $t("auctions.detail.emptyLog") }}</EmptyState>
+          </AppCard>
+        </div>
+      </div>
+    </template>
   </div>
 </template>

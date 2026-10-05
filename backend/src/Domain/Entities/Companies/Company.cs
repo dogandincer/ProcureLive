@@ -27,4 +27,6 @@ public class Company : AuditableEntity, ISoftDelete
     public ICollection<Address> Addresses { get; set; } = new List<Address>();
 
     public ICollection<CompanySupplierCategory> SupplierCategories { get; set; } = new List<CompanySupplierCategory>();
+
+    public ICollection<CompanySector> Sectors { get; set; } = new List<CompanySector>();
 }

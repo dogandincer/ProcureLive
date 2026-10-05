@@ -37,6 +37,10 @@ public class ApplicationDbContext
 
     public DbSet<CompanySupplierCategory> CompanySupplierCategories => Set<CompanySupplierCategory>();
 
+    public DbSet<Sector> Sectors => Set<Sector>();
+
+    public DbSet<CompanySector> CompanySectors => Set<CompanySector>();
+
     public DbSet<Category> Categories => Set<Category>();
 
     public DbSet<Product> Products => Set<Product>();

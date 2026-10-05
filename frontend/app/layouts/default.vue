@@ -56,6 +56,7 @@ const adminSections: NavSection[] = [
     links: [
       { to: "/admin/products", labelKey: "nav.products", icon: CubeIcon },
       { to: "/admin/categories", labelKey: "nav.categories", icon: TagIcon },
+      { to: "/admin/sectors", labelKey: "nav.sectors", icon: BuildingOfficeIcon },
       { to: "/admin/currencies", labelKey: "nav.currencies", icon: BanknotesIcon },
     ],
   },

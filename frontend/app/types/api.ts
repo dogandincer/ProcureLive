@@ -27,6 +27,14 @@ export interface CurrentUser {
   companyId: string | null;
 }
 
+export interface SectorDto {
+  id: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  companyCount: number;
+}
+
 export interface CompanyDto {
   id: string;
   name: string;
@@ -70,6 +78,7 @@ export interface CompanyDetailDto {
   createdAt: string;
   contactPersons: ContactPersonDto[];
   addresses: AddressDto[];
+  sectors: SectorDto[];
 }
 
 export interface ProductDto {

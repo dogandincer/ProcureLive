@@ -26,6 +26,10 @@ public interface IApplicationDbContext
 
     DbSet<CompanySupplierCategory> CompanySupplierCategories { get; }
 
+    DbSet<Sector> Sectors { get; }
+
+    DbSet<CompanySector> CompanySectors { get; }
+
     DbSet<Category> Categories { get; }
 
     DbSet<Product> Products { get; }

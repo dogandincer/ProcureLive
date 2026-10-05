@@ -50,7 +50,8 @@
     "rfq": "RFQ",
     "rfqInvites": "My RFQ Invites",
     "systemGroup": "System",
-    "auditLog": "Audit Log"
+    "auditLog": "Audit Log",
+    "sectors": "Sectors"
   },
   "language": {
     "label": "Language",
@@ -513,6 +514,11 @@
       "primaryContactLabel": "Primary contact person",
       "emptyContacts": "No contact persons yet",
       "emptyAddresses": "No addresses yet",
+      "sectors": "Sectors",
+      "editSectors": "Edit",
+      "noSectors": "No sectors assigned yet",
+      "sectorsSaved": "Sectors updated.",
+      "sectorsError": "Failed to update sectors.",
       "form": {
         "firstName": "First Name",
         "lastName": "Last Name",
@@ -781,5 +787,32 @@
     },
     "emptyInvites": "No invites",
     "loadError": "Failed to load dashboard data."
+  },
+  "sectors": {
+    "title": "Sectors",
+    "subtitle": "Industry sectors for supplier companies",
+    "newSector": "New Sector",
+    "editSector": "Edit Sector",
+    "empty": "No sectors defined yet.",
+    "created": "Sector created.",
+    "updated": "Sector updated.",
+    "deleted": "Sector deleted.",
+    "deleteConfirm": "Are you sure you want to delete this sector?",
+    "loadError": "Failed to load sectors.",
+    "saveError": "Failed to save sector.",
+    "deleteError": "Failed to delete sector.",
+    "form": {
+      "name": "Sector Name",
+      "namePlaceholder": "e.g. Technology, Logistics, Construction",
+      "description": "Description (optional)",
+      "descriptionPlaceholder": "Brief description of the sector",
+      "isActive": "Active"
+    },
+    "table": {
+      "name": "Sector Name",
+      "description": "Description",
+      "companies": "Companies",
+      "status": "Status"
+    }
   }
 }

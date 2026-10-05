@@ -20,7 +20,15 @@ public sealed class MappingProfile : Profile
             .ForMember(d => d.CompanyType, opt => opt.MapFrom(s => s.CompanyType.ToString()))
             .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString()))
             .ForMember(d => d.ContactPersons, opt => opt.MapFrom(s => s.ContactPersons))
-            .ForMember(d => d.Addresses, opt => opt.MapFrom(s => s.Addresses));
+            .ForMember(d => d.Addresses, opt => opt.MapFrom(s => s.Addresses))
+            .ForMember(d => d.Sectors, opt => opt.MapFrom(s => s.Sectors));
+
+        CreateMap<CompanySector, SectorDto>()
+            .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Sector.Id))
+            .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Sector.Name))
+            .ForMember(d => d.Description, opt => opt.MapFrom(s => s.Sector.Description))
+            .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.Sector.IsActive))
+            .ForMember(d => d.CompanyCount, opt => opt.MapFrom(s => 0));
 
         CreateMap<ContactPerson, ContactPersonDto>();
 

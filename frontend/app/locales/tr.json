@@ -50,7 +50,8 @@
     "rfq": "RFQ",
     "rfqInvites": "RFQ Davetlerim",
     "systemGroup": "Sistem",
-    "auditLog": "Denetim Kaydı"
+    "auditLog": "Denetim Kaydı",
+    "sectors": "Sektörler"
   },
   "language": {
     "label": "Dil",
@@ -513,6 +514,11 @@
       "primaryContactLabel": "Birincil iletişim kişisi",
       "emptyContacts": "Henüz yetkili kişi yok",
       "emptyAddresses": "Henüz adres yok",
+      "sectors": "Sektörler",
+      "editSectors": "Düzenle",
+      "noSectors": "Henüz sektör atanmamış",
+      "sectorsSaved": "Sektörler güncellendi.",
+      "sectorsError": "Sektörler güncellenemedi.",
       "form": {
         "firstName": "Ad",
         "lastName": "Soyad",
@@ -781,5 +787,32 @@
     },
     "emptyInvites": "Davet yok",
     "loadError": "Panel verileri yüklenemedi."
+  },
+  "sectors": {
+    "title": "Sektörler",
+    "subtitle": "Tedarikçi şirketlerin faaliyet alanı sektörleri",
+    "newSector": "Yeni Sektör",
+    "editSector": "Sektörü Düzenle",
+    "empty": "Henüz sektör tanımlanmamış.",
+    "created": "Sektör oluşturuldu.",
+    "updated": "Sektör güncellendi.",
+    "deleted": "Sektör silindi.",
+    "deleteConfirm": "Bu sektörü silmek istediğinize emin misiniz?",
+    "loadError": "Sektörler yüklenemedi.",
+    "saveError": "Sektör kaydedilemedi.",
+    "deleteError": "Sektör silinemedi.",
+    "form": {
+      "name": "Sektör Adı",
+      "namePlaceholder": "Örn: Bilişim, Lojistik, İnşaat",
+      "description": "Açıklama (opsiyonel)",
+      "descriptionPlaceholder": "Sektör hakkında kısa açıklama",
+      "isActive": "Aktif"
+    },
+    "table": {
+      "name": "Sektör Adı",
+      "description": "Açıklama",
+      "companies": "Cari Sayısı",
+      "status": "Durum"
+    }
   }
 }

@@ -8,5 +8,6 @@ public sealed record GetCompaniesListQuery(
     string? SearchTerm,
     string? CompanyType,
     string? Status,
+    Guid? SectorId,
     int Page,
     int PageSize) : IRequest<PagedResult<CompanyDto>>;

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { CompanyDetailDto } from "~/types/api";
+import type { CompanyDetailDto, SectorDto } from "~/types/api";
+import { CheckIcon } from "@heroicons/vue/24/outline";
 
 const route = useRoute();
 const companyId = route.params.id as string;
@@ -12,6 +13,12 @@ const loading = ref(true);
 const showContactForm = ref(false);
 const showAddressForm = ref(false);
 
+// Sector assignment
+const allSectors = ref<SectorDto[]>([]);
+const selectedSectorIds = ref<Set<string>>(new Set());
+const savingSectors = ref(false);
+const showSectorPanel = ref(false);
+
 const contactForm = reactive({ firstName: "", lastName: "", title: "", email: "", phone: "", isPrimary: false });
 const addressTypes = ["HeadOffice", "Billing", "Shipping"];
 const addressForm = reactive({ addressType: "HeadOffice", country: "Türkiye", city: "", district: "", postalCode: "", line1: "", line2: "" });
@@ -19,11 +26,41 @@ const addressForm = reactive({ addressType: "HeadOffice", country: "Türkiye", c
 async function load() {
   loading.value = true;
   try {
-    company.value = await api.get<CompanyDetailDto>(`/api/companies/${companyId}`);
+    const [companyData, sectors] = await Promise.all([
+      api.get<CompanyDetailDto>(`/api/companies/${companyId}`),
+      api.get<SectorDto[]>("/api/sectors"),
+    ]);
+    company.value = companyData;
+    allSectors.value = sectors;
+    selectedSectorIds.value = new Set(companyData.sectors.map((s) => s.id));
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("companies.detail.loadError")));
   } finally {
     loading.value = false;
+  }
+}
+
+function toggleSector(id: string) {
+  if (selectedSectorIds.value.has(id)) {
+    selectedSectorIds.value.delete(id);
+  } else {
+    selectedSectorIds.value.add(id);
+  }
+}
+
+async function saveSectors() {
+  savingSectors.value = true;
+  try {
+    await api.put(`/api/companies/${companyId}/sectors`, {
+      sectorIds: Array.from(selectedSectorIds.value),
+    });
+    toast.success(t("companies.detail.sectorsSaved"));
+    showSectorPanel.value = false;
+    await load();
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("companies.detail.sectorsError")));
+  } finally {
+    savingSectors.value = false;
   }
 }
 
@@ -148,5 +185,58 @@ onMounted(load);
         <EmptyState v-else class="mt-3">{{ $t("companies.detail.emptyAddresses") }}</EmptyState>
       </AppCard>
     </div>
+
+    <!-- Sectors card (full width) -->
+    <AppCard>
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-slate-700">{{ $t("companies.detail.sectors") }}</h2>
+        <button class="text-xs font-medium text-indigo-600 hover:underline" @click="showSectorPanel = !showSectorPanel">
+          {{ showSectorPanel ? $t("common.cancel") : $t("companies.detail.editSectors") }}
+        </button>
+      </div>
+
+      <!-- Sector assignment panel -->
+      <div v-if="showSectorPanel" class="mt-3">
+        <div v-if="allSectors.length === 0" class="text-sm text-slate-400">{{ $t("sectors.empty") }}</div>
+        <div v-else class="flex flex-wrap gap-2">
+          <button
+            v-for="sector in allSectors"
+            :key="sector.id"
+            type="button"
+            :class="[
+              'flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors',
+              selectedSectorIds.has(sector.id)
+                ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-300',
+            ]"
+            @click="toggleSector(sector.id)"
+          >
+            <CheckIcon v-if="selectedSectorIds.has(sector.id)" class="h-3 w-3" />
+            {{ sector.name }}
+          </button>
+        </div>
+        <button
+          class="mt-3 rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+          :disabled="savingSectors"
+          @click="saveSectors"
+        >
+          {{ savingSectors ? $t("common.saving") : $t("common.save") }}
+        </button>
+      </div>
+
+      <!-- Display assigned sectors -->
+      <div v-else class="mt-3">
+        <div v-if="company.sectors.length === 0" class="text-sm text-slate-400">{{ $t("companies.detail.noSectors") }}</div>
+        <div v-else class="flex flex-wrap gap-2">
+          <span
+            v-for="sector in company.sectors"
+            :key="sector.id"
+            class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700"
+          >
+            {{ sector.name }}
+          </span>
+        </div>
+      </div>
+    </AppCard>
   </div>
 </template>

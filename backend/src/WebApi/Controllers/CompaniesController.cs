@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using ProcureLive.Application.Common.Security;
 using ProcureLive.Application.Companies.Commands.AddAddress;
 using ProcureLive.Application.Companies.Commands.AddContactPerson;
+using ProcureLive.Application.Companies.Commands.AssignSectors;
 using ProcureLive.Application.Companies.Commands.CreateCompany;
 using ProcureLive.Application.Companies.Commands.DeleteCompany;
 using ProcureLive.Application.Companies.Commands.UpdateCompany;
@@ -33,12 +34,13 @@ public sealed class CompaniesController : ControllerBase
         [FromQuery] string? searchTerm,
         [FromQuery] string? companyType,
         [FromQuery] string? status,
+        [FromQuery] Guid? sectorId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
         PagedResult<CompanyDto> result = await _sender.Send(
-            new GetCompaniesListQuery(searchTerm, companyType, status, page, pageSize), cancellationToken);
+            new GetCompaniesListQuery(searchTerm, companyType, status, sectorId, page, pageSize), cancellationToken);
 
         return Ok(result);
     }
@@ -100,6 +102,14 @@ public sealed class CompaniesController : ControllerBase
             cancellationToken);
 
         return Ok(contactId);
+    }
+
+    [HttpPut("{id:guid}/sectors")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> AssignSectors(Guid id, AssignSectorsRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new AssignSectorsCommand(id, request.SectorIds), cancellationToken);
+        return NoContent();
     }
 
     [HttpPost("{id:guid}/addresses")]

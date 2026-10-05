@@ -866,6 +866,28 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.ToTable("Companies", (string)null);
                 });
 
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.CompanySector", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SectorId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SectorId");
+
+                    b.HasIndex("CompanyId", "SectorId")
+                        .IsUnique();
+
+                    b.ToTable("CompanySectors", (string)null);
+                });
+
             modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.CompanySupplierCategory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -940,6 +962,44 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.HasIndex("CompanyId");
 
                     b.ToTable("ContactPersons", (string)null);
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.Sector", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Sectors", (string)null);
                 });
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Finance.Currency", b =>
@@ -2116,6 +2176,25 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Navigation("Company");
                 });
 
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.CompanySector", b =>
+                {
+                    b.HasOne("ProcureLive.Domain.Entities.Companies.Company", "Company")
+                        .WithMany("Sectors")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProcureLive.Domain.Entities.Companies.Sector", "Sector")
+                        .WithMany("Companies")
+                        .HasForeignKey("SectorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+
+                    b.Navigation("Sector");
+                });
+
             modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.CompanySupplierCategory", b =>
                 {
                     b.HasOne("ProcureLive.Domain.Entities.Catalog.Category", "Category")
@@ -2479,7 +2558,14 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
 
                     b.Navigation("ContactPersons");
 
+                    b.Navigation("Sectors");
+
                     b.Navigation("SupplierCategories");
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.Sector", b =>
+                {
+                    b.Navigation("Companies");
                 });
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Finance.Currency", b =>

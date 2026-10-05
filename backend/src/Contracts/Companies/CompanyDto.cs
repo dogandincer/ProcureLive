@@ -1,5 +1,13 @@
 namespace ProcureLive.Contracts.Companies;
 
+public sealed record SectorDto(
+    Guid Id,
+    string Name,
+    string? Description,
+    bool IsActive,
+    int CompanyCount);
+
+
 public sealed record CompanyDto(
     Guid Id,
     string Name,
@@ -20,7 +28,8 @@ public sealed record CompanyDetailDto(
     string? Website,
     DateTime CreatedAt,
     IReadOnlyCollection<ContactPersonDto> ContactPersons,
-    IReadOnlyCollection<AddressDto> Addresses);
+    IReadOnlyCollection<AddressDto> Addresses,
+    IReadOnlyCollection<SectorDto> Sectors);
 
 public sealed record ContactPersonDto(
     Guid Id,

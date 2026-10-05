@@ -8,5 +8,6 @@ public sealed record GetProductsListQuery(
     string? SearchTerm,
     Guid? CategoryId,
     bool? IsActive,
+    Guid? WorkspaceId,
     int Page,
     int PageSize) : IRequest<PagedResult<ProductDto>>;

@@ -10,4 +10,5 @@ public sealed record CreateProductCommand(
     Guid CategoryId,
     UnitOfMeasure UnitOfMeasure,
     string? Brand,
-    Guid? DefaultCurrencyId) : IRequest<Guid>;
+    Guid? DefaultCurrencyId,
+    Guid? WorkspaceId) : IRequest<Guid>;

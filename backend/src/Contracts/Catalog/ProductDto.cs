@@ -13,6 +13,8 @@ public sealed record ProductDto(
     string? Brand,
     Guid? DefaultCurrencyId,
     bool IsActive,
+    Guid? WorkspaceId,
+    string? WorkspaceName,
     IReadOnlyCollection<ProductImageDto> Images);
 
 public sealed record ProductImageDto(Guid Id, string Url, bool IsPrimary, int SortOrder);
@@ -24,7 +26,8 @@ public sealed record CreateProductRequest(
     Guid CategoryId,
     string UnitOfMeasure,
     string? Brand,
-    Guid? DefaultCurrencyId);
+    Guid? DefaultCurrencyId,
+    Guid? WorkspaceId);
 
 public sealed record UpdateProductRequest(
     string Name,

@@ -5,6 +5,7 @@ import type { ExcelColumn } from "~/composables/useExcelImport";
 const api = useApi();
 const toast = useToast();
 const { t } = useI18n();
+const { selectedWorkspaceId } = useWorkspace();
 const products = ref<ProductDto[]>([]);
 const categories = ref<CategoryDto[]>([]);
 const showForm = ref(false);
@@ -49,8 +50,10 @@ function flattenCategories(list: CategoryDto[]): CategoryDto[] {
 async function load() {
   loading.value = true;
   try {
+    const params: Record<string, unknown> = { page: 1, pageSize: 100 };
+    if (selectedWorkspaceId.value) params.workspaceId = selectedWorkspaceId.value;
     const [productPage, categoryTree] = await Promise.all([
-      api.get<PagedResult<ProductDto>>("/api/products", { page: 1, pageSize: 100 }),
+      api.get<PagedResult<ProductDto>>("/api/products", params),
       api.get<CategoryDto[]>("/api/categories"),
     ]);
     products.value = productPage.items;
@@ -76,6 +79,7 @@ async function create() {
       unitOfMeasure: form.unitOfMeasure,
       brand: form.brand || null,
       defaultCurrencyId: null,
+      workspaceId: selectedWorkspaceId.value || null,
     });
     Object.assign(form, { sku: "", name: "", brand: "" });
     showForm.value = false;
@@ -88,6 +92,7 @@ async function create() {
   }
 }
 
+watch(selectedWorkspaceId, load);
 onMounted(load);
 </script>
 

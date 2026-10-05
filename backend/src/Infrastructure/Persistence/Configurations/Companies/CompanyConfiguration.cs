@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ProcureLive.Domain.Entities.Companies;
+using ProcureLive.Domain.Entities.Workspaces;
 
 namespace ProcureLive.Infrastructure.Persistence.Configurations.Companies;
 
@@ -26,5 +27,11 @@ public sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
             .WithOne(a => a.Company)
             .HasForeignKey(a => a.CompanyId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(c => c.Workspace)
+            .WithMany()
+            .HasForeignKey(c => c.WorkspaceId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
     }
 }

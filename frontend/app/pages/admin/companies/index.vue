@@ -5,6 +5,7 @@ import type { ExcelColumn } from "~/composables/useExcelImport";
 const api = useApi();
 const toast = useToast();
 const { t } = useI18n();
+const { selectedWorkspaceId } = useWorkspace();
 const companies = ref<CompanyDto[]>([]);
 const showForm = ref(false);
 const submitting = ref(false);
@@ -35,7 +36,9 @@ async function importCompanyRow(row: Record<string, string | number | boolean | 
 async function load() {
   loading.value = true;
   try {
-    const page = await api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 });
+    const params: Record<string, unknown> = { page: 1, pageSize: 100 };
+    if (selectedWorkspaceId.value) params.workspaceId = selectedWorkspaceId.value;
+    const page = await api.get<PagedResult<CompanyDto>>("/api/companies", params);
     companies.value = page.items;
     for (const c of companies.value) {
       statusDrafts[c.id] = c.status;
@@ -71,6 +74,7 @@ async function create() {
       taxOffice: form.taxOffice,
       companyType: form.companyType,
       website: form.website || null,
+      workspaceId: selectedWorkspaceId.value || null,
     });
     Object.assign(form, { name: "", taxNumber: "", taxOffice: "", website: "" });
     showForm.value = false;
@@ -83,6 +87,7 @@ async function create() {
   }
 }
 
+watch(selectedWorkspaceId, load);
 onMounted(load);
 </script>
 

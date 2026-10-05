@@ -1,5 +1,6 @@
 using ProcureLive.Domain.Common;
 using ProcureLive.Domain.Entities.Finance;
+using ProcureLive.Domain.Entities.Workspaces;
 using ProcureLive.Domain.Enums;
 
 namespace ProcureLive.Domain.Entities.Catalog;
@@ -25,6 +26,10 @@ public class Product : AuditableEntity, ISoftDelete
     public Currency? DefaultCurrency { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+    public Guid? WorkspaceId { get; set; }
+
+    public Workspace? Workspace { get; set; }
 
     public bool IsDeleted { get; set; }
 

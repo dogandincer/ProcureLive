@@ -16,6 +16,8 @@ public sealed record CompanyDto(
     string CompanyType,
     string Status,
     string? Website,
+    Guid? WorkspaceId,
+    string? WorkspaceName,
     DateTime CreatedAt);
 
 public sealed record CompanyDetailDto(
@@ -26,6 +28,8 @@ public sealed record CompanyDetailDto(
     string CompanyType,
     string Status,
     string? Website,
+    Guid? WorkspaceId,
+    string? WorkspaceName,
     DateTime CreatedAt,
     IReadOnlyCollection<ContactPersonDto> ContactPersons,
     IReadOnlyCollection<AddressDto> Addresses,

@@ -7,7 +7,8 @@ public sealed record CreateCompanyRequest(
     string TaxNumber,
     string TaxOffice,
     string CompanyType,
-    string? Website);
+    string? Website,
+    Guid? WorkspaceId);
 
 public sealed record UpdateCompanyRequest(
     string Name,

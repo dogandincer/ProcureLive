@@ -40,6 +40,11 @@ public sealed class GetProductsListQueryHandler : IRequestHandler<GetProductsLis
             query = query.Where(p => p.IsActive == request.IsActive.Value);
         }
 
+        if (request.WorkspaceId.HasValue)
+        {
+            query = query.Where(p => p.WorkspaceId == request.WorkspaceId.Value);
+        }
+
         int totalCount = await query.CountAsync(cancellationToken);
 
         int page = request.Page < 1 ? 1 : request.Page;

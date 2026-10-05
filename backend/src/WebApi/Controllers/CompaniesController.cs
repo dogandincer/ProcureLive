@@ -35,12 +35,13 @@ public sealed class CompaniesController : ControllerBase
         [FromQuery] string? companyType,
         [FromQuery] string? status,
         [FromQuery] Guid? sectorId,
+        [FromQuery] Guid? workspaceId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
         PagedResult<CompanyDto> result = await _sender.Send(
-            new GetCompaniesListQuery(searchTerm, companyType, status, sectorId, page, pageSize), cancellationToken);
+            new GetCompaniesListQuery(searchTerm, companyType, status, sectorId, workspaceId, page, pageSize), cancellationToken);
 
         return Ok(result);
     }
@@ -65,7 +66,7 @@ public sealed class CompaniesController : ControllerBase
         }
 
         Guid id = await _sender.Send(
-            new CreateCompanyCommand(request.Name, request.TaxNumber, request.TaxOffice, companyType, request.Website),
+            new CreateCompanyCommand(request.Name, request.TaxNumber, request.TaxOffice, companyType, request.Website, request.WorkspaceId),
             cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id }, id);

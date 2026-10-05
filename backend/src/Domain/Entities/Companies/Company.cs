@@ -1,5 +1,6 @@
 using ProcureLive.Domain.Common;
 using ProcureLive.Domain.Entities.Catalog;
+using ProcureLive.Domain.Entities.Workspaces;
 using ProcureLive.Domain.Enums;
 
 namespace ProcureLive.Domain.Entities.Companies;
@@ -17,6 +18,10 @@ public class Company : AuditableEntity, ISoftDelete
     public CompanyStatus Status { get; set; } = CompanyStatus.PendingApproval;
 
     public string? Website { get; set; }
+
+    public Guid? WorkspaceId { get; set; }
+
+    public Workspace? Workspace { get; set; }
 
     public bool IsDeleted { get; set; }
 

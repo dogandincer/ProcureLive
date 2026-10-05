@@ -51,7 +51,8 @@
     "rfqInvites": "RFQ Davetlerim",
     "systemGroup": "Sistem",
     "auditLog": "Denetim Kaydı",
-    "sectors": "Sektörler"
+    "sectors": "Sektörler",
+    "workspaces": "İşyerleri"
   },
   "language": {
     "label": "Dil",
@@ -787,6 +788,36 @@
     },
     "emptyInvites": "Davet yok",
     "loadError": "Panel verileri yüklenemedi."
+  },
+  "workspaces": {
+    "title": "İşyerleri",
+    "subtitle": "Şirket ve ürünleri gruplamak için işyeri tanımlamaları",
+    "newWorkspace": "Yeni İşyeri",
+    "editWorkspace": "İşyerini Düzenle",
+    "allWorkspaces": "Tüm İşyerleri",
+    "noWorkspaces": "İşyeri tanımlı değil",
+    "empty": "Henüz işyeri tanımlanmamış.",
+    "created": "İşyeri oluşturuldu.",
+    "updated": "İşyeri güncellendi.",
+    "deleted": "İşyeri silindi.",
+    "deleteConfirm": "Bu işyerini silmek istediğinize emin misiniz?",
+    "loadError": "İşyerleri yüklenemedi.",
+    "saveError": "İşyeri kaydedilemedi.",
+    "deleteError": "İşyeri silinemedi.",
+    "form": {
+      "name": "İşyeri Adı",
+      "namePlaceholder": "Örn: Merkez, İstanbul Şubesi, Depo",
+      "description": "Açıklama (opsiyonel)",
+      "descriptionPlaceholder": "İşyeri hakkında kısa açıklama",
+      "isActive": "Aktif"
+    },
+    "table": {
+      "name": "İşyeri Adı",
+      "description": "Açıklama",
+      "companies": "Cari Sayısı",
+      "products": "Ürün Sayısı",
+      "status": "Durum"
+    }
   },
   "sectors": {
     "title": "Sektörler",

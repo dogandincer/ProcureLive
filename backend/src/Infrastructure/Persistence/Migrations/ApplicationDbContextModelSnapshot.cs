@@ -686,6 +686,9 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("WorkspaceId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
@@ -694,6 +697,8 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Sku")
                         .IsUnique();
+
+                    b.HasIndex("WorkspaceId");
 
                     b.ToTable("Products", (string)null);
                 });
@@ -858,10 +863,15 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
 
+                    b.Property<Guid?>("WorkspaceId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("TaxNumber")
                         .IsUnique();
+
+                    b.HasIndex("WorkspaceId");
 
                     b.ToTable("Companies", (string)null);
                 });
@@ -1802,6 +1812,44 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.ToTable("RfqQuoteLineItems", (string)null);
                 });
 
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Workspaces.Workspace", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Workspaces", (string)null);
+                });
+
             modelBuilder.Entity("ProcureLive.Infrastructure.Identity.ApplicationRole", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2138,9 +2186,16 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .HasForeignKey("DefaultCurrencyId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("ProcureLive.Domain.Entities.Workspaces.Workspace", "Workspace")
+                        .WithMany()
+                        .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Category");
 
                     b.Navigation("DefaultCurrency");
+
+                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Catalog.ProductImage", b =>
@@ -2174,6 +2229,16 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.Company", b =>
+                {
+                    b.HasOne("ProcureLive.Domain.Entities.Workspaces.Workspace", "Workspace")
+                        .WithMany()
+                        .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.CompanySector", b =>

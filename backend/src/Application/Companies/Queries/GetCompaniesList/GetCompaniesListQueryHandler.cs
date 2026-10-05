@@ -58,6 +58,11 @@ public sealed class GetCompaniesListQueryHandler : IRequestHandler<GetCompaniesL
             query = query.Where(c => c.Sectors.Any(cs => cs.SectorId == request.SectorId.Value));
         }
 
+        if (request.WorkspaceId.HasValue)
+        {
+            query = query.Where(c => c.WorkspaceId == request.WorkspaceId.Value);
+        }
+
         int totalCount = await query.CountAsync(cancellationToken);
 
         int page = request.Page < 1 ? 1 : request.Page;

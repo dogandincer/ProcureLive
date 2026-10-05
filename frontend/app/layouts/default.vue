@@ -47,6 +47,7 @@ const adminSections: NavSection[] = [
   {
     sectionKey: "nav.supplyChainGroup",
     links: [
+      { to: "/admin/workspaces", labelKey: "nav.workspaces", icon: BuildingOfficeIcon },
       { to: "/admin/companies", labelKey: "nav.companies", icon: BuildingOfficeIcon },
       { to: "/admin/users", labelKey: "nav.users", icon: UsersIcon },
     ],
@@ -240,6 +241,7 @@ onMounted(async () => {
         </div>
 
         <div class="flex shrink-0 items-center gap-1 sm:gap-3">
+          <WorkspaceSwitcher v-if="isInternalRole()" />
           <LanguageSwitcher />
 
           <!-- Notifications bell -->

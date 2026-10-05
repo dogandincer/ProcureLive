@@ -14,14 +14,16 @@ public sealed class MappingProfile : Profile
     {
         CreateMap<Company, CompanyDto>()
             .ForMember(d => d.CompanyType, opt => opt.MapFrom(s => s.CompanyType.ToString()))
-            .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString()));
+            .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString()))
+            .ForMember(d => d.WorkspaceName, opt => opt.MapFrom(s => s.Workspace != null ? s.Workspace.Name : null));
 
         CreateMap<Company, CompanyDetailDto>()
             .ForMember(d => d.CompanyType, opt => opt.MapFrom(s => s.CompanyType.ToString()))
             .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString()))
             .ForMember(d => d.ContactPersons, opt => opt.MapFrom(s => s.ContactPersons))
             .ForMember(d => d.Addresses, opt => opt.MapFrom(s => s.Addresses))
-            .ForMember(d => d.Sectors, opt => opt.MapFrom(s => s.Sectors));
+            .ForMember(d => d.Sectors, opt => opt.MapFrom(s => s.Sectors))
+            .ForMember(d => d.WorkspaceName, opt => opt.MapFrom(s => s.Workspace != null ? s.Workspace.Name : null));
 
         CreateMap<CompanySector, SectorDto>()
             .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Sector.Id))
@@ -41,7 +43,8 @@ public sealed class MappingProfile : Profile
         CreateMap<Product, ProductDto>()
             .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.Category.Name))
             .ForMember(d => d.UnitOfMeasure, opt => opt.MapFrom(s => s.UnitOfMeasure.ToString()))
-            .ForMember(d => d.Images, opt => opt.MapFrom(s => s.Images));
+            .ForMember(d => d.Images, opt => opt.MapFrom(s => s.Images))
+            .ForMember(d => d.WorkspaceName, opt => opt.MapFrom(s => s.Workspace != null ? s.Workspace.Name : null));
 
         CreateMap<ProductImage, ProductImageDto>();
 

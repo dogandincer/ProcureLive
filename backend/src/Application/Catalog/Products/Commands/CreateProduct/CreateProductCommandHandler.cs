@@ -24,6 +24,7 @@ public sealed class CreateProductCommandHandler : IRequestHandler<CreateProductC
             UnitOfMeasure = request.UnitOfMeasure,
             Brand = request.Brand,
             DefaultCurrencyId = request.DefaultCurrencyId,
+            WorkspaceId = request.WorkspaceId,
             IsActive = true
         };
 

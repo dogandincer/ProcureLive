@@ -7,6 +7,7 @@ using ProcureLive.Domain.Entities.Auctions;
 using ProcureLive.Domain.Entities.Catalog;
 using ProcureLive.Domain.Entities.Companies;
 using ProcureLive.Domain.Entities.Finance;
+using ProcureLive.Domain.Entities.Workspaces;
 using ProcureLive.Domain.Entities.Identity;
 using ProcureLive.Domain.Entities.Notifications;
 using ProcureLive.Domain.Entities.Rfi;
@@ -40,6 +41,8 @@ public class ApplicationDbContext
     public DbSet<Sector> Sectors => Set<Sector>();
 
     public DbSet<CompanySector> CompanySectors => Set<CompanySector>();
+
+    public DbSet<Workspace> Workspaces => Set<Workspace>();
 
     public DbSet<Category> Categories => Set<Category>();
 

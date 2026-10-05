@@ -27,6 +27,15 @@ export interface CurrentUser {
   companyId: string | null;
 }
 
+export interface WorkspaceDto {
+  id: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  companyCount: number;
+  productCount: number;
+}
+
 export interface SectorDto {
   id: string;
   name: string;
@@ -43,6 +52,8 @@ export interface CompanyDto {
   companyType: string;
   status: string;
   website: string | null;
+  workspaceId: string | null;
+  workspaceName: string | null;
   createdAt: string;
 }
 
@@ -75,6 +86,8 @@ export interface CompanyDetailDto {
   companyType: string;
   status: string;
   website: string | null;
+  workspaceId: string | null;
+  workspaceName: string | null;
   createdAt: string;
   contactPersons: ContactPersonDto[];
   addresses: AddressDto[];
@@ -91,6 +104,8 @@ export interface ProductDto {
   unitOfMeasure: string;
   brand: string | null;
   isActive: boolean;
+  workspaceId: string | null;
+  workspaceName: string | null;
 }
 
 export interface CategoryDto {

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ProcureLive.Domain.Entities.Catalog;
+using ProcureLive.Domain.Entities.Workspaces;
 
 namespace ProcureLive.Infrastructure.Persistence.Configurations.Catalog;
 
@@ -37,5 +38,11 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .WithOne(s => s.Product)
             .HasForeignKey(s => s.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(p => p.Workspace)
+            .WithMany()
+            .HasForeignKey(p => p.WorkspaceId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
     }
 }

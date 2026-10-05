@@ -51,7 +51,8 @@
     "rfqInvites": "My RFQ Invites",
     "systemGroup": "System",
     "auditLog": "Audit Log",
-    "sectors": "Sectors"
+    "sectors": "Sectors",
+    "workspaces": "Workspaces"
   },
   "language": {
     "label": "Language",
@@ -787,6 +788,36 @@
     },
     "emptyInvites": "No invites",
     "loadError": "Failed to load dashboard data."
+  },
+  "workspaces": {
+    "title": "Workspaces",
+    "subtitle": "Workspace definitions for grouping companies and products",
+    "newWorkspace": "New Workspace",
+    "editWorkspace": "Edit Workspace",
+    "allWorkspaces": "All Workspaces",
+    "noWorkspaces": "No workspaces defined",
+    "empty": "No workspaces defined yet.",
+    "created": "Workspace created.",
+    "updated": "Workspace updated.",
+    "deleted": "Workspace deleted.",
+    "deleteConfirm": "Are you sure you want to delete this workspace?",
+    "loadError": "Failed to load workspaces.",
+    "saveError": "Failed to save workspace.",
+    "deleteError": "Failed to delete workspace.",
+    "form": {
+      "name": "Workspace Name",
+      "namePlaceholder": "e.g. HQ, Istanbul Branch, Warehouse",
+      "description": "Description (optional)",
+      "descriptionPlaceholder": "Brief description of this workspace",
+      "isActive": "Active"
+    },
+    "table": {
+      "name": "Workspace Name",
+      "description": "Description",
+      "companies": "Companies",
+      "products": "Products",
+      "status": "Status"
+    }
   },
   "sectors": {
     "title": "Sectors",

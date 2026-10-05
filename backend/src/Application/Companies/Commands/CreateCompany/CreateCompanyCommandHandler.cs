@@ -25,6 +25,7 @@ public sealed class CreateCompanyCommandHandler : IRequestHandler<CreateCompanyC
             TaxOffice = request.TaxOffice,
             CompanyType = request.CompanyType,
             Website = request.Website,
+            WorkspaceId = request.WorkspaceId,
             Status = CompanyStatus.PendingApproval
         };
 

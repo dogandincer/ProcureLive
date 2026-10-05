@@ -52,7 +52,8 @@
     "systemGroup": "System",
     "auditLog": "Audit Log",
     "sectors": "Sectors",
-    "workspaces": "Workspaces"
+    "workspaces": "Workspaces",
+    "monitoring": "Monitoring"
   },
   "language": {
     "label": "Language",
@@ -804,6 +805,55 @@
     },
     "emptyInvites": "No invites",
     "loadError": "Failed to load dashboard data."
+  },
+  "monitoring": {
+    "title": "Monitoring Dashboard",
+    "subtitle": "Live view of active processes and bid activity",
+    "refresh": "Refresh",
+    "lastUpdated": "Last updated",
+    "live": "LIVE",
+    "ended": "Ended",
+    "justNow": "Just now",
+    "ago": "ago",
+    "loadError": "Failed to load monitoring data.",
+    "stat": {
+      "liveAuctions": "Live Auctions",
+      "liveAuctionsSub": "Currently active",
+      "bidsToday": "Bids Today",
+      "bidsTodaySub": "Submitted today",
+      "bidsWeek": "Bids This Week",
+      "bidsWeekSub": "Last 7 days",
+      "totalProcesses": "Total Processes",
+      "totalProcessesSub": "Auctions + RFQs"
+    },
+    "charts": {
+      "auctionStatus": "Auction Status Distribution",
+      "rfqStatus": "RFQ Status Distribution",
+      "total": "{count} total",
+      "noData": "No data yet."
+    },
+    "liveAuctions": {
+      "title": "Live Auctions",
+      "empty": "No live auctions at the moment.",
+      "table": {
+        "title": "Auction Title",
+        "bids": "Bids",
+        "leading": "Leading Supplier",
+        "bestBid": "Best Bid",
+        "endsIn": "Ends In"
+      }
+    },
+    "recentBids": {
+      "title": "Recent Bid Activity",
+      "subtitle": "Last 15 bids",
+      "empty": "No bids yet.",
+      "table": {
+        "company": "Company",
+        "auction": "Auction",
+        "amount": "Amount",
+        "time": "Time"
+      }
+    }
   },
   "workspaces": {
     "title": "Workspaces",

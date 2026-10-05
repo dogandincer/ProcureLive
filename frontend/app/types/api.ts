@@ -400,6 +400,34 @@ export interface RfqComparisonRowDto {
   leadTimeDays: number | null;
 }
 
+export interface MonitoringStatsDto {
+  auctionCountByStatus: Record<string, number>;
+  rfqCountByStatus: Record<string, number>;
+  totalBidsToday: number;
+  totalBidsThisWeek: number;
+  liveAuctions: LiveAuctionSummaryDto[];
+  recentBids: RecentBidDto[];
+}
+
+export interface LiveAuctionSummaryDto {
+  auctionId: string;
+  title: string;
+  bidCount: number;
+  bestBidAmount: number | null;
+  bestBidCurrencyCode: string | null;
+  leadingCompanyName: string | null;
+  endsAt: string;
+}
+
+export interface RecentBidDto {
+  bidId: string;
+  auctionTitle: string;
+  companyName: string;
+  amount: number;
+  currencyCode: string;
+  bidTime: string;
+}
+
 export interface RfqAiRecommendationDto {
   recommendedQuoteId: string;
   recommendedCompanyName: string;

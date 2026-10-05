@@ -52,7 +52,8 @@
     "systemGroup": "Sistem",
     "auditLog": "Denetim Kaydı",
     "sectors": "Sektörler",
-    "workspaces": "İşyerleri"
+    "workspaces": "İşyerleri",
+    "monitoring": "İzleme Paneli"
   },
   "language": {
     "label": "Dil",
@@ -804,6 +805,55 @@
     },
     "emptyInvites": "Davet yok",
     "loadError": "Panel verileri yüklenemedi."
+  },
+  "monitoring": {
+    "title": "İzleme Paneli",
+    "subtitle": "Aktif süreçlerin ve teklif aktivitesinin canlı görünümü",
+    "refresh": "Yenile",
+    "lastUpdated": "Son güncelleme",
+    "live": "CANLI",
+    "ended": "Sona erdi",
+    "justNow": "Az önce",
+    "ago": "önce",
+    "loadError": "İzleme verileri yüklenemedi.",
+    "stat": {
+      "liveAuctions": "Canlı İhale",
+      "liveAuctionsSub": "Şu an aktif",
+      "bidsToday": "Bugünkü Teklif",
+      "bidsTodaySub": "Bugün gönderilen",
+      "bidsWeek": "Haftalık Teklif",
+      "bidsWeekSub": "Son 7 gün",
+      "totalProcesses": "Toplam Süreç",
+      "totalProcessesSub": "İhale + RFQ"
+    },
+    "charts": {
+      "auctionStatus": "İhale Durum Dağılımı",
+      "rfqStatus": "RFQ Durum Dağılımı",
+      "total": "{count} adet",
+      "noData": "Henüz veri yok."
+    },
+    "liveAuctions": {
+      "title": "Canlı İhaleler",
+      "empty": "Şu an aktif canlı ihale yok.",
+      "table": {
+        "title": "İhale Başlığı",
+        "bids": "Teklif",
+        "leading": "Lider Tedarikçi",
+        "bestBid": "En İyi Teklif",
+        "endsIn": "Kalan"
+      }
+    },
+    "recentBids": {
+      "title": "Son Teklif Aktivitesi",
+      "subtitle": "Son 15 teklif",
+      "empty": "Henüz teklif yok.",
+      "table": {
+        "company": "Cari",
+        "auction": "İhale",
+        "amount": "Tutar",
+        "time": "Süre"
+      }
+    }
   },
   "workspaces": {
     "title": "İşyerleri",

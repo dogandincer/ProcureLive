@@ -14,6 +14,7 @@ import {
   QuestionMarkCircleIcon,
   DocumentTextIcon,
   ClipboardDocumentCheckIcon,
+  ChartBarIcon,
   Bars3Icon,
   BellIcon,
   ArrowRightOnRectangleIcon,
@@ -67,6 +68,7 @@ const adminSections: NavSection[] = [
       { to: "/admin/auctions", labelKey: "nav.auctions", icon: ClipboardDocumentListIcon },
       { to: "/admin/rfi", labelKey: "nav.rfi", icon: QuestionMarkCircleIcon },
       { to: "/admin/rfq", labelKey: "nav.rfq", icon: DocumentTextIcon },
+      { to: "/admin/monitoring", labelKey: "nav.monitoring", icon: ChartBarIcon },
     ],
   },
 ];

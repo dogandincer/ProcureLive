@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using ProcureLive.Application.Common.Security;
 using ProcureLive.Application.Companies.Commands.AddAddress;
 using ProcureLive.Application.Companies.Commands.AddContactPerson;
+using ProcureLive.Application.Companies.Commands.AssignCompanyWorkspace;
 using ProcureLive.Application.Companies.Commands.AssignSectors;
 using ProcureLive.Application.Companies.Commands.CreateCompany;
 using ProcureLive.Application.Companies.Commands.DeleteCompany;
@@ -110,6 +111,15 @@ public sealed class CompaniesController : ControllerBase
     public async Task<IActionResult> AssignSectors(Guid id, AssignSectorsRequest request, CancellationToken cancellationToken)
     {
         await _sender.Send(new AssignSectorsCommand(id, request.SectorIds), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Assign (or clear, with null) the company's workspace.</summary>
+    [HttpPut("{id:guid}/workspace")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> AssignWorkspace(Guid id, AssignWorkspaceRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new AssignCompanyWorkspaceCommand(id, request.WorkspaceId), cancellationToken);
         return NoContent();
     }
 

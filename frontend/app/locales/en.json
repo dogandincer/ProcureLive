@@ -168,6 +168,7 @@
       "Draft": "Draft",
       "Scheduled": "Scheduled",
       "Live": "Live",
+      "Paused": "Paused",
       "Ended": "Ended",
       "Awarded": "Awarded",
       "Cancelled": "Cancelled"
@@ -480,6 +481,9 @@
     "detail": {
       "backToList": "Back to product list",
       "loadError": "Failed to load product.",
+      "workspace": "Workspace",
+      "workspaceSaved": "Workspace updated.",
+      "workspaceError": "Failed to update workspace.",
       "images": "Product Photos",
       "addImage": "Add Photo",
       "imageUrlPlaceholder": "Image URL (https://...)",
@@ -555,6 +559,9 @@
       "noSectors": "No sectors assigned yet",
       "sectorsSaved": "Sectors updated.",
       "sectorsError": "Failed to update sectors.",
+      "workspace": "Workspace",
+      "workspaceSaved": "Workspace updated.",
+      "workspaceError": "Failed to update workspace.",
       "form": {
         "firstName": "First Name",
         "lastName": "Last Name",
@@ -849,6 +856,8 @@
     "ended": "Ended",
     "justNow": "Just now",
     "ago": "ago",
+    "hoursShort": "h",
+    "minutesShort": "m",
     "loadError": "Failed to load monitoring data.",
     "stat": {
       "liveAuctions": "Live Auctions",
@@ -896,6 +905,7 @@
     "editWorkspace": "Edit Workspace",
     "allWorkspaces": "All Workspaces",
     "noWorkspaces": "No workspaces defined",
+    "unassigned": "Unassigned",
     "empty": "No workspaces defined yet.",
     "created": "Workspace created.",
     "updated": "Workspace updated.",

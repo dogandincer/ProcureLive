@@ -10,8 +10,7 @@ import {
 
 const api = useApi();
 const toast = useToast();
-const { t } = useI18n();
-const { formatDateTime } = useDateFormat();
+const { t, locale } = useI18n();
 
 const stats = ref<MonitoringStatsDto | null>(null);
 const loading = ref(true);
@@ -23,22 +22,25 @@ const rfqChartRef = ref<HTMLCanvasElement | null>(null);
 let auctionChart: import("chart.js").Chart | null = null;
 let rfqChart: import("chart.js").Chart | null = null;
 
+// Keys must match the backend AuctionStatus enum names exactly.
 const AUCTION_STATUS_COLORS: Record<string, string> = {
   Draft: "#94a3b8",
   Scheduled: "#f59e0b",
   Live: "#10b981",
+  Paused: "#fb923c",
   Ended: "#64748b",
-  Awarded: "#6366f1",
   Cancelled: "#f43f5e",
+  Awarded: "#6366f1",
 };
 
+// Keys must match the backend ProcessStatus enum names exactly (RFI/RFQ share it).
 const RFQ_STATUS_COLORS: Record<string, string> = {
   Draft: "#94a3b8",
   Sent: "#f59e0b",
-  Open: "#3b82f6",
+  InProgress: "#3b82f6",
   Closed: "#64748b",
+  Evaluated: "#8b5cf6",
   Awarded: "#6366f1",
-  Cancelled: "#f43f5e",
 };
 
 async function load() {
@@ -61,9 +63,10 @@ async function renderCharts() {
 
   if (stats.value && auctionChartRef.value) {
     const auctionData = stats.value.auctionCountByStatus;
-    const labels = Object.keys(auctionData);
-    const data = labels.map((k) => auctionData[k]);
-    const colors = labels.map((k) => AUCTION_STATUS_COLORS[k] ?? "#cbd5e1");
+    const keys = Object.keys(auctionData);
+    const labels = keys.map((k) => t(`enums.auctionStatus.${k}`));
+    const data = keys.map((k) => auctionData[k]);
+    const colors = keys.map((k) => AUCTION_STATUS_COLORS[k] ?? "#cbd5e1");
 
     if (auctionChart) auctionChart.destroy();
     auctionChart = new Chart(auctionChartRef.value, {
@@ -81,9 +84,10 @@ async function renderCharts() {
 
   if (stats.value && rfqChartRef.value) {
     const rfqData = stats.value.rfqCountByStatus;
-    const labels = Object.keys(rfqData);
-    const data = labels.map((k) => rfqData[k]);
-    const colors = labels.map((k) => RFQ_STATUS_COLORS[k] ?? "#cbd5e1");
+    const keys = Object.keys(rfqData);
+    const labels = keys.map((k) => t(`enums.processStatus.${k}`));
+    const data = keys.map((k) => rfqData[k]);
+    const colors = keys.map((k) => RFQ_STATUS_COLORS[k] ?? "#cbd5e1");
 
     if (rfqChart) rfqChart.destroy();
     rfqChart = new Chart(rfqChartRef.value, {
@@ -105,17 +109,20 @@ function timeUntil(dateStr: string): string {
   if (diff <= 0) return t("monitoring.ended");
   const hours = Math.floor(diff / 3600000);
   const minutes = Math.floor((diff % 3600000) / 60000);
-  if (hours > 0) return `${hours}s ${minutes}dk`;
-  return `${minutes}dk`;
+  const h = t("monitoring.hoursShort");
+  const m = t("monitoring.minutesShort");
+  if (hours > 0) return `${hours}${h} ${minutes}${m}`;
+  return `${minutes}${m}`;
 }
 
 function timeSince(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const minutes = Math.floor(diff / 60000);
+  const m = t("monitoring.minutesShort");
   if (minutes < 1) return t("monitoring.justNow");
-  if (minutes < 60) return `${minutes}dk ${t("monitoring.ago")}`;
+  if (minutes < 60) return `${minutes}${m} ${t("monitoring.ago")}`;
   const hours = Math.floor(minutes / 60);
-  return `${hours}s ${t("monitoring.ago")}`;
+  return `${hours}${t("monitoring.hoursShort")} ${t("monitoring.ago")}`;
 }
 
 const totalAuctions = computed(() => {
@@ -130,6 +137,11 @@ const totalRfq = computed(() => {
 
 // Auto-refresh every 30s
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
+
+// Re-render charts (labels are localized) when the language changes.
+watch(locale, () => {
+  if (stats.value) renderCharts();
+});
 
 onMounted(() => {
   load();

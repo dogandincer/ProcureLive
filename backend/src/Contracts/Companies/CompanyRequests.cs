@@ -16,6 +16,8 @@ public sealed record UpdateCompanyRequest(
     string Status,
     string? Website);
 
+public sealed record AssignWorkspaceRequest(Guid? WorkspaceId);
+
 public sealed record AddContactPersonRequest(
     string FirstName,
     string LastName,

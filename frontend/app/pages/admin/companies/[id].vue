@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { CompanyDetailDto, SectorDto } from "~/types/api";
-import { CheckIcon } from "@heroicons/vue/24/outline";
+import type { CompanyDetailDto, SectorDto, WorkspaceDto } from "~/types/api";
+import { CheckIcon, BuildingStorefrontIcon } from "@heroicons/vue/24/outline";
 
 const route = useRoute();
 const companyId = route.params.id as string;
@@ -19,6 +19,11 @@ const selectedSectorIds = ref<Set<string>>(new Set());
 const savingSectors = ref(false);
 const showSectorPanel = ref(false);
 
+// Workspace assignment
+const workspaces = ref<WorkspaceDto[]>([]);
+const companyWorkspaceId = ref<string>("");
+const savingWorkspace = ref(false);
+
 const contactForm = reactive({ firstName: "", lastName: "", title: "", email: "", phone: "", isPrimary: false });
 const addressTypes = ["HeadOffice", "Billing", "Shipping"];
 const addressForm = reactive({ addressType: "HeadOffice", country: "Türkiye", city: "", district: "", postalCode: "", line1: "", line2: "" });
@@ -26,12 +31,15 @@ const addressForm = reactive({ addressType: "HeadOffice", country: "Türkiye", c
 async function load() {
   loading.value = true;
   try {
-    const [companyData, sectors] = await Promise.all([
+    const [companyData, sectors, ws] = await Promise.all([
       api.get<CompanyDetailDto>(`/api/companies/${companyId}`),
       api.get<SectorDto[]>("/api/sectors"),
+      api.get<WorkspaceDto[]>("/api/workspaces", { activeOnly: true }),
     ]);
     company.value = companyData;
     allSectors.value = sectors;
+    workspaces.value = ws;
+    companyWorkspaceId.value = companyData.workspaceId ?? "";
     selectedSectorIds.value = new Set(companyData.sectors.map((s) => s.id));
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("companies.detail.loadError")));
@@ -61,6 +69,21 @@ async function saveSectors() {
     toast.error(apiErrorMessage(error, t("companies.detail.sectorsError")));
   } finally {
     savingSectors.value = false;
+  }
+}
+
+async function saveWorkspace() {
+  savingWorkspace.value = true;
+  try {
+    await api.put(`/api/companies/${companyId}/workspace`, {
+      workspaceId: companyWorkspaceId.value || null,
+    });
+    toast.success(t("companies.detail.workspaceSaved"));
+    await load();
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("companies.detail.workspaceError")));
+  } finally {
+    savingWorkspace.value = false;
   }
 }
 
@@ -116,6 +139,19 @@ onMounted(load);
       <p class="text-sm text-slate-500">
         {{ company.taxNumber }} · {{ company.taxOffice }} · {{ company.companyType }} · {{ $t(`enums.companyStatus.${company.status}`) }}
       </p>
+      <div class="mt-2 flex items-center gap-2 text-sm">
+        <BuildingStorefrontIcon class="h-4 w-4 shrink-0 text-slate-400" />
+        <span class="text-slate-500">{{ $t("companies.detail.workspace") }}:</span>
+        <select
+          v-model="companyWorkspaceId"
+          :disabled="savingWorkspace"
+          class="rounded-md border border-slate-300 px-2 py-1 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+          @change="saveWorkspace"
+        >
+          <option value="">{{ $t("workspaces.unassigned") }}</option>
+          <option v-for="w in workspaces" :key="w.id" :value="w.id">{{ w.name }}</option>
+        </select>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">

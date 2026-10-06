@@ -168,6 +168,7 @@
       "Draft": "Taslak",
       "Scheduled": "Planlandı",
       "Live": "Canlı",
+      "Paused": "Duraklatıldı",
       "Ended": "Sona Erdi",
       "Awarded": "Sonuçlandı",
       "Cancelled": "İptal Edildi"
@@ -480,6 +481,9 @@
     "detail": {
       "backToList": "Ürün listesine dön",
       "loadError": "Ürün yüklenemedi.",
+      "workspace": "İşyeri",
+      "workspaceSaved": "İşyeri güncellendi.",
+      "workspaceError": "İşyeri güncellenemedi.",
       "images": "Ürün Fotoğrafları",
       "addImage": "Fotoğraf Ekle",
       "imageUrlPlaceholder": "Fotoğraf adresi (https://...)",
@@ -555,6 +559,9 @@
       "noSectors": "Henüz sektör atanmamış",
       "sectorsSaved": "Sektörler güncellendi.",
       "sectorsError": "Sektörler güncellenemedi.",
+      "workspace": "İşyeri",
+      "workspaceSaved": "İşyeri güncellendi.",
+      "workspaceError": "İşyeri güncellenemedi.",
       "form": {
         "firstName": "Ad",
         "lastName": "Soyad",
@@ -849,6 +856,8 @@
     "ended": "Sona erdi",
     "justNow": "Az önce",
     "ago": "önce",
+    "hoursShort": "s",
+    "minutesShort": "dk",
     "loadError": "İzleme verileri yüklenemedi.",
     "stat": {
       "liveAuctions": "Canlı İhale",
@@ -896,6 +905,7 @@
     "editWorkspace": "İşyerini Düzenle",
     "allWorkspaces": "Tüm İşyerleri",
     "noWorkspaces": "İşyeri tanımlı değil",
+    "unassigned": "Atanmamış",
     "empty": "Henüz işyeri tanımlanmamış.",
     "created": "İşyeri oluşturuldu.",
     "updated": "İşyeri güncellendi.",

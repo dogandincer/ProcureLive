@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProductDto } from "~/types/api";
+import type { ProductDto, WorkspaceDto } from "~/types/api";
 import {
   ArrowLeftIcon,
   CubeTransparentIcon,
@@ -8,6 +8,7 @@ import {
   PhotoIcon,
   PlusIcon,
   StarIcon,
+  BuildingStorefrontIcon,
 } from "@heroicons/vue/24/outline";
 
 const route = useRoute();
@@ -18,6 +19,11 @@ const { t } = useI18n();
 
 const product = ref<ProductDto | null>(null);
 const loading = ref(true);
+
+// Workspace assignment
+const workspaces = ref<WorkspaceDto[]>([]);
+const productWorkspaceId = ref<string>("");
+const savingWorkspace = ref(false);
 
 // Image management
 const showImageForm = ref(false);
@@ -33,11 +39,32 @@ const generating = ref(false);
 async function load() {
   loading.value = true;
   try {
-    product.value = await api.get<ProductDto>(`/api/products/${productId}`);
+    const [productData, ws] = await Promise.all([
+      api.get<ProductDto>(`/api/products/${productId}`),
+      api.get<WorkspaceDto[]>("/api/workspaces", { activeOnly: true }),
+    ]);
+    product.value = productData;
+    workspaces.value = ws;
+    productWorkspaceId.value = productData.workspaceId ?? "";
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("products.detail.loadError")));
   } finally {
     loading.value = false;
+  }
+}
+
+async function saveWorkspace() {
+  savingWorkspace.value = true;
+  try {
+    await api.put(`/api/products/${productId}/workspace`, {
+      workspaceId: productWorkspaceId.value || null,
+    });
+    toast.success(t("products.detail.workspaceSaved"));
+    await load();
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("products.detail.workspaceError")));
+  } finally {
+    savingWorkspace.value = false;
   }
 }
 
@@ -131,12 +158,24 @@ onMounted(load);
           <h1 class="text-xl font-bold text-slate-800">{{ product.name }}</h1>
           <p class="text-sm text-slate-500">
             <span class="font-mono">{{ product.sku }}</span> · {{ product.categoryName }}
-            <span v-if="product.workspaceName"> · {{ product.workspaceName }}</span>
           </p>
         </div>
         <AppBadge :tone="product.isActive ? 'emerald' : 'slate'">
           {{ product.isActive ? $t("common.active") : $t("common.passive") }}
         </AppBadge>
+      </div>
+      <div class="mt-2 flex items-center gap-2 text-sm">
+        <BuildingStorefrontIcon class="h-4 w-4 shrink-0 text-slate-400" />
+        <span class="text-slate-500">{{ $t("products.detail.workspace") }}:</span>
+        <select
+          v-model="productWorkspaceId"
+          :disabled="savingWorkspace"
+          class="rounded-md border border-slate-300 px-2 py-1 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+          @change="saveWorkspace"
+        >
+          <option value="">{{ $t("workspaces.unassigned") }}</option>
+          <option v-for="w in workspaces" :key="w.id" :value="w.id">{{ w.name }}</option>
+        </select>
       </div>
     </div>
 

@@ -23,6 +23,8 @@ public sealed record ProductImageDto(Guid Id, string Url, bool IsPrimary, int So
 
 public sealed record SetProduct3dModelRequest(string Url);
 
+public sealed record AssignProductWorkspaceRequest(Guid? WorkspaceId);
+
 public sealed record CreateProductRequest(
     string Sku,
     string Name,

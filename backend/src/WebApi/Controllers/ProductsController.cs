@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProcureLive.Application.Catalog.Products.Commands.AddProductImage;
+using ProcureLive.Application.Catalog.Products.Commands.AssignProductWorkspace;
 using ProcureLive.Application.Catalog.Products.Commands.CreateProduct;
 using ProcureLive.Application.Catalog.Products.Commands.DeleteProduct;
 using ProcureLive.Application.Catalog.Products.Commands.GenerateProduct3dModel;
@@ -140,6 +141,15 @@ public sealed class ProductsController : ControllerBase
     public async Task<IActionResult> Remove3dModel(Guid id, CancellationToken cancellationToken)
     {
         await _sender.Send(new RemoveProduct3dModelCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Assign (or clear, with null) the product's workspace.</summary>
+    [HttpPut("{id:guid}/workspace")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> AssignWorkspace(Guid id, AssignProductWorkspaceRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new AssignProductWorkspaceCommand(id, request.WorkspaceId), cancellationToken);
         return NoContent();
     }
 }

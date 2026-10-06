@@ -15,6 +15,7 @@ import {
   DocumentTextIcon,
   ClipboardDocumentCheckIcon,
   ChartBarIcon,
+  StarIcon,
   Bars3Icon,
   BellIcon,
   ArrowRightOnRectangleIcon,
@@ -50,6 +51,7 @@ const adminSections: NavSection[] = [
     links: [
       { to: "/admin/workspaces", labelKey: "nav.workspaces", icon: BuildingOfficeIcon },
       { to: "/admin/companies", labelKey: "nav.companies", icon: BuildingOfficeIcon },
+      { to: "/admin/supplier-scoreboard", labelKey: "nav.scoreboard", icon: StarIcon },
       { to: "/admin/users", labelKey: "nav.users", icon: UsersIcon },
     ],
   },

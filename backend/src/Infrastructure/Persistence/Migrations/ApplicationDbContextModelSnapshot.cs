@@ -840,13 +840,35 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int?>("EmployeeCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FoundationYear")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("MersisNo")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -860,6 +882,10 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
+
+                    b.Property<string>("TradeName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -882,6 +908,70 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.HasIndex("WorkspaceId");
 
                     b.ToTable("Companies", (string)null);
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.CompanyEvaluation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Comments")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("CommunicationScore")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ComplianceScore")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("DeliveryScore")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("EvaluatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EvaluatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("OverallScore")
+                        .HasPrecision(3, 2)
+                        .HasColumnType("numeric(3,2)");
+
+                    b.Property<int>("PriceScore")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("QualityScore")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("SourceProcessId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SourceType")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.ToTable("CompanyEvaluations", (string)null);
                 });
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.CompanySector", b =>
@@ -2249,6 +2339,17 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Navigation("Workspace");
                 });
 
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.CompanyEvaluation", b =>
+                {
+                    b.HasOne("ProcureLive.Domain.Entities.Companies.Company", "Company")
+                        .WithMany("Evaluations")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.CompanySector", b =>
                 {
                     b.HasOne("ProcureLive.Domain.Entities.Companies.Company", "Company")
@@ -2630,6 +2731,8 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Navigation("Addresses");
 
                     b.Navigation("ContactPersons");
+
+                    b.Navigation("Evaluations");
 
                     b.Navigation("Sectors");
 

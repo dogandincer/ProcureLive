@@ -21,13 +21,20 @@ function select(id: string | null) {
   open.value = false;
 }
 
+function handleClickOutside(event: MouseEvent) {
+  if (el.value && !el.value.contains(event.target as Node)) {
+    open.value = false;
+  }
+}
+
 onMounted(async () => {
+  document.addEventListener("click", handleClickOutside);
   init();
   await load();
 });
 
-onClickOutside(el, () => {
-  open.value = false;
+onBeforeUnmount(() => {
+  document.removeEventListener("click", handleClickOutside);
 });
 </script>
 

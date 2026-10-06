@@ -32,6 +32,8 @@ public class ApplicationDbContext
 
     public DbSet<Company> Companies => Set<Company>();
 
+    public DbSet<CompanyEvaluation> CompanyEvaluations => Set<CompanyEvaluation>();
+
     public DbSet<ContactPerson> ContactPersons => Set<ContactPerson>();
 
     public DbSet<Address> Addresses => Set<Address>();

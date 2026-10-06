@@ -75,6 +75,20 @@ public sealed class GetCompaniesListQueryHandler : IRequestHandler<GetCompaniesL
             .ProjectTo<CompanyDto>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
 
+        // Fill rating aggregates with a single grouped query over the page's companies.
+        List<Guid> ids = items.Select(i => i.Id).ToList();
+        Dictionary<Guid, (decimal Avg, int Count)> ratings = await _context.CompanyEvaluations
+            .Where(e => ids.Contains(e.CompanyId))
+            .GroupBy(e => e.CompanyId)
+            .Select(g => new { CompanyId = g.Key, Avg = g.Average(x => x.OverallScore), Count = g.Count() })
+            .ToDictionaryAsync(x => x.CompanyId, x => (x.Avg, x.Count), cancellationToken);
+
+        items = items
+            .Select(i => ratings.TryGetValue(i.Id, out var r)
+                ? i with { AverageScore = Math.Round(r.Avg, 2), EvaluationCount = r.Count }
+                : i)
+            .ToList();
+
         return new PagedResult<CompanyDto>(items, totalCount, page, pageSize);
     }
 }

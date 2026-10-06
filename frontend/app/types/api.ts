@@ -54,7 +54,79 @@ export interface CompanyDto {
   website: string | null;
   workspaceId: string | null;
   workspaceName: string | null;
+  averageScore: number | null;
+  evaluationCount: number;
   createdAt: string;
+}
+
+export interface CompanyEvaluationDto {
+  id: string;
+  companyId: string;
+  companyName: string;
+  qualityScore: number;
+  deliveryScore: number;
+  communicationScore: number;
+  priceScore: number;
+  complianceScore: number;
+  overallScore: number;
+  comments: string | null;
+  sourceType: string | null;
+  evaluatedAt: string;
+}
+
+export interface CompanyLookupResultDto {
+  identifier: string;
+  identifierType: string;
+  isValid: boolean;
+  name: string | null;
+  tradeName: string | null;
+  taxOffice: string | null;
+  mersisNo: string | null;
+  city: string | null;
+  district: string | null;
+  addressLine: string | null;
+  phone: string | null;
+  email: string | null;
+  foundationYear: number | null;
+  message: string | null;
+}
+
+export interface SupplierScoreDto {
+  companyId: string;
+  companyName: string;
+  averageScore: number;
+  evaluationCount: number;
+  avgQuality: number;
+  avgDelivery: number;
+  avgCommunication: number;
+  avgPrice: number;
+  avgCompliance: number;
+  sectors: string[];
+}
+
+export interface SectorPopularityDto {
+  sectorId: string;
+  sectorName: string;
+  companyCount: number;
+  evaluatedCompanyCount: number;
+  averageScore: number | null;
+}
+
+export interface TopSupplierPerSectorDto {
+  sectorId: string;
+  sectorName: string;
+  companyId: string | null;
+  companyName: string | null;
+  averageScore: number | null;
+  evaluationCount: number;
+}
+
+export interface SupplierScoreboardDto {
+  topSuppliers: SupplierScoreDto[];
+  popularSectors: SectorPopularityDto[];
+  topSupplierPerSector: TopSupplierPerSectorDto[];
+  totalEvaluatedSuppliers: number;
+  totalEvaluations: number;
 }
 
 export interface ContactPersonDto {
@@ -81,17 +153,27 @@ export interface AddressDto {
 export interface CompanyDetailDto {
   id: string;
   name: string;
+  tradeName: string | null;
   taxNumber: string;
   taxOffice: string;
+  mersisNo: string | null;
   companyType: string;
   status: string;
   website: string | null;
+  phone: string | null;
+  email: string | null;
+  foundationYear: number | null;
+  employeeCount: number | null;
+  description: string | null;
   workspaceId: string | null;
   workspaceName: string | null;
+  averageScore: number | null;
+  evaluationCount: number;
   createdAt: string;
   contactPersons: ContactPersonDto[];
   addresses: AddressDto[];
   sectors: SectorDto[];
+  evaluations: CompanyEvaluationDto[];
 }
 
 export interface ProductImageDto {

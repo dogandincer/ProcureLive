@@ -29,6 +29,13 @@ public sealed class UpdateCompanyCommandHandler : IRequestHandler<UpdateCompanyC
         company.TaxOffice = request.TaxOffice;
         company.Status = request.Status;
         company.Website = request.Website;
+        company.TradeName = request.TradeName;
+        company.MersisNo = request.MersisNo;
+        company.Phone = request.Phone;
+        company.Email = request.Email;
+        company.FoundationYear = request.FoundationYear;
+        company.EmployeeCount = request.EmployeeCount;
+        company.Description = request.Description;
 
         _companyRepository.Update(company);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

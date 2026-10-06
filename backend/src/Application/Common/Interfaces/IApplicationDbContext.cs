@@ -21,6 +21,8 @@ public interface IApplicationDbContext
 {
     DbSet<Company> Companies { get; }
 
+    DbSet<CompanyEvaluation> CompanyEvaluations { get; }
+
     DbSet<ContactPerson> ContactPersons { get; }
 
     DbSet<Address> Addresses { get; }

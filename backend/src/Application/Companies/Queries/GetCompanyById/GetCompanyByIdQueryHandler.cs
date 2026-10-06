@@ -32,6 +32,15 @@ public sealed class GetCompanyByIdQueryHandler : IRequestHandler<GetCompanyByIdQ
             throw new NotFoundException(nameof(Company), request.Id);
         }
 
+        if (dto.Evaluations.Count > 0)
+        {
+            dto = dto with
+            {
+                AverageScore = Math.Round(dto.Evaluations.Average(e => e.OverallScore), 2),
+                EvaluationCount = dto.Evaluations.Count
+            };
+        }
+
         return dto;
     }
 }

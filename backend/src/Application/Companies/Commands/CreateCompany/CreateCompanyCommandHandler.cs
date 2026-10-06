@@ -26,6 +26,13 @@ public sealed class CreateCompanyCommandHandler : IRequestHandler<CreateCompanyC
             CompanyType = request.CompanyType,
             Website = request.Website,
             WorkspaceId = request.WorkspaceId,
+            TradeName = request.TradeName,
+            MersisNo = request.MersisNo,
+            Phone = request.Phone,
+            Email = request.Email,
+            FoundationYear = request.FoundationYear,
+            EmployeeCount = request.EmployeeCount,
+            Description = request.Description,
             Status = CompanyStatus.PendingApproval
         };
 

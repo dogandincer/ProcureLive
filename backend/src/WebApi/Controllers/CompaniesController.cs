@@ -8,9 +8,12 @@ using ProcureLive.Application.Companies.Commands.AssignCompanyWorkspace;
 using ProcureLive.Application.Companies.Commands.AssignSectors;
 using ProcureLive.Application.Companies.Commands.CreateCompany;
 using ProcureLive.Application.Companies.Commands.DeleteCompany;
+using ProcureLive.Application.Companies.Commands.EvaluateCompany;
 using ProcureLive.Application.Companies.Commands.UpdateCompany;
 using ProcureLive.Application.Companies.Queries.GetCompaniesList;
 using ProcureLive.Application.Companies.Queries.GetCompanyById;
+using ProcureLive.Application.Companies.Queries.GetSupplierScoreboard;
+using ProcureLive.Application.Companies.Queries.LookupCompany;
 using ProcureLive.Contracts.Common;
 using ProcureLive.Contracts.Companies;
 using ProcureLive.Domain.Enums;
@@ -54,6 +57,36 @@ public sealed class CompaniesController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>Cari değerlendirme panosu: sıralı cariler, popüler sektörler, sektör bazlı en iyi cariler.</summary>
+    [HttpGet("scoreboard")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<SupplierScoreboardDto>> GetScoreboard([FromQuery] int topCount = 10, CancellationToken cancellationToken = default)
+    {
+        return Ok(await _sender.Send(new GetSupplierScoreboardQuery(topCount), cancellationToken));
+    }
+
+    /// <summary>TCKN/VKN ile cari sorgulama (simülasyon): numarayı doğrular, otomatik-doldurma önerisi döner.</summary>
+    [HttpGet("lookup")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<CompanyLookupResultDto>> Lookup([FromQuery] string identifier, CancellationToken cancellationToken)
+    {
+        return Ok(await _sender.Send(new LookupCompanyQuery(identifier ?? string.Empty), cancellationToken));
+    }
+
+    /// <summary>Cariye çok-kriterli değerlendirme ekler.</summary>
+    [HttpPost("{id:guid}/evaluations")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<Guid>> Evaluate(Guid id, EvaluateCompanyRequest request, CancellationToken cancellationToken)
+    {
+        Guid evaluationId = await _sender.Send(
+            new EvaluateCompanyCommand(
+                id, request.QualityScore, request.DeliveryScore, request.CommunicationScore,
+                request.PriceScore, request.ComplianceScore, request.Comments, request.SourceType, request.SourceProcessId),
+            cancellationToken);
+
+        return Ok(evaluationId);
+    }
+
     [HttpPost]
     [Authorize(Policy = Policies.RequireInternalUser)]
     public async Task<ActionResult<Guid>> Create(CreateCompanyRequest request, CancellationToken cancellationToken)
@@ -67,7 +100,10 @@ public sealed class CompaniesController : ControllerBase
         }
 
         Guid id = await _sender.Send(
-            new CreateCompanyCommand(request.Name, request.TaxNumber, request.TaxOffice, companyType, request.Website, request.WorkspaceId),
+            new CreateCompanyCommand(
+                request.Name, request.TaxNumber, request.TaxOffice, companyType, request.Website, request.WorkspaceId,
+                request.TradeName, request.MersisNo, request.Phone, request.Email,
+                request.FoundationYear, request.EmployeeCount, request.Description),
             cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id }, id);
@@ -84,7 +120,12 @@ public sealed class CompaniesController : ControllerBase
             return BadRequest($"Geçersiz Status: {request.Status}");
         }
 
-        await _sender.Send(new UpdateCompanyCommand(id, request.Name, request.TaxOffice, status, request.Website), cancellationToken);
+        await _sender.Send(
+            new UpdateCompanyCommand(
+                id, request.Name, request.TaxOffice, status, request.Website,
+                request.TradeName, request.MersisNo, request.Phone, request.Email,
+                request.FoundationYear, request.EmployeeCount, request.Description),
+            cancellationToken);
         return NoContent();
     }
 

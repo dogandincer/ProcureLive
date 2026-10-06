@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CompanyDetailDto, SectorDto, WorkspaceDto } from "~/types/api";
-import { CheckIcon, BuildingStorefrontIcon } from "@heroicons/vue/24/outline";
+import { CheckIcon, BuildingStorefrontIcon, StarIcon } from "@heroicons/vue/24/outline";
 
 const route = useRoute();
 const companyId = route.params.id as string;
@@ -23,6 +23,49 @@ const showSectorPanel = ref(false);
 const workspaces = ref<WorkspaceDto[]>([]);
 const companyWorkspaceId = ref<string>("");
 const savingWorkspace = ref(false);
+
+// Evaluation
+const showEvalForm = ref(false);
+const savingEval = ref(false);
+const evalForm = reactive({ quality: 4, delivery: 4, communication: 4, price: 4, compliance: 4, comments: "" });
+const evalCriteria = [
+  { key: "quality", model: "quality" as const },
+  { key: "delivery", model: "delivery" as const },
+  { key: "price", model: "price" as const },
+  { key: "communication", model: "communication" as const },
+  { key: "compliance", model: "compliance" as const },
+];
+const { formatDateTime } = useDateFormat();
+
+async function submitEvaluation() {
+  savingEval.value = true;
+  try {
+    await api.post(`/api/companies/${companyId}/evaluations`, {
+      qualityScore: evalForm.quality,
+      deliveryScore: evalForm.delivery,
+      communicationScore: evalForm.communication,
+      priceScore: evalForm.price,
+      complianceScore: evalForm.compliance,
+      comments: evalForm.comments || null,
+      sourceType: "Manual",
+      sourceProcessId: null,
+    });
+    toast.success(t("companies.detail.evaluation.saved"));
+    Object.assign(evalForm, { quality: 4, delivery: 4, communication: 4, price: 4, compliance: 4, comments: "" });
+    showEvalForm.value = false;
+    await load();
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("companies.detail.evaluation.saveError")));
+  } finally {
+    savingEval.value = false;
+  }
+}
+
+function scoreColor(score: number): string {
+  if (score >= 4) return "text-emerald-600";
+  if (score >= 3) return "text-amber-600";
+  return "text-rose-600";
+}
 
 const contactForm = reactive({ firstName: "", lastName: "", title: "", email: "", phone: "", isPrimary: false });
 const addressTypes = ["HeadOffice", "Billing", "Shipping"];
@@ -273,6 +316,93 @@ onMounted(load);
           </span>
         </div>
       </div>
+    </AppCard>
+
+    <!-- Company info (detailed fields) -->
+    <AppCard>
+      <h2 class="text-sm font-semibold text-slate-700">{{ $t("companies.detail.info") }}</h2>
+      <dl class="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+        <div><dt class="text-xs text-slate-400">{{ $t("companies.detail.fields.tradeName") }}</dt><dd class="text-slate-700">{{ company.tradeName || "—" }}</dd></div>
+        <div><dt class="text-xs text-slate-400">{{ $t("companies.detail.fields.mersisNo") }}</dt><dd class="font-mono text-slate-700">{{ company.mersisNo || "—" }}</dd></div>
+        <div><dt class="text-xs text-slate-400">{{ $t("companies.detail.fields.phone") }}</dt><dd class="text-slate-700">{{ company.phone || "—" }}</dd></div>
+        <div><dt class="text-xs text-slate-400">{{ $t("companies.detail.fields.email") }}</dt><dd class="truncate text-slate-700">{{ company.email || "—" }}</dd></div>
+        <div><dt class="text-xs text-slate-400">{{ $t("companies.detail.fields.foundationYear") }}</dt><dd class="text-slate-700">{{ company.foundationYear || "—" }}</dd></div>
+        <div><dt class="text-xs text-slate-400">{{ $t("companies.detail.fields.employeeCount") }}</dt><dd class="text-slate-700">{{ company.employeeCount || "—" }}</dd></div>
+      </dl>
+      <div v-if="company.description" class="mt-3 border-t border-slate-100 pt-3 text-sm text-slate-600">{{ company.description }}</div>
+    </AppCard>
+
+    <!-- Evaluation / scorecard -->
+    <AppCard>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <StarIcon class="h-5 w-5 text-amber-500" />
+          <h2 class="text-sm font-semibold text-slate-700">{{ $t("companies.detail.evaluation.title") }}</h2>
+        </div>
+        <button class="text-xs font-medium text-indigo-600 hover:underline" @click="showEvalForm = !showEvalForm">
+          {{ showEvalForm ? $t("common.cancel") : $t("companies.detail.evaluation.add") }}
+        </button>
+      </div>
+
+      <!-- Aggregate score -->
+      <div class="mt-3 flex items-center gap-4 rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+        <div class="text-center">
+          <div class="flex items-end gap-1">
+            <span class="text-3xl font-bold tabular-nums" :class="company.averageScore != null ? scoreColor(company.averageScore) : 'text-slate-300'">
+              {{ company.averageScore != null ? company.averageScore.toFixed(2) : "—" }}
+            </span>
+            <span class="mb-1 text-sm text-slate-400">/ 5</span>
+          </div>
+          <div class="mt-0.5 text-[11px] text-slate-400">{{ company.evaluationCount }} {{ $t("companies.detail.evaluation.count") }}</div>
+        </div>
+        <div class="flex-1">
+          <div class="flex gap-1">
+            <div v-for="n in 5" :key="n" class="h-2 flex-1 rounded-full" :class="company.averageScore != null && company.averageScore >= n - 0.5 ? 'bg-amber-400' : 'bg-slate-200'" />
+          </div>
+          <p class="mt-2 text-xs text-slate-500">{{ $t("companies.detail.evaluation.hint") }}</p>
+        </div>
+      </div>
+
+      <!-- Add evaluation form -->
+      <form v-if="showEvalForm" class="mt-4 space-y-3 rounded-xl border border-indigo-100 bg-indigo-50/30 p-4" @submit.prevent="submitEvaluation">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div v-for="crit in evalCriteria" :key="crit.key">
+            <label class="mb-1 flex items-center justify-between text-xs font-medium text-slate-600">
+              <span>{{ $t(`scoreboard.criteria.${crit.key}`) }}</span>
+              <span class="font-bold text-indigo-600 tabular-nums">{{ evalForm[crit.model] }}/5</span>
+            </label>
+            <input v-model.number="evalForm[crit.model]" type="range" min="1" max="5" step="1" class="w-full accent-indigo-600" />
+          </div>
+        </div>
+        <textarea v-model="evalForm.comments" rows="2" :placeholder="$t('companies.detail.evaluation.commentsPlaceholder')" maxlength="2000" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+        <div class="flex justify-end">
+          <button type="submit" :disabled="savingEval" class="rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50">
+            {{ savingEval ? $t("common.saving") : $t("companies.detail.evaluation.submit") }}
+          </button>
+        </div>
+      </form>
+
+      <!-- Evaluation history -->
+      <div v-if="company.evaluations.length > 0" class="mt-4">
+        <div class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">{{ $t("companies.detail.evaluation.history") }}</div>
+        <ul class="divide-y divide-slate-50">
+          <li v-for="ev in [...company.evaluations].sort((a, b) => new Date(b.evaluatedAt).getTime() - new Date(a.evaluatedAt).getTime())" :key="ev.id" class="py-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-bold tabular-nums" :class="scoreColor(ev.overallScore)">{{ ev.overallScore.toFixed(2) }} <span class="text-xs font-normal text-slate-400">/5</span></span>
+              <span class="text-[11px] text-slate-400">{{ formatDateTime(ev.evaluatedAt) }}</span>
+            </div>
+            <div class="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-slate-500">
+              <span>{{ $t("scoreboard.criteria.quality") }}: {{ ev.qualityScore }}</span>
+              <span>{{ $t("scoreboard.criteria.delivery") }}: {{ ev.deliveryScore }}</span>
+              <span>{{ $t("scoreboard.criteria.price") }}: {{ ev.priceScore }}</span>
+              <span>{{ $t("scoreboard.criteria.communication") }}: {{ ev.communicationScore }}</span>
+              <span>{{ $t("scoreboard.criteria.compliance") }}: {{ ev.complianceScore }}</span>
+            </div>
+            <p v-if="ev.comments" class="mt-1 text-xs text-slate-500 italic">"{{ ev.comments }}"</p>
+          </li>
+        </ul>
+      </div>
+      <EmptyState v-else class="mt-4">{{ $t("companies.detail.evaluation.empty") }}</EmptyState>
     </AppCard>
   </div>
 </template>

@@ -36,6 +36,7 @@
     "myPanel": "My Dashboard",
     "supplyChainGroup": "Supply Chain",
     "companies": "Companies",
+    "scoreboard": "Scoreboard",
     "users": "Users",
     "catalogGroup": "Catalog",
     "products": "Stock / Products",
@@ -521,16 +522,33 @@
     "new": "+ New Company",
     "form": {
       "name": "Company Name",
-      "taxNumber": "Tax Number",
+      "tradeName": "Trade Name (optional)",
+      "taxNumber": "Tax / National ID",
       "taxOffice": "Tax Office",
+      "mersisNo": "MERSIS No (optional)",
       "typeSupplier": "Supplier",
       "typeInternal": "Internal (Purchasing)",
-      "website": "Website (optional)"
+      "phone": "Phone (optional)",
+      "email": "Email (optional)",
+      "foundationYear": "Founded (year)",
+      "website": "Website (optional)",
+      "description": "Description (optional)"
+    },
+    "lookup": {
+      "label": "Look up by National ID / Tax No",
+      "placeholder": "11-digit national ID or 10-digit tax number",
+      "query": "Look up",
+      "querying": "Looking up...",
+      "hint": "Validates the number and auto-fills company fields (simulated).",
+      "invalid": "Invalid national ID / tax number.",
+      "filled": "Company fields filled.",
+      "error": "Lookup failed."
     },
     "table": {
       "name": "Name",
       "taxNumber": "Tax Number",
-      "type": "Type"
+      "type": "Type",
+      "rating": "Rating"
     },
     "empty": "No companies yet",
     "loadError": "Failed to load records.",
@@ -562,6 +580,27 @@
       "workspace": "Workspace",
       "workspaceSaved": "Workspace updated.",
       "workspaceError": "Failed to update workspace.",
+      "info": "Company Info",
+      "fields": {
+        "tradeName": "Trade Name",
+        "mersisNo": "MERSIS No",
+        "phone": "Phone",
+        "email": "Email",
+        "foundationYear": "Founded",
+        "employeeCount": "Employees"
+      },
+      "evaluation": {
+        "title": "Evaluation Scorecard",
+        "add": "Add Evaluation",
+        "count": "evaluations",
+        "hint": "Overall score weighted: Quality 30%, Delivery 25%, Price 20%, Communication 15%, Compliance 10%.",
+        "commentsPlaceholder": "Comments (optional)",
+        "submit": "Save Evaluation",
+        "saved": "Evaluation saved.",
+        "saveError": "Failed to save evaluation.",
+        "history": "Evaluation History",
+        "empty": "No evaluations for this supplier yet."
+      },
       "form": {
         "firstName": "First Name",
         "lastName": "Last Name",
@@ -896,6 +935,35 @@
         "amount": "Amount",
         "time": "Time"
       }
+    }
+  },
+  "scoreboard": {
+    "title": "Supplier Scoreboard",
+    "subtitle": "Evaluated suppliers, most popular sectors, and the top supplier in each sector",
+    "refresh": "Refresh",
+    "loadError": "Failed to load scoreboard data.",
+    "evaluatedSuppliers": "Evaluated Suppliers",
+    "totalEvaluations": "Total Evaluations",
+    "topScore": "Top Score",
+    "topSuppliers": "Top Suppliers",
+    "topSuppliersHint": "Ranked by overall score (with criterion breakdown)",
+    "noEvaluations": "No evaluations yet.",
+    "evalShort": "eval.",
+    "popularSectors": "Most Popular Sectors",
+    "popularSectorsHint": "By supplier count",
+    "noSectors": "No sector data.",
+    "topPerSector": "Top Supplier per Sector",
+    "topPerSectorHint": "Highest-rated supplier in each sector",
+    "notEvaluated": "Not evaluated",
+    "companyCount": "Suppliers",
+    "evaluated": "Evaluated",
+    "avg": "Avg",
+    "criteria": {
+      "quality": "Quality",
+      "delivery": "Delivery",
+      "price": "Price",
+      "communication": "Communication",
+      "compliance": "Compliance"
     }
   },
   "workspaces": {

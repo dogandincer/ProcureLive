@@ -8,13 +8,27 @@ public sealed record CreateCompanyRequest(
     string TaxOffice,
     string CompanyType,
     string? Website,
-    Guid? WorkspaceId);
+    Guid? WorkspaceId,
+    string? TradeName,
+    string? MersisNo,
+    string? Phone,
+    string? Email,
+    int? FoundationYear,
+    int? EmployeeCount,
+    string? Description);
 
 public sealed record UpdateCompanyRequest(
     string Name,
     string TaxOffice,
     string Status,
-    string? Website);
+    string? Website,
+    string? TradeName,
+    string? MersisNo,
+    string? Phone,
+    string? Email,
+    int? FoundationYear,
+    int? EmployeeCount,
+    string? Description);
 
 public sealed record AssignWorkspaceRequest(Guid? WorkspaceId);
 

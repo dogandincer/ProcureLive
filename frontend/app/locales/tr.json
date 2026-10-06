@@ -36,6 +36,7 @@
     "myPanel": "Panelim",
     "supplyChainGroup": "Tedarik Zinciri",
     "companies": "Cariler",
+    "scoreboard": "Değerlendirme Panosu",
     "users": "Kullanıcılar",
     "catalogGroup": "Katalog",
     "products": "Stok / Ürünler",
@@ -521,16 +522,33 @@
     "new": "+ Yeni Cari",
     "form": {
       "name": "Firma Adı",
-      "taxNumber": "Vergi No",
+      "tradeName": "Ticari Unvan (opsiyonel)",
+      "taxNumber": "Vergi/TC No",
       "taxOffice": "Vergi Dairesi",
+      "mersisNo": "MERSİS No (opsiyonel)",
       "typeSupplier": "Supplier (Tedarikçi)",
       "typeInternal": "Internal (İç Alım)",
-      "website": "Web sitesi (opsiyonel)"
+      "phone": "Telefon (opsiyonel)",
+      "email": "E-posta (opsiyonel)",
+      "foundationYear": "Kuruluş Yılı",
+      "website": "Web sitesi (opsiyonel)",
+      "description": "Açıklama (opsiyonel)"
+    },
+    "lookup": {
+      "label": "TCKN / VKN ile Sorgula",
+      "placeholder": "11 haneli TCKN veya 10 haneli VKN",
+      "query": "Sorgula",
+      "querying": "Sorgulanıyor...",
+      "hint": "Numara doğrulanır ve cari bilgileri otomatik doldurulur (simülasyon).",
+      "invalid": "Geçersiz TCKN/VKN.",
+      "filled": "Cari bilgileri dolduruldu.",
+      "error": "Sorgulama başarısız oldu."
     },
     "table": {
       "name": "Ad",
       "taxNumber": "Vergi No",
-      "type": "Tür"
+      "type": "Tür",
+      "rating": "Puan"
     },
     "empty": "Henüz cari yok",
     "loadError": "Kayıtlar yüklenemedi.",
@@ -562,6 +580,27 @@
       "workspace": "İşyeri",
       "workspaceSaved": "İşyeri güncellendi.",
       "workspaceError": "İşyeri güncellenemedi.",
+      "info": "Firma Bilgileri",
+      "fields": {
+        "tradeName": "Ticari Unvan",
+        "mersisNo": "MERSİS No",
+        "phone": "Telefon",
+        "email": "E-posta",
+        "foundationYear": "Kuruluş Yılı",
+        "employeeCount": "Çalışan Sayısı"
+      },
+      "evaluation": {
+        "title": "Değerlendirme Karnesi",
+        "add": "Değerlendirme Ekle",
+        "count": "değerlendirme",
+        "hint": "Genel puan; Kalite %30, Teslimat %25, Fiyat %20, İletişim %15, Uyum %10 ağırlıklarıyla hesaplanır.",
+        "commentsPlaceholder": "Yorum (opsiyonel)",
+        "submit": "Değerlendirmeyi Kaydet",
+        "saved": "Değerlendirme kaydedildi.",
+        "saveError": "Değerlendirme kaydedilemedi.",
+        "history": "Değerlendirme Geçmişi",
+        "empty": "Bu cari için henüz değerlendirme yok."
+      },
       "form": {
         "firstName": "Ad",
         "lastName": "Soyad",
@@ -896,6 +935,35 @@
         "amount": "Tutar",
         "time": "Süre"
       }
+    }
+  },
+  "scoreboard": {
+    "title": "Cari Değerlendirme Panosu",
+    "subtitle": "Değerlendirilen cariler, en popüler sektörler ve sektör bazlı en iyi cariler",
+    "refresh": "Yenile",
+    "loadError": "Pano verileri yüklenemedi.",
+    "evaluatedSuppliers": "Değerlendirilen Cari",
+    "totalEvaluations": "Toplam Değerlendirme",
+    "topScore": "En Yüksek Puan",
+    "topSuppliers": "En İyi Cariler",
+    "topSuppliersHint": "Genel puana göre sıralı (kriter kırılımıyla)",
+    "noEvaluations": "Henüz değerlendirme yapılmamış.",
+    "evalShort": "değ.",
+    "popularSectors": "En Popüler Sektörler",
+    "popularSectorsHint": "Cari sayısına göre",
+    "noSectors": "Sektör verisi yok.",
+    "topPerSector": "Sektör Bazlı En İyi Cari",
+    "topPerSectorHint": "Her sektörün en yüksek puanlı carisi",
+    "notEvaluated": "Değerlendirilmemiş",
+    "companyCount": "Cari Sayısı",
+    "evaluated": "Değerlendirilen",
+    "avg": "Ort.",
+    "criteria": {
+      "quality": "Kalite",
+      "delivery": "Teslimat",
+      "price": "Fiyat",
+      "communication": "İletişim",
+      "compliance": "Uyum"
     }
   },
   "workspaces": {

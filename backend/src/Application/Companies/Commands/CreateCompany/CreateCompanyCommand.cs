@@ -9,4 +9,11 @@ public sealed record CreateCompanyCommand(
     string TaxOffice,
     CompanyType CompanyType,
     string? Website,
-    Guid? WorkspaceId) : IRequest<Guid>;
+    Guid? WorkspaceId,
+    string? TradeName = null,
+    string? MersisNo = null,
+    string? Phone = null,
+    string? Email = null,
+    int? FoundationYear = null,
+    int? EmployeeCount = null,
+    string? Description = null) : IRequest<Guid>;

@@ -12,25 +12,36 @@ public sealed class MappingProfile : Profile
 {
     public MappingProfile()
     {
+        // AverageScore/EvaluationCount are filled by the query handlers from a grouped evaluation
+        // query (ProjectTo can't reliably build collection aggregates into a record constructor),
+        // so here they map to constants just to satisfy constructor projection.
         CreateMap<Company, CompanyDto>()
+            .ForCtorParam("AverageScore", opt => opt.MapFrom(_ => (decimal?)null))
+            .ForCtorParam("EvaluationCount", opt => opt.MapFrom(_ => 0))
             .ForMember(d => d.CompanyType, opt => opt.MapFrom(s => s.CompanyType.ToString()))
             .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString()))
             .ForMember(d => d.WorkspaceName, opt => opt.MapFrom(s => s.Workspace != null ? s.Workspace.Name : null));
 
         CreateMap<Company, CompanyDetailDto>()
+            .ForCtorParam("AverageScore", opt => opt.MapFrom(_ => (decimal?)null))
+            .ForCtorParam("EvaluationCount", opt => opt.MapFrom(_ => 0))
             .ForMember(d => d.CompanyType, opt => opt.MapFrom(s => s.CompanyType.ToString()))
             .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString()))
             .ForMember(d => d.ContactPersons, opt => opt.MapFrom(s => s.ContactPersons))
             .ForMember(d => d.Addresses, opt => opt.MapFrom(s => s.Addresses))
             .ForMember(d => d.Sectors, opt => opt.MapFrom(s => s.Sectors))
+            .ForMember(d => d.Evaluations, opt => opt.MapFrom(s => s.Evaluations))
             .ForMember(d => d.WorkspaceName, opt => opt.MapFrom(s => s.Workspace != null ? s.Workspace.Name : null));
 
+        CreateMap<CompanyEvaluation, CompanyEvaluationDto>()
+            .ForCtorParam("CompanyName", opt => opt.MapFrom(s => s.Company.Name));
+
         CreateMap<CompanySector, SectorDto>()
-            .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Sector.Id))
-            .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Sector.Name))
-            .ForMember(d => d.Description, opt => opt.MapFrom(s => s.Sector.Description))
-            .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.Sector.IsActive))
-            .ForMember(d => d.CompanyCount, opt => opt.MapFrom(s => 0));
+            .ForCtorParam("Id", opt => opt.MapFrom(s => s.Sector.Id))
+            .ForCtorParam("Name", opt => opt.MapFrom(s => s.Sector.Name))
+            .ForCtorParam("Description", opt => opt.MapFrom(s => s.Sector.Description))
+            .ForCtorParam("IsActive", opt => opt.MapFrom(s => s.Sector.IsActive))
+            .ForCtorParam("CompanyCount", opt => opt.MapFrom(s => 0));
 
         CreateMap<ContactPerson, ContactPersonDto>();
 

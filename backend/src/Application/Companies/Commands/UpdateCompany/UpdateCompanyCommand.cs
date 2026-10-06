@@ -11,7 +11,14 @@ public sealed record UpdateCompanyCommand(
     string Name,
     string TaxOffice,
     CompanyStatus Status,
-    string? Website) : IRequest, IRequireResourceAuthorization
+    string? Website,
+    string? TradeName = null,
+    string? MersisNo = null,
+    string? Phone = null,
+    string? Email = null,
+    int? FoundationYear = null,
+    int? EmployeeCount = null,
+    string? Description = null) : IRequest, IRequireResourceAuthorization
 {
     public string PolicyName => Policies.CompanyAccess;
 

@@ -18,22 +18,58 @@ public sealed record CompanyDto(
     string? Website,
     Guid? WorkspaceId,
     string? WorkspaceName,
+    decimal? AverageScore,
+    int EvaluationCount,
     DateTime CreatedAt);
 
 public sealed record CompanyDetailDto(
     Guid Id,
     string Name,
+    string? TradeName,
     string TaxNumber,
     string TaxOffice,
+    string? MersisNo,
     string CompanyType,
     string Status,
     string? Website,
+    string? Phone,
+    string? Email,
+    int? FoundationYear,
+    int? EmployeeCount,
+    string? Description,
     Guid? WorkspaceId,
     string? WorkspaceName,
+    decimal? AverageScore,
+    int EvaluationCount,
     DateTime CreatedAt,
     IReadOnlyCollection<ContactPersonDto> ContactPersons,
     IReadOnlyCollection<AddressDto> Addresses,
-    IReadOnlyCollection<SectorDto> Sectors);
+    IReadOnlyCollection<SectorDto> Sectors,
+    IReadOnlyCollection<CompanyEvaluationDto> Evaluations);
+
+public sealed record CompanyEvaluationDto(
+    Guid Id,
+    Guid CompanyId,
+    string CompanyName,
+    int QualityScore,
+    int DeliveryScore,
+    int CommunicationScore,
+    int PriceScore,
+    int ComplianceScore,
+    decimal OverallScore,
+    string? Comments,
+    string? SourceType,
+    DateTime EvaluatedAt);
+
+public sealed record EvaluateCompanyRequest(
+    int QualityScore,
+    int DeliveryScore,
+    int CommunicationScore,
+    int PriceScore,
+    int ComplianceScore,
+    string? Comments,
+    string? SourceType,
+    Guid? SourceProcessId);
 
 public sealed record ContactPersonDto(
     Guid Id,

@@ -4,6 +4,13 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@nuxtjs/tailwindcss", "@nuxtjs/i18n"],
   css: ["~/assets/css/main.css"],
+  // <model-viewer> is a custom element (registered client-side by @google/model-viewer);
+  // tell the Vue compiler not to treat it as a Vue component.
+  vue: {
+    compilerOptions: {
+      isCustomElement: (tag) => tag === "model-viewer",
+    },
+  },
   i18n: {
     restructureDir: false,
     langDir: "locales",

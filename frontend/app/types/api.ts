@@ -94,6 +94,13 @@ export interface CompanyDetailDto {
   sectors: SectorDto[];
 }
 
+export interface ProductImageDto {
+  id: string;
+  url: string;
+  isPrimary: boolean;
+  sortOrder: number;
+}
+
 export interface ProductDto {
   id: string;
   sku: string;
@@ -106,6 +113,9 @@ export interface ProductDto {
   isActive: boolean;
   workspaceId: string | null;
   workspaceName: string | null;
+  model3dUrl: string | null;
+  model3dSource: string | null;
+  images: ProductImageDto[];
 }
 
 export interface CategoryDto {

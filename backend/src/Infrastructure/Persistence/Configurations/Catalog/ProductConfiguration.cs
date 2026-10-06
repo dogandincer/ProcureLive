@@ -15,6 +15,8 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Name).HasMaxLength(250).IsRequired();
         builder.Property(p => p.Description).HasMaxLength(2000);
         builder.Property(p => p.Brand).HasMaxLength(150);
+        builder.Property(p => p.Model3dUrl).HasMaxLength(1000);
+        builder.Property(p => p.Model3dSource).HasMaxLength(50);
 
         builder.HasIndex(p => p.Sku).IsUnique();
         builder.HasIndex(p => p.CategoryId);

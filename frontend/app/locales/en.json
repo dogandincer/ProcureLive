@@ -476,6 +476,40 @@
       "unit": "Unit",
       "brand": "Brand",
       "categoryNotFound": "Category not found: \"{name}\""
+    },
+    "detail": {
+      "backToList": "Back to product list",
+      "loadError": "Failed to load product.",
+      "images": "Product Photos",
+      "addImage": "Add Photo",
+      "imageUrlPlaceholder": "Image URL (https://...)",
+      "setPrimary": "Set as primary",
+      "imageAdded": "Image added.",
+      "imageRemoved": "Image removed.",
+      "imageError": "Image operation failed.",
+      "imageRemoveConfirm": "Are you sure you want to remove this image?",
+      "noImages": "No photos added yet.",
+      "model3d": {
+        "title": "3D Model",
+        "empty": "No 3D model for this product yet.",
+        "uploaded": "Uploaded",
+        "aiGenerated": "AI Generated",
+        "viewerHint": "Drag to rotate, scroll to zoom.",
+        "remove": "Remove",
+        "removeConfirm": "Are you sure you want to remove the 3D model?",
+        "removed": "3D model removed.",
+        "saved": "3D model saved.",
+        "saveError": "Failed to save 3D model.",
+        "aiTitle": "Generate from Photos with AI",
+        "aiHint": "Generates a 3D model from the product photos using AI. (Simulated — real generation can be enabled by connecting an external service.)",
+        "generate": "Generate 3D Model",
+        "generating": "Generating...",
+        "generated": "3D model generated.",
+        "generateError": "Failed to generate 3D model.",
+        "needImages": "Add at least one product photo first.",
+        "uploadTitle": "Enter a 3D model URL directly",
+        "uploadLabel": "3D model URL (.glb or .gltf)"
+      }
     }
   },
   "companies": {

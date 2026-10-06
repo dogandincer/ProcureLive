@@ -15,9 +15,13 @@ public sealed record ProductDto(
     bool IsActive,
     Guid? WorkspaceId,
     string? WorkspaceName,
+    string? Model3dUrl,
+    string? Model3dSource,
     IReadOnlyCollection<ProductImageDto> Images);
 
 public sealed record ProductImageDto(Guid Id, string Url, bool IsPrimary, int SortOrder);
+
+public sealed record SetProduct3dModelRequest(string Url);
 
 public sealed record CreateProductRequest(
     string Sku,

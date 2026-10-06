@@ -4,7 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using ProcureLive.Application.Catalog.Products.Commands.AddProductImage;
 using ProcureLive.Application.Catalog.Products.Commands.CreateProduct;
 using ProcureLive.Application.Catalog.Products.Commands.DeleteProduct;
+using ProcureLive.Application.Catalog.Products.Commands.GenerateProduct3dModel;
+using ProcureLive.Application.Catalog.Products.Commands.RemoveProduct3dModel;
 using ProcureLive.Application.Catalog.Products.Commands.RemoveProductImage;
+using ProcureLive.Application.Catalog.Products.Commands.SetProduct3dModel;
 using ProcureLive.Application.Catalog.Products.Commands.UpdateProduct;
 using ProcureLive.Application.Catalog.Products.Queries.GetProductById;
 using ProcureLive.Application.Catalog.Products.Queries.GetProductsList;
@@ -111,6 +114,32 @@ public sealed class ProductsController : ControllerBase
     public async Task<IActionResult> RemoveImage(Guid id, Guid imageId, CancellationToken cancellationToken)
     {
         await _sender.Send(new RemoveProductImageCommand(id, imageId), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Set an interactive 3D model for the product by direct .glb/.gltf URL.</summary>
+    [HttpPut("{id:guid}/model-3d")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> Set3dModel(Guid id, SetProduct3dModelRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new SetProduct3dModelCommand(id, request.Url), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Generate a 3D model from the product's photos (simulated). Returns the model URL.</summary>
+    [HttpPost("{id:guid}/model-3d/generate")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<string>> Generate3dModel(Guid id, CancellationToken cancellationToken)
+    {
+        string url = await _sender.Send(new GenerateProduct3dModelCommand(id), cancellationToken);
+        return Ok(new { url });
+    }
+
+    [HttpDelete("{id:guid}/model-3d")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> Remove3dModel(Guid id, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new RemoveProduct3dModelCommand(id), cancellationToken);
         return NoContent();
     }
 }

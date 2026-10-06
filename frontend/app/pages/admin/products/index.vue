@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CategoryDto, PagedResult, ProductDto } from "~/types/api";
 import type { ExcelColumn } from "~/composables/useExcelImport";
+import { CubeTransparentIcon } from "@heroicons/vue/24/outline";
 
 const api = useApi();
 const toast = useToast();
@@ -134,15 +135,20 @@ onMounted(load);
               <th class="pb-2">{{ $t("products.table.category") }}</th>
               <th class="pb-2">{{ $t("products.table.unit") }}</th>
               <th class="pb-2">{{ $t("common.status") }}</th>
+              <th class="pb-2"></th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="p in products" :key="p.id" class="border-b border-slate-50">
               <td class="py-2 font-mono text-xs text-slate-500">{{ p.sku }}</td>
-              <td class="py-2 font-medium text-slate-700">{{ p.name }}</td>
+              <td class="py-2 font-medium text-slate-700">
+                {{ p.name }}
+                <CubeTransparentIcon v-if="p.model3dUrl" class="ml-1 inline h-3.5 w-3.5 text-indigo-400" :title="$t('products.detail.model3d.title')" />
+              </td>
               <td class="py-2 text-slate-500">{{ p.categoryName }}</td>
               <td class="py-2 text-slate-500">{{ unitLabel(p.unitOfMeasure) }}</td>
               <td class="py-2"><AppBadge :tone="p.isActive ? 'emerald' : 'slate'">{{ p.isActive ? $t("common.active") : $t("common.passive") }}</AppBadge></td>
+              <td class="py-2 text-right"><NuxtLink :to="`/admin/products/${p.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink></td>
             </tr>
           </tbody>
         </table>

@@ -476,6 +476,40 @@
       "unit": "Birim",
       "brand": "Marka",
       "categoryNotFound": "Kategori bulunamadı: \"{name}\""
+    },
+    "detail": {
+      "backToList": "Ürün listesine dön",
+      "loadError": "Ürün yüklenemedi.",
+      "images": "Ürün Fotoğrafları",
+      "addImage": "Fotoğraf Ekle",
+      "imageUrlPlaceholder": "Fotoğraf adresi (https://...)",
+      "setPrimary": "Birincil fotoğraf yap",
+      "imageAdded": "Fotoğraf eklendi.",
+      "imageRemoved": "Fotoğraf silindi.",
+      "imageError": "Fotoğraf işlemi başarısız oldu.",
+      "imageRemoveConfirm": "Bu fotoğrafı silmek istediğinize emin misiniz?",
+      "noImages": "Henüz fotoğraf eklenmemiş.",
+      "model3d": {
+        "title": "3D Model",
+        "empty": "Bu ürün için henüz 3D model yok.",
+        "uploaded": "Yüklendi",
+        "aiGenerated": "AI ile Üretildi",
+        "viewerHint": "Döndürmek için sürükleyin, yakınlaştırmak için kaydırın.",
+        "remove": "Kaldır",
+        "removeConfirm": "3D modeli kaldırmak istediğinize emin misiniz?",
+        "removed": "3D model kaldırıldı.",
+        "saved": "3D model kaydedildi.",
+        "saveError": "3D model kaydedilemedi.",
+        "aiTitle": "Fotoğraflardan AI ile Oluştur",
+        "aiHint": "Ürün fotoğraflarından yapay zeka ile 3D model üretilir. (Simülasyon — gerçek üretim harici bir servise bağlanarak etkinleştirilebilir.)",
+        "generate": "3D Model Oluştur",
+        "generating": "Oluşturuluyor...",
+        "generated": "3D model oluşturuldu.",
+        "generateError": "3D model oluşturulamadı.",
+        "needImages": "Önce en az bir ürün fotoğrafı ekleyin.",
+        "uploadTitle": "Doğrudan 3D model adresi gir",
+        "uploadLabel": "3D model adresi (.glb veya .gltf)"
+      }
     }
   },
   "companies": {

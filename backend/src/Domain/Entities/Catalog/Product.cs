@@ -27,6 +27,12 @@ public class Product : AuditableEntity, ISoftDelete
 
     public bool IsActive { get; set; } = true;
 
+    /// <summary>URL of an interactive 3D model (.glb/.gltf) for this product, if one has been set.</summary>
+    public string? Model3dUrl { get; set; }
+
+    /// <summary>How the 3D model was produced: "Uploaded" (direct URL) or "AiGenerated" (from product photos).</summary>
+    public string? Model3dSource { get; set; }
+
     public Guid? WorkspaceId { get; set; }
 
     public Workspace? Workspace { get; set; }

@@ -23,6 +23,7 @@ public sealed record AuctionDto(
 public sealed record AuctionDetailDto(
     Guid Id,
     string Title,
+    string? ReferenceCode,
     string? Description,
     string AuctionType,
     string Status,
@@ -38,8 +39,15 @@ public sealed record AuctionDetailDto(
     decimal? MinDecrementAmount,
     decimal? MinDecrementPercentage,
     int ExtensionRuleMinutes,
+    int? ExtensionDurationMinutes,
+    int? MaxExtensionMinutes,
+    string? PaymentTerm,
+    string? DeliveryTerm,
+    bool AllowAlternativeProducts,
+    bool AllowPartialBids,
     IReadOnlyCollection<AuctionItemDto> Items,
-    IReadOnlyCollection<AuctionInvitationDto> Invitations);
+    IReadOnlyCollection<AuctionInvitationDto> Invitations,
+    IReadOnlyCollection<AuctionAttachmentDto> Attachments);
 
 public sealed record AuctionItemDto(
     Guid Id,
@@ -48,9 +56,18 @@ public sealed record AuctionItemDto(
     decimal Quantity,
     string UnitOfMeasure,
     decimal? TargetPrice,
+    DateTime? RequestedDeliveryDate,
+    string? Specification,
     int SortOrder,
     decimal? CurrentBestAmount,
     int BidCount);
+
+public sealed record AuctionAttachmentDto(
+    Guid Id,
+    string FileName,
+    string Url,
+    string? ContentType,
+    long SizeBytes);
 
 public sealed record AuctionInvitationDto(
     Guid Id,

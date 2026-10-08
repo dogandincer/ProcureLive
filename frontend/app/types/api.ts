@@ -277,9 +277,19 @@ export interface AuctionItemDto {
   quantity: number;
   unitOfMeasure: string;
   targetPrice: number | null;
+  requestedDeliveryDate: string | null;
+  specification: string | null;
   sortOrder: number;
   currentBestAmount: number | null;
   bidCount: number;
+}
+
+export interface AuctionAttachmentDto {
+  id: string;
+  fileName: string;
+  url: string;
+  contentType: string | null;
+  sizeBytes: number;
 }
 
 export interface AuctionInvitationDto {
@@ -294,6 +304,7 @@ export interface AuctionInvitationDto {
 export interface AuctionDetailDto {
   id: string;
   title: string;
+  referenceCode: string | null;
   description: string | null;
   auctionType: string;
   status: string;
@@ -309,8 +320,15 @@ export interface AuctionDetailDto {
   minDecrementAmount: number | null;
   minDecrementPercentage: number | null;
   extensionRuleMinutes: number;
+  extensionDurationMinutes: number | null;
+  maxExtensionMinutes: number | null;
+  paymentTerm: string | null;
+  deliveryTerm: string | null;
+  allowAlternativeProducts: boolean;
+  allowPartialBids: boolean;
   items: AuctionItemDto[];
   invitations: AuctionInvitationDto[];
+  attachments: AuctionAttachmentDto[];
 }
 
 export interface BidDto {

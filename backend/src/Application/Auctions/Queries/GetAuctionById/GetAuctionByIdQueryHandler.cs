@@ -24,6 +24,7 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
             .Include(a => a.Currency)
             .Include(a => a.Items)
             .Include(a => a.Invitations).ThenInclude(i => i.Company)
+            .Include(a => a.Attachments)
             .FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken);
 
         if (auction is null)
@@ -31,36 +32,48 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
             throw new NotFoundException(nameof(Auction), request.Id);
         }
 
-        var itemDtos = new List<AuctionItemDto>();
+        // Tüm kalemlerin teklifleri tek sorguda (kalem başına sorgu/N+1 yerine), bellekte gruplanır.
+        List<Guid> itemIds = auction.Items.Select(i => i.Id).ToList();
+        Dictionary<Guid, List<Bid>> bidsByItem = (await _context.Bids
+                .Where(b => itemIds.Contains(b.AuctionItemId))
+                .ToListAsync(cancellationToken))
+            .GroupBy(b => b.AuctionItemId)
+            .ToDictionary(g => g.Key, g => g.ToList());
 
-        foreach (AuctionItem item in auction.Items.OrderBy(i => i.SortOrder))
-        {
-            List<Bid> bids = await _context.Bids
-                .Where(b => b.AuctionItemId == item.Id)
-                .ToListAsync(cancellationToken);
-
-            Bid? best = bids.FirstOrDefault(b => b.Status == BidStatus.Winning);
-
-            itemDtos.Add(new AuctionItemDto(
-                item.Id,
-                item.ProductId,
-                item.Description,
-                item.Quantity,
-                item.UnitOfMeasure.ToString(),
-                item.TargetPrice,
-                item.SortOrder,
-                best?.Amount.Amount,
-                bids.Count));
-        }
+        List<AuctionItemDto> itemDtos = auction.Items
+            .OrderBy(i => i.SortOrder)
+            .Select(item =>
+            {
+                List<Bid> bids = bidsByItem.TryGetValue(item.Id, out List<Bid>? b) ? b : new List<Bid>();
+                Bid? best = bids.FirstOrDefault(x => x.Status == BidStatus.Winning);
+                return new AuctionItemDto(
+                    item.Id,
+                    item.ProductId,
+                    item.Description,
+                    item.Quantity,
+                    item.UnitOfMeasure.ToString(),
+                    item.TargetPrice,
+                    item.RequestedDeliveryDate,
+                    item.Specification,
+                    item.SortOrder,
+                    best?.Amount.Amount,
+                    bids.Count);
+            })
+            .ToList();
 
         List<AuctionInvitationDto> invitationDtos = auction.Invitations
             .Select(i => new AuctionInvitationDto(
                 i.Id, i.CompanyId, i.Company.Name, i.Status.ToString(), i.InvitedAt, i.RespondedAt))
             .ToList();
 
+        List<AuctionAttachmentDto> attachmentDtos = auction.Attachments
+            .Select(a => new AuctionAttachmentDto(a.Id, a.FileName, a.Url, a.ContentType, a.SizeBytes))
+            .ToList();
+
         return new AuctionDetailDto(
             auction.Id,
             auction.Title,
+            auction.ReferenceCode,
             auction.Description,
             auction.AuctionType.ToString(),
             auction.Status.ToString(),
@@ -76,7 +89,14 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
             auction.MinDecrementAmount,
             auction.MinDecrementPercentage,
             auction.ExtensionRuleMinutes,
+            auction.ExtensionDurationMinutes,
+            auction.MaxExtensionMinutes,
+            auction.PaymentTerm?.ToString(),
+            auction.DeliveryTerm?.ToString(),
+            auction.AllowAlternativeProducts,
+            auction.AllowPartialBids,
             itemDtos,
-            invitationDtos);
+            invitationDtos,
+            attachmentDtos);
     }
 }

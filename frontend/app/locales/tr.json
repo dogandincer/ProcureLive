@@ -531,6 +531,7 @@
       "phone": "Telefon (opsiyonel)",
       "email": "E-posta (opsiyonel)",
       "foundationYear": "Kuruluş Yılı",
+      "employeeCount": "Çalışan Sayısı",
       "website": "Web sitesi (opsiyonel)",
       "description": "Açıklama (opsiyonel)"
     },

@@ -14,7 +14,7 @@ const loading = ref(true);
 
 const form = reactive({
   name: "", taxNumber: "", taxOffice: "", companyType: "Supplier", website: "",
-  tradeName: "", mersisNo: "", phone: "", email: "", foundationYear: "", description: "",
+  tradeName: "", mersisNo: "", phone: "", email: "", foundationYear: "", employeeCount: "", description: "",
 });
 const statuses = ["PendingApproval", "Active", "Passive"];
 const statusDrafts = reactive<Record<string, string>>({});
@@ -122,9 +122,10 @@ async function create() {
       phone: form.phone || null,
       email: form.email || null,
       foundationYear: form.foundationYear ? Number(form.foundationYear) : null,
+      employeeCount: form.employeeCount ? Number(form.employeeCount) : null,
       description: form.description || null,
     });
-    Object.assign(form, { name: "", taxNumber: "", taxOffice: "", website: "", tradeName: "", mersisNo: "", phone: "", email: "", foundationYear: "", description: "" });
+    Object.assign(form, { name: "", taxNumber: "", taxOffice: "", website: "", tradeName: "", mersisNo: "", phone: "", email: "", foundationYear: "", employeeCount: "", description: "" });
     lookupValue.value = "";
     showForm.value = false;
     toast.success(t("toast.companyCreated"));
@@ -185,6 +186,7 @@ onMounted(load);
         <input v-model="form.phone" :placeholder="$t('companies.form.phone')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
         <input v-model="form.email" type="email" :placeholder="$t('companies.form.email')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
         <input v-model="form.foundationYear" type="number" :placeholder="$t('companies.form.foundationYear')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+        <input v-model="form.employeeCount" type="number" :placeholder="$t('companies.form.employeeCount')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
         <input v-model="form.website" :placeholder="$t('companies.form.website')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
         <textarea v-model="form.description" rows="2" :placeholder="$t('companies.form.description')" class="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
       </div>

@@ -180,6 +180,20 @@
       "ReverseSealed": "Ters Kapalı Zarf",
       "SealedBid": "Kapalı Zarf"
     },
+    "paymentTerm": {
+      "Advance": "Peşin",
+      "Net15": "15 Gün Vade",
+      "Net30": "30 Gün Vade",
+      "Net60": "60 Gün Vade",
+      "Net90": "90 Gün Vade"
+    },
+    "deliveryTerm": {
+      "EXW": "EXW (Fabrika Teslim)",
+      "FOB": "FOB (Gemide Teslim)",
+      "CIF": "CIF (Nav.+Sig. Ödenmiş)",
+      "DAP": "DAP (Yerinde Teslim)",
+      "DDP": "DDP (Gümrük Dahil)"
+    },
     "bidStatus": {
       "Active": "Aktif",
       "Outbid": "Geçildi",
@@ -953,6 +967,72 @@
     }
   },
   "tender": {
+    "pool": {
+      "title": "Ürün Havuzu",
+      "searchPlaceholder": "Ürün adı veya stok kodu ara...",
+      "searching": "Aranıyor...",
+      "resultCount": "{n} sonuç",
+      "empty": "Sonuç bulunamadı.",
+      "noImage": "GÖRSEL",
+      "add": "Ekle",
+      "added": "Eklendi"
+    },
+    "wizard": {
+      "title": "Yeni İhale / Teklif Talebi",
+      "refError": "Referans verileri yüklenemedi.",
+      "created": "İhale oluşturuldu.",
+      "createError": "İhale oluşturulamadı.",
+      "creating": "Oluşturuluyor...",
+      "submit": "İhaleyi Başlat",
+      "fixErrors": "Lütfen eksik/hatalı alanları tamamlayın (başlık, tarihler, en az bir kalem ve bir tedarikçi).",
+      "openPool": "Ürün Havuzunu Aç",
+      "specPlaceholder": "Teknik şartname / açıklama...",
+      "steps": {
+        "header": "Genel Bilgiler",
+        "vendors": "Tedarikçiler",
+        "lines": "Kalemler",
+        "settings": "Ayarlar & Ekler",
+        "review": "Özet & Başlat"
+      },
+      "f": {
+        "title": "İhale Adı",
+        "titlePlaceholder": "Örn: 2026 Q1 Ofis Malzemeleri Alımı",
+        "referenceCode": "Referans Kodu",
+        "auto": "Otomatik",
+        "autoHint": "Otomatik üretilecek",
+        "auctionType": "İhale Tipi",
+        "owner": "Açan Birim (İç Cari)",
+        "selectOwner": "Birim seçin",
+        "currency": "Para Birimi",
+        "startAt": "Başlangıç",
+        "endAt": "Bitiş",
+        "reserve": "Rezerv Fiyat",
+        "paymentTerm": "Ödeme Vadesi",
+        "deliveryTerm": "Teslimat Şekli",
+        "none": "Belirtilmedi",
+        "allowAlternatives": "Tedarikçi muadil (alternatif) ürün teklif edebilir",
+        "allowPartial": "Tedarikçi kalemlerin bir kısmına teklif verebilir",
+        "attachments": "Ekler (Şartname, Çizim vb.)",
+        "dropHint": "Dosyaları buraya sürükleyin veya seçin",
+        "chooseFiles": "Dosya Seç",
+        "simNote": "Not: Yükleme simüledir (gerçek depolama bağlı değil)."
+      },
+      "sniper": {
+        "title": "Dinamik Süre Uzatma (Sniper Koruması)",
+        "hint": "Bitişe yakın gelen teklifler ihaleyi otomatik uzatır.",
+        "trigger": "Tetik (dk)",
+        "duration": "Uzatma (dk)",
+        "max": "Maks. uzatma (dk)",
+        "summary": "Bitişe son {x} dk içinde teklif gelirse süre {y} dk uzar (en fazla {z} dk)."
+      },
+      "vendors": {
+        "search": "Cari ara (unvan / vergi no)...",
+        "selectAll": "Görünenleri Seç",
+        "clear": "Temizle",
+        "count": "{shown} listelendi · {selected} seçili",
+        "empty": "Cari bulunamadı."
+      }
+    },
     "grid": {
       "addLine": "Kalem Ekle",
       "lineCount": "{n} kalem",

@@ -180,6 +180,20 @@
       "ReverseSealed": "Reverse Sealed Bid",
       "SealedBid": "Sealed Bid"
     },
+    "paymentTerm": {
+      "Advance": "Advance",
+      "Net15": "Net 15",
+      "Net30": "Net 30",
+      "Net60": "Net 60",
+      "Net90": "Net 90"
+    },
+    "deliveryTerm": {
+      "EXW": "EXW (Ex Works)",
+      "FOB": "FOB (Free on Board)",
+      "CIF": "CIF (Cost, Ins. & Freight)",
+      "DAP": "DAP (Delivered at Place)",
+      "DDP": "DDP (Delivered Duty Paid)"
+    },
     "bidStatus": {
       "Active": "Active",
       "Outbid": "Outbid",
@@ -953,6 +967,72 @@
     }
   },
   "tender": {
+    "pool": {
+      "title": "Product Pool",
+      "searchPlaceholder": "Search by name or SKU...",
+      "searching": "Searching...",
+      "resultCount": "{n} results",
+      "empty": "No results found.",
+      "noImage": "IMG",
+      "add": "Add",
+      "added": "Added"
+    },
+    "wizard": {
+      "title": "New Tender / RFQ",
+      "refError": "Failed to load reference data.",
+      "created": "Tender created.",
+      "createError": "Failed to create tender.",
+      "creating": "Creating...",
+      "submit": "Launch Tender",
+      "fixErrors": "Please complete the required fields (title, dates, at least one line and one supplier).",
+      "openPool": "Open Product Pool",
+      "specPlaceholder": "Technical specification / notes...",
+      "steps": {
+        "header": "General Info",
+        "vendors": "Suppliers",
+        "lines": "Line Items",
+        "settings": "Settings & Files",
+        "review": "Review & Launch"
+      },
+      "f": {
+        "title": "Tender Name",
+        "titlePlaceholder": "e.g. 2026 Q1 Office Supplies Purchase",
+        "referenceCode": "Reference Code",
+        "auto": "Auto",
+        "autoHint": "Will be auto-generated",
+        "auctionType": "Tender Type",
+        "owner": "Owner Unit (Internal)",
+        "selectOwner": "Select unit",
+        "currency": "Currency",
+        "startAt": "Start",
+        "endAt": "End",
+        "reserve": "Reserve Price",
+        "paymentTerm": "Payment Term",
+        "deliveryTerm": "Delivery Term",
+        "none": "Not set",
+        "allowAlternatives": "Suppliers may bid alternative (equivalent) products",
+        "allowPartial": "Suppliers may bid on a subset of lines",
+        "attachments": "Attachments (specs, drawings, etc.)",
+        "dropHint": "Drag files here or choose",
+        "chooseFiles": "Choose Files",
+        "simNote": "Note: upload is simulated (no real storage connected)."
+      },
+      "sniper": {
+        "title": "Dynamic Extension (Sniper Protection)",
+        "hint": "Bids near the end automatically extend the tender.",
+        "trigger": "Trigger (min)",
+        "duration": "Extend by (min)",
+        "max": "Max extension (min)",
+        "summary": "If a bid arrives within the last {x} min, the end extends by {y} min (up to {z} min)."
+      },
+      "vendors": {
+        "search": "Search suppliers (name / tax no)...",
+        "selectAll": "Select Shown",
+        "clear": "Clear",
+        "count": "{shown} shown · {selected} selected",
+        "empty": "No suppliers found."
+      }
+    },
     "grid": {
       "addLine": "Add Line",
       "lineCount": "{n} lines",

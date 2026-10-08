@@ -92,9 +92,14 @@ onMounted(load);
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-slate-800">{{ $t("auctions.title") }}</h1>
-      <AppButton @click="showForm = !showForm">
-        {{ showForm ? $t("common.cancel") : $t("auctions.new") }}
-      </AppButton>
+      <div class="flex items-center gap-2">
+        <NuxtLink to="/admin/auctions/create" class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+          {{ $t("tender.wizard.title") }}
+        </NuxtLink>
+        <AppButton variant="secondary" @click="showForm = !showForm">
+          {{ showForm ? $t("common.cancel") : $t("auctions.new") }}
+        </AppButton>
+      </div>
     </div>
 
     <form v-if="showForm" class="space-y-4 rounded-xl border border-slate-200 bg-white p-5" @submit.prevent="createAuction">

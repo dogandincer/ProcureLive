@@ -251,6 +251,14 @@ export function useTenderForm() {
   });
   const isValid = computed(() => validationErrors.value.length === 0);
 
+  // datetime-local / date girişleri zaman dilimsiz gelir (Kind=Unspecified);
+  // PostgreSQL timestamptz yalnızca UTC kabul eder → yerel değeri gerçek UTC ISO'ya çevir.
+  function toUtcIso(local: string | null): string | null {
+    if (!local) return null;
+    const d = new Date(local);
+    return Number.isNaN(d.getTime()) ? null : d.toISOString();
+  }
+
   // ---------- API payload (CreateTenderRequest kontratı) ----------
   function buildPayload() {
     return {
@@ -261,8 +269,8 @@ export function useTenderForm() {
         auctionType: master.auctionType,
         ownerCompanyId: master.ownerCompanyId,
         currencyId: master.currencyId,
-        startAt: master.startAt,
-        endAt: master.endAt,
+        startAt: toUtcIso(master.startAt),
+        endAt: toUtcIso(master.endAt),
         reservePrice: master.reservePrice,
         extensionTriggerMinutes: master.sniper.enabled ? master.sniper.triggerMinutes : 0,
         extensionDurationMinutes: master.sniper.enabled ? master.sniper.durationMinutes : null,
@@ -278,7 +286,7 @@ export function useTenderForm() {
         quantity: l.quantity,
         unitOfMeasure: l.unitOfMeasure,
         targetPrice: l.targetPrice,
-        requestedDeliveryDate: l.requestedDeliveryDate,
+        requestedDeliveryDate: toUtcIso(l.requestedDeliveryDate),
         specification: l.specification,
         sortOrder: l.sortOrder,
       })),

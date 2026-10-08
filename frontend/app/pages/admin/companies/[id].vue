@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { CompanyDetailDto, SectorDto, WorkspaceDto } from "~/types/api";
-import { CheckIcon, BuildingStorefrontIcon, StarIcon } from "@heroicons/vue/24/outline";
+import { CheckIcon, BuildingStorefrontIcon, StarIcon, PencilIcon, TrashIcon } from "@heroicons/vue/24/outline";
 
 const route = useRoute();
+const router = useRouter();
 const companyId = route.params.id as string;
 const api = useApi();
 const toast = useToast();
@@ -169,6 +170,68 @@ async function addAddress() {
   }
 }
 
+// Edit base + detail fields
+const showEditForm = ref(false);
+const savingEdit = ref(false);
+const statuses = ["PendingApproval", "Active", "Passive"];
+const editForm = reactive({
+  name: "", taxOffice: "", status: "Active", website: "",
+  tradeName: "", mersisNo: "", phone: "", email: "", foundationYear: "", employeeCount: "", description: "",
+});
+
+function openEdit() {
+  if (!company.value) return;
+  const c = company.value;
+  Object.assign(editForm, {
+    name: c.name, taxOffice: c.taxOffice, status: c.status, website: c.website ?? "",
+    tradeName: c.tradeName ?? "", mersisNo: c.mersisNo ?? "", phone: c.phone ?? "", email: c.email ?? "",
+    foundationYear: c.foundationYear != null ? String(c.foundationYear) : "",
+    employeeCount: c.employeeCount != null ? String(c.employeeCount) : "",
+    description: c.description ?? "",
+  });
+  showEditForm.value = true;
+}
+
+async function saveEdit() {
+  savingEdit.value = true;
+  try {
+    await api.put(`/api/companies/${companyId}`, {
+      name: editForm.name,
+      taxOffice: editForm.taxOffice,
+      status: editForm.status,
+      website: editForm.website || null,
+      tradeName: editForm.tradeName || null,
+      mersisNo: editForm.mersisNo || null,
+      phone: editForm.phone || null,
+      email: editForm.email || null,
+      foundationYear: editForm.foundationYear ? Number(editForm.foundationYear) : null,
+      employeeCount: editForm.employeeCount ? Number(editForm.employeeCount) : null,
+      description: editForm.description || null,
+    });
+    toast.success(t("companies.detail.updated"));
+    showEditForm.value = false;
+    await load();
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("companies.detail.updateError")));
+  } finally {
+    savingEdit.value = false;
+  }
+}
+
+const deletingCompany = ref(false);
+async function deleteCompany() {
+  if (!company.value || !confirm(t("companies.deleteConfirm", { name: company.value.name }))) return;
+  deletingCompany.value = true;
+  try {
+    await api.delete(`/api/companies/${companyId}`);
+    toast.success(t("companies.deleted"));
+    await router.push("/admin/companies");
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("companies.deleteError")));
+    deletingCompany.value = false;
+  }
+}
+
 onMounted(load);
 </script>
 
@@ -178,10 +241,22 @@ onMounted(load);
   <div v-else-if="company" class="space-y-6">
     <div>
       <NuxtLink to="/admin/companies" class="text-xs text-indigo-600 hover:underline">← {{ $t("companies.title") }}</NuxtLink>
-      <h1 class="mt-1 text-xl font-bold text-slate-800">{{ company.name }}</h1>
-      <p class="text-sm text-slate-500">
-        {{ company.taxNumber }} · {{ company.taxOffice }} · {{ company.companyType }} · {{ $t(`enums.companyStatus.${company.status}`) }}
-      </p>
+      <div class="mt-1 flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h1 class="text-xl font-bold text-slate-800">{{ company.name }}</h1>
+          <p class="text-sm text-slate-500">
+            {{ company.taxNumber }} · {{ company.taxOffice }} · {{ company.companyType }} · {{ $t(`enums.companyStatus.${company.status}`) }}
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="flex items-center gap-1 rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50" @click="openEdit">
+            <PencilIcon class="h-3.5 w-3.5" />{{ $t("common.edit") }}
+          </button>
+          <button class="flex items-center gap-1 rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50" :disabled="deletingCompany" @click="deleteCompany">
+            <TrashIcon class="h-3.5 w-3.5" />{{ $t("common.delete") }}
+          </button>
+        </div>
+      </div>
       <div class="mt-2 flex items-center gap-2 text-sm">
         <BuildingStorefrontIcon class="h-4 w-4 shrink-0 text-slate-400" />
         <span class="text-slate-500">{{ $t("companies.detail.workspace") }}:</span>
@@ -196,6 +271,31 @@ onMounted(load);
         </select>
       </div>
     </div>
+
+    <!-- Edit form -->
+    <AppCard v-if="showEditForm" :title="$t('companies.detail.editTitle')">
+      <form class="grid grid-cols-1 gap-3 sm:grid-cols-2" @submit.prevent="saveEdit">
+        <div><label class="mb-1 block text-xs text-slate-500">{{ $t("companies.form.name") }}</label><input v-model="editForm.name" required class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
+        <div><label class="mb-1 block text-xs text-slate-500">{{ $t("companies.form.tradeName") }}</label><input v-model="editForm.tradeName" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
+        <div><label class="mb-1 block text-xs text-slate-500">{{ $t("companies.form.taxOffice") }}</label><input v-model="editForm.taxOffice" required class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
+        <div><label class="mb-1 block text-xs text-slate-500">{{ $t("companies.form.mersisNo") }}</label><input v-model="editForm.mersisNo" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
+        <div><label class="mb-1 block text-xs text-slate-500">{{ $t("common.status") }}</label>
+          <select v-model="editForm.status" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm">
+            <option v-for="s in statuses" :key="s" :value="s">{{ $t(`enums.companyStatus.${s}`) }}</option>
+          </select>
+        </div>
+        <div><label class="mb-1 block text-xs text-slate-500">{{ $t("companies.form.phone") }}</label><input v-model="editForm.phone" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
+        <div><label class="mb-1 block text-xs text-slate-500">{{ $t("companies.form.email") }}</label><input v-model="editForm.email" type="email" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
+        <div><label class="mb-1 block text-xs text-slate-500">{{ $t("companies.form.website") }}</label><input v-model="editForm.website" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
+        <div><label class="mb-1 block text-xs text-slate-500">{{ $t("companies.form.foundationYear") }}</label><input v-model="editForm.foundationYear" type="number" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
+        <div><label class="mb-1 block text-xs text-slate-500">{{ $t("companies.form.employeeCount") }}</label><input v-model="editForm.employeeCount" type="number" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
+        <div class="sm:col-span-2"><label class="mb-1 block text-xs text-slate-500">{{ $t("companies.form.description") }}</label><textarea v-model="editForm.description" rows="2" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
+        <div class="flex justify-end gap-2 sm:col-span-2">
+          <button type="button" class="rounded-md px-4 py-1.5 text-sm text-slate-600 hover:bg-slate-100" @click="showEditForm = false">{{ $t("common.cancel") }}</button>
+          <button type="submit" :disabled="savingEdit" class="rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50">{{ savingEdit ? $t("common.saving") : $t("common.save") }}</button>
+        </div>
+      </form>
+    </AppCard>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <AppCard>

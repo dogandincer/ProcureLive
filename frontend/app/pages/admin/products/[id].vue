@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProductDto, WorkspaceDto } from "~/types/api";
+import type { CategoryDto, ProductDto, WorkspaceDto } from "~/types/api";
 import {
   ArrowLeftIcon,
   CubeTransparentIcon,
@@ -7,11 +7,13 @@ import {
   TrashIcon,
   PhotoIcon,
   PlusIcon,
+  PencilIcon,
   StarIcon,
   BuildingStorefrontIcon,
 } from "@heroicons/vue/24/outline";
 
 const route = useRoute();
+const router = useRouter();
 const productId = route.params.id as string;
 const api = useApi();
 const toast = useToast();
@@ -19,11 +21,65 @@ const { t } = useI18n();
 
 const product = ref<ProductDto | null>(null);
 const loading = ref(true);
+const categories = ref<CategoryDto[]>([]);
+const unitOfMeasures = ["Piece", "Kilogram", "Gram", "Liter", "Meter", "SquareMeter", "CubicMeter", "Box", "Pallet", "Hour", "Service"];
 
 // Workspace assignment
 const workspaces = ref<WorkspaceDto[]>([]);
 const productWorkspaceId = ref<string>("");
 const savingWorkspace = ref(false);
+
+// Edit + delete
+const showEditForm = ref(false);
+const savingEdit = ref(false);
+const deletingProduct = ref(false);
+const editForm = reactive({ name: "", description: "", categoryId: "", unitOfMeasure: "Piece", brand: "", isActive: true });
+
+function flattenCategories(list: CategoryDto[]): CategoryDto[] {
+  return list.flatMap((c) => [c, ...flattenCategories(c.children)]);
+}
+
+function openEdit() {
+  if (!product.value) return;
+  const p = product.value;
+  Object.assign(editForm, { name: p.name, description: p.description ?? "", categoryId: p.categoryId, unitOfMeasure: p.unitOfMeasure, brand: p.brand ?? "", isActive: p.isActive });
+  showEditForm.value = true;
+}
+
+async function saveEdit() {
+  savingEdit.value = true;
+  try {
+    await api.put(`/api/products/${productId}`, {
+      name: editForm.name,
+      description: editForm.description || null,
+      categoryId: editForm.categoryId,
+      unitOfMeasure: editForm.unitOfMeasure,
+      brand: editForm.brand || null,
+      defaultCurrencyId: null,
+      isActive: editForm.isActive,
+    });
+    toast.success(t("products.detail.updated"));
+    showEditForm.value = false;
+    await load();
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("products.detail.updateError")));
+  } finally {
+    savingEdit.value = false;
+  }
+}
+
+async function deleteProduct() {
+  if (!product.value || !confirm(t("products.deleteConfirm", { name: product.value.name }))) return;
+  deletingProduct.value = true;
+  try {
+    await api.delete(`/api/products/${productId}`);
+    toast.success(t("products.deleted"));
+    await router.push("/admin/products");
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("products.deleteError")));
+    deletingProduct.value = false;
+  }
+}
 
 // Image management
 const showImageForm = ref(false);
@@ -35,16 +91,19 @@ const showModelForm = ref(false);
 const modelUrlInput = ref("");
 const savingModel = ref(false);
 const generating = ref(false);
+const showReplace = ref(false);
 
 async function load() {
   loading.value = true;
   try {
-    const [productData, ws] = await Promise.all([
+    const [productData, ws, cats] = await Promise.all([
       api.get<ProductDto>(`/api/products/${productId}`),
       api.get<WorkspaceDto[]>("/api/workspaces", { activeOnly: true }),
+      api.get<CategoryDto[]>("/api/categories"),
     ]);
     product.value = productData;
     workspaces.value = ws;
+    categories.value = flattenCategories(cats);
     productWorkspaceId.value = productData.workspaceId ?? "";
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("products.detail.loadError")));
@@ -105,6 +164,7 @@ async function saveModelUrl() {
     await api.put(`/api/products/${productId}/model-3d`, { url: modelUrlInput.value });
     modelUrlInput.value = "";
     showModelForm.value = false;
+    showReplace.value = false;
     toast.success(t("products.detail.model3d.saved"));
     await load();
   } catch (error: any) {
@@ -118,6 +178,7 @@ async function generateModel() {
   generating.value = true;
   try {
     await api.post(`/api/products/${productId}/model-3d/generate`);
+    showReplace.value = false;
     toast.success(t("products.detail.model3d.generated"));
     await load();
   } catch (error: any) {
@@ -160,10 +221,43 @@ onMounted(load);
             <span class="font-mono">{{ product.sku }}</span> · {{ product.categoryName }}
           </p>
         </div>
-        <AppBadge :tone="product.isActive ? 'emerald' : 'slate'">
-          {{ product.isActive ? $t("common.active") : $t("common.passive") }}
-        </AppBadge>
+        <div class="flex items-center gap-2">
+          <AppBadge :tone="product.isActive ? 'emerald' : 'slate'">
+            {{ product.isActive ? $t("common.active") : $t("common.passive") }}
+          </AppBadge>
+          <button class="flex items-center gap-1 rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50" @click="openEdit">
+            <PencilIcon class="h-3.5 w-3.5" />{{ $t("common.edit") }}
+          </button>
+          <button class="flex items-center gap-1 rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50" :disabled="deletingProduct" @click="deleteProduct">
+            <TrashIcon class="h-3.5 w-3.5" />{{ $t("common.delete") }}
+          </button>
+        </div>
       </div>
+
+      <!-- Edit form -->
+      <AppCard v-if="showEditForm" class="mt-3" :title="$t('products.detail.editTitle')">
+        <form class="grid grid-cols-1 gap-3 sm:grid-cols-2" @submit.prevent="saveEdit">
+          <div><label class="mb-1 block text-xs text-slate-500">{{ $t("products.form.name") }}</label><input v-model="editForm.name" required class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
+          <div><label class="mb-1 block text-xs text-slate-500">{{ $t("products.form.brand") }}</label><input v-model="editForm.brand" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
+          <div><label class="mb-1 block text-xs text-slate-500">{{ $t("products.table.category") }}</label>
+            <select v-model="editForm.categoryId" required class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm">
+              <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
+            </select>
+          </div>
+          <div><label class="mb-1 block text-xs text-slate-500">{{ $t("products.table.unit") }}</label>
+            <select v-model="editForm.unitOfMeasure" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm">
+              <option v-for="u in unitOfMeasures" :key="u" :value="u">{{ $t(`enums.unitOfMeasure.${u}`) }}</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2"><label class="mb-1 block text-xs text-slate-500">{{ $t("products.detail.descriptionLabel") }}</label><textarea v-model="editForm.description" rows="2" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
+          <label class="flex items-center gap-2 text-sm text-slate-600"><input v-model="editForm.isActive" type="checkbox" class="rounded" />{{ $t("common.active") }}</label>
+          <div class="flex items-center justify-end gap-2">
+            <button type="button" class="rounded-md px-4 py-1.5 text-sm text-slate-600 hover:bg-slate-100" @click="showEditForm = false">{{ $t("common.cancel") }}</button>
+            <button type="submit" :disabled="savingEdit" class="rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50">{{ savingEdit ? $t("common.saving") : $t("common.save") }}</button>
+          </div>
+        </form>
+      </AppCard>
+
       <div class="mt-2 flex items-center gap-2 text-sm">
         <BuildingStorefrontIcon class="h-4 w-4 shrink-0 text-slate-400" />
         <span class="text-slate-500">{{ $t("products.detail.workspace") }}:</span>
@@ -265,19 +359,28 @@ onMounted(load);
           </div>
           <div class="mt-2 flex items-center justify-between">
             <p class="text-[11px] text-slate-400">{{ $t("products.detail.model3d.viewerHint") }}</p>
-            <button
-              class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50"
-              @click="removeModel"
-            >
-              <TrashIcon class="h-3.5 w-3.5" />
-              {{ $t("products.detail.model3d.remove") }}
-            </button>
+            <div class="flex items-center gap-1">
+              <button
+                class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50"
+                @click="showReplace = !showReplace"
+              >
+                <CubeTransparentIcon class="h-3.5 w-3.5" />
+                {{ showReplace ? $t("common.cancel") : $t("products.detail.model3d.change") }}
+              </button>
+              <button
+                class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50"
+                @click="removeModel"
+              >
+                <TrashIcon class="h-3.5 w-3.5" />
+                {{ $t("products.detail.model3d.remove") }}
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- No model: actions -->
-        <div v-else class="mt-3 space-y-3">
-          <EmptyState>{{ $t("products.detail.model3d.empty") }}</EmptyState>
+        <!-- No model (or replacing): actions -->
+        <div v-if="!product.model3dUrl || showReplace" class="mt-3 space-y-3">
+          <EmptyState v-if="!product.model3dUrl">{{ $t("products.detail.model3d.empty") }}</EmptyState>
 
           <!-- AI generation -->
           <div class="rounded-lg border border-indigo-100 bg-indigo-50/50 p-3">

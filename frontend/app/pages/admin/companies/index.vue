@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CompanyDto, CompanyDetailDto, CompanyLookupResultDto, PagedResult } from "~/types/api";
 import type { ExcelColumn } from "~/composables/useExcelImport";
-import { MagnifyingGlassIcon, StarIcon } from "@heroicons/vue/24/outline";
+import { MagnifyingGlassIcon, StarIcon, TrashIcon } from "@heroicons/vue/24/outline";
 
 const api = useApi();
 const toast = useToast();
@@ -137,6 +137,21 @@ async function create() {
   }
 }
 
+const deleting = ref<string | null>(null);
+async function deleteCompany(c: CompanyDto) {
+  if (!confirm(t("companies.deleteConfirm", { name: c.name }))) return;
+  deleting.value = c.id;
+  try {
+    await api.delete(`/api/companies/${c.id}`);
+    toast.success(t("companies.deleted"));
+    await load();
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("companies.deleteError")));
+  } finally {
+    deleting.value = null;
+  }
+}
+
 watch(selectedWorkspaceId, load);
 onMounted(load);
 </script>
@@ -236,7 +251,19 @@ onMounted(load);
                   </button>
                 </div>
               </td>
-              <td class="py-2 text-right"><NuxtLink :to="`/admin/companies/${c.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink></td>
+              <td class="py-2 text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <NuxtLink :to="`/admin/companies/${c.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink>
+                  <button
+                    class="rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                    :title="$t('common.delete')"
+                    :disabled="deleting === c.id"
+                    @click="deleteCompany(c)"
+                  >
+                    <TrashIcon class="h-4 w-4" />
+                  </button>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>

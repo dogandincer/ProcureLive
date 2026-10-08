@@ -471,6 +471,9 @@
     "empty": "No products yet",
     "loadError": "Failed to load records.",
     "createError": "Failed to create product.",
+    "deleteConfirm": "Are you sure you want to delete the product \"{name}\"?",
+    "deleted": "Product deleted.",
+    "deleteError": "Failed to delete product.",
     "import": {
       "name": "Product Name",
       "category": "Category",
@@ -482,6 +485,10 @@
     "detail": {
       "backToList": "Back to product list",
       "loadError": "Failed to load product.",
+      "editTitle": "Edit Product",
+      "updated": "Product updated.",
+      "updateError": "Failed to update product.",
+      "descriptionLabel": "Description",
       "workspace": "Workspace",
       "workspaceSaved": "Workspace updated.",
       "workspaceError": "Failed to update workspace.",
@@ -500,6 +507,7 @@
         "uploaded": "Uploaded",
         "aiGenerated": "AI Generated",
         "viewerHint": "Drag to rotate, scroll to zoom.",
+        "change": "Change",
         "remove": "Remove",
         "removeConfirm": "Are you sure you want to remove the 3D model?",
         "removed": "3D model removed.",
@@ -555,6 +563,9 @@
     "loadError": "Failed to load records.",
     "statusUpdateError": "Failed to update status.",
     "createError": "Failed to create company.",
+    "deleteConfirm": "Are you sure you want to delete the company \"{name}\"?",
+    "deleted": "Company deleted.",
+    "deleteError": "Failed to delete company.",
     "import": {
       "name": "Company Name",
       "taxNumber": "Tax Number",
@@ -565,6 +576,9 @@
     },
     "detail": {
       "loadError": "Failed to load company.",
+      "editTitle": "Edit Company",
+      "updated": "Company updated.",
+      "updateError": "Failed to update company.",
       "contactAddError": "Failed to add contact person.",
       "addressAddError": "Failed to add address.",
       "contacts": "Contact Persons",

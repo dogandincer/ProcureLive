@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CategoryDto, PagedResult, ProductDto } from "~/types/api";
 import type { ExcelColumn } from "~/composables/useExcelImport";
-import { CubeTransparentIcon } from "@heroicons/vue/24/outline";
+import { CubeTransparentIcon, TrashIcon } from "@heroicons/vue/24/outline";
 
 const api = useApi();
 const toast = useToast();
@@ -93,6 +93,21 @@ async function create() {
   }
 }
 
+const deleting = ref<string | null>(null);
+async function deleteProduct(p: ProductDto) {
+  if (!confirm(t("products.deleteConfirm", { name: p.name }))) return;
+  deleting.value = p.id;
+  try {
+    await api.delete(`/api/products/${p.id}`);
+    toast.success(t("products.deleted"));
+    await load();
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("products.deleteError")));
+  } finally {
+    deleting.value = null;
+  }
+}
+
 watch(selectedWorkspaceId, load);
 onMounted(load);
 </script>
@@ -148,7 +163,19 @@ onMounted(load);
               <td class="py-2 text-slate-500">{{ p.categoryName }}</td>
               <td class="py-2 text-slate-500">{{ unitLabel(p.unitOfMeasure) }}</td>
               <td class="py-2"><AppBadge :tone="p.isActive ? 'emerald' : 'slate'">{{ p.isActive ? $t("common.active") : $t("common.passive") }}</AppBadge></td>
-              <td class="py-2 text-right"><NuxtLink :to="`/admin/products/${p.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink></td>
+              <td class="py-2 text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <NuxtLink :to="`/admin/products/${p.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink>
+                  <button
+                    class="rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                    :title="$t('common.delete')"
+                    :disabled="deleting === p.id"
+                    @click="deleteProduct(p)"
+                  >
+                    <TrashIcon class="h-4 w-4" />
+                  </button>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>

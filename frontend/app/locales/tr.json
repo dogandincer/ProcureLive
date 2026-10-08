@@ -471,6 +471,9 @@
     "empty": "Henüz ürün yok",
     "loadError": "Kayıtlar yüklenemedi.",
     "createError": "Ürün oluşturulamadı.",
+    "deleteConfirm": "\"{name}\" ürününü silmek istediğinize emin misiniz?",
+    "deleted": "Ürün silindi.",
+    "deleteError": "Ürün silinemedi.",
     "import": {
       "name": "Ürün Adı",
       "category": "Kategori",
@@ -482,6 +485,10 @@
     "detail": {
       "backToList": "Ürün listesine dön",
       "loadError": "Ürün yüklenemedi.",
+      "editTitle": "Ürünü Düzenle",
+      "updated": "Ürün güncellendi.",
+      "updateError": "Ürün güncellenemedi.",
+      "descriptionLabel": "Açıklama",
       "workspace": "İşyeri",
       "workspaceSaved": "İşyeri güncellendi.",
       "workspaceError": "İşyeri güncellenemedi.",
@@ -500,6 +507,7 @@
         "uploaded": "Yüklendi",
         "aiGenerated": "AI ile Üretildi",
         "viewerHint": "Döndürmek için sürükleyin, yakınlaştırmak için kaydırın.",
+        "change": "Değiştir",
         "remove": "Kaldır",
         "removeConfirm": "3D modeli kaldırmak istediğinize emin misiniz?",
         "removed": "3D model kaldırıldı.",
@@ -555,6 +563,9 @@
     "loadError": "Kayıtlar yüklenemedi.",
     "statusUpdateError": "Durum güncellenemedi.",
     "createError": "Cari oluşturulamadı.",
+    "deleteConfirm": "\"{name}\" carisini silmek istediğinize emin misiniz?",
+    "deleted": "Cari silindi.",
+    "deleteError": "Cari silinemedi.",
     "import": {
       "name": "Firma Adı",
       "taxNumber": "Vergi No",
@@ -565,6 +576,9 @@
     },
     "detail": {
       "loadError": "Cari yüklenemedi.",
+      "editTitle": "Cariyi Düzenle",
+      "updated": "Cari güncellendi.",
+      "updateError": "Cari güncellenemedi.",
       "contactAddError": "Yetkili kişi eklenemedi.",
       "addressAddError": "Adres eklenemedi.",
       "contacts": "Yetkili Kişiler",

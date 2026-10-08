@@ -70,6 +70,8 @@ public class ApplicationDbContext
 
     public DbSet<AuctionAward> AuctionAwards => Set<AuctionAward>();
 
+    public DbSet<AuctionAttachment> AuctionAttachments => Set<AuctionAttachment>();
+
     public DbSet<RfiTemplate> RfiTemplates => Set<RfiTemplate>();
 
     public DbSet<RfiQuestion> RfiQuestions => Set<RfiQuestion>();

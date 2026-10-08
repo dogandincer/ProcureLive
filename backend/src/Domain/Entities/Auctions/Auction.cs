@@ -9,6 +9,9 @@ public class Auction : AuditableEntity
 {
     public string Title { get; set; } = string.Empty;
 
+    /// <summary>İnsan-okur ihale referans kodu (ör. IH-2026-00042). Oluşturulurken otomatik üretilebilir.</summary>
+    public string? ReferenceCode { get; set; }
+
     public string? Description { get; set; }
 
     public AuctionType AuctionType { get; set; }
@@ -40,12 +43,32 @@ public class Auction : AuditableEntity
 
     public decimal? MinDecrementPercentage { get; set; }
 
-    /// <summary>Anti-sniping: if a bid lands within this many minutes of EndAt, EndAt is pushed out.</summary>
+    /// <summary>Anti-sniping tetik penceresi: EndAt'e bu kadar dakika kala teklif gelirse süre uzatılır (X).</summary>
     public int ExtensionRuleMinutes { get; set; }
+
+    /// <summary>Anti-sniping: tetiklendiğinde EndAt'in uzatılacağı dakika (Y). Null ise tetik penceresi kadar uzatılır.</summary>
+    public int? ExtensionDurationMinutes { get; set; }
+
+    /// <summary>Anti-sniping: StartAt'e eklenebilecek toplam uzatma tavanı (Z, dakika). Null ise sınırsız.</summary>
+    public int? MaxExtensionMinutes { get; set; }
+
+    /// <summary>Teklif şartı: ödeme vadesi.</summary>
+    public PaymentTerm? PaymentTerm { get; set; }
+
+    /// <summary>Teklif şartı: teslimat şekli (Incoterms).</summary>
+    public DeliveryTerm? DeliveryTerm { get; set; }
+
+    /// <summary>Tedarikçi muadil (alternatif) ürün teklif edebilir mi?</summary>
+    public bool AllowAlternativeProducts { get; set; }
+
+    /// <summary>Tedarikçi kalemlerin yalnızca bir kısmına teklif verebilir mi?</summary>
+    public bool AllowPartialBids { get; set; }
 
     public ICollection<AuctionItem> Items { get; set; } = new List<AuctionItem>();
 
     public ICollection<AuctionInvitation> Invitations { get; set; } = new List<AuctionInvitation>();
 
     public ICollection<AuctionExtensionLog> ExtensionLogs { get; set; } = new List<AuctionExtensionLog>();
+
+    public ICollection<AuctionAttachment> Attachments { get; set; } = new List<AuctionAttachment>();
 }

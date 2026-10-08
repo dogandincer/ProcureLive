@@ -22,6 +22,12 @@ public class AuctionItem : BaseEntity
 
     public decimal? TargetPrice { get; set; }
 
+    /// <summary>Satır bazlı istenen teslim tarihi (ihale genelinden farklı olabilir).</summary>
+    public DateTime? RequestedDeliveryDate { get; set; }
+
+    /// <summary>Satır bazlı teknik şartname / açıklama.</summary>
+    public string? Specification { get; set; }
+
     public int SortOrder { get; set; }
 
     public ICollection<Bid> Bids { get; set; } = new List<Bid>();

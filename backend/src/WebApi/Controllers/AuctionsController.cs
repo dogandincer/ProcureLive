@@ -5,6 +5,7 @@ using ProcureLive.Application.Auctions.Commands.AddAuctionItem;
 using ProcureLive.Application.Auctions.Commands.AwardAuctionItem;
 using ProcureLive.Application.Auctions.Commands.CancelAuction;
 using ProcureLive.Application.Auctions.Commands.CreateAuction;
+using ProcureLive.Application.Auctions.Commands.CreateTender;
 using ProcureLive.Application.Auctions.Commands.ExtendAuction;
 using ProcureLive.Application.Auctions.Commands.InviteCompanies;
 using ProcureLive.Application.Auctions.Commands.PlaceBid;
@@ -79,6 +80,58 @@ public sealed class AuctionsController : ControllerBase
                 request.Title, request.Description, auctionType, request.OwnerCompanyId, request.CurrencyId,
                 request.StartAt, request.EndAt, request.ReservePrice, request.MinDecrementAmount,
                 request.MinDecrementPercentage, request.ExtensionRuleMinutes),
+            cancellationToken);
+
+        return CreatedAtAction(nameof(GetById), new { id }, id);
+    }
+
+    /// <summary>Tek payload ile ihale + kalemler + davetler + ekleri (master-detail) oluşturur.</summary>
+    [HttpPost("tender")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<Guid>> CreateTender(CreateTenderRequest request, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse(request.Master.AuctionType, true, out AuctionType auctionType))
+            return BadRequest($"Geçersiz AuctionType: {request.Master.AuctionType}");
+
+        PaymentTerm? paymentTerm = null;
+        if (!string.IsNullOrWhiteSpace(request.Master.PaymentTerm))
+        {
+            if (!Enum.TryParse(request.Master.PaymentTerm, true, out PaymentTerm pt))
+                return BadRequest($"Geçersiz PaymentTerm: {request.Master.PaymentTerm}");
+            paymentTerm = pt;
+        }
+
+        DeliveryTerm? deliveryTerm = null;
+        if (!string.IsNullOrWhiteSpace(request.Master.DeliveryTerm))
+        {
+            if (!Enum.TryParse(request.Master.DeliveryTerm, true, out DeliveryTerm dt))
+                return BadRequest($"Geçersiz DeliveryTerm: {request.Master.DeliveryTerm}");
+            deliveryTerm = dt;
+        }
+
+        var lines = new List<TenderLineInput>(request.Lines.Count);
+        foreach (TenderLineRequest l in request.Lines)
+        {
+            if (!Enum.TryParse(l.UnitOfMeasure, true, out UnitOfMeasure uom))
+                return BadRequest($"Geçersiz UnitOfMeasure: {l.UnitOfMeasure} (kalem: {l.Description})");
+
+            lines.Add(new TenderLineInput(
+                l.ProductId, l.Description, l.Quantity, uom, l.TargetPrice,
+                l.RequestedDeliveryDate, l.Specification, l.SortOrder));
+        }
+
+        var attachments = request.Attachments
+            .Select(a => new TenderAttachmentInput(a.FileName, a.Url, a.ContentType, a.SizeBytes))
+            .ToList();
+
+        Guid id = await _sender.Send(
+            new CreateTenderCommand(
+                request.Master.ReferenceCode, request.Master.Title, request.Master.Description, auctionType,
+                request.Master.OwnerCompanyId, request.Master.CurrencyId, request.Master.StartAt, request.Master.EndAt,
+                request.Master.ReservePrice, request.Master.ExtensionTriggerMinutes, request.Master.ExtensionDurationMinutes,
+                request.Master.MaxExtensionMinutes, paymentTerm, deliveryTerm,
+                request.Master.AllowAlternativeProducts, request.Master.AllowPartialBids,
+                lines, request.VendorIds, attachments),
             cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id }, id);

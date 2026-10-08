@@ -253,6 +253,12 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("ActualStartAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("AllowAlternativeProducts")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AllowPartialBids")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("AuctionType")
                         .HasColumnType("integer");
 
@@ -265,6 +271,9 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("CurrencyId")
                         .HasColumnType("uuid");
 
+                    b.Property<int?>("DeliveryTerm")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Description")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
@@ -272,7 +281,13 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("EndAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("ExtensionDurationMinutes")
+                        .HasColumnType("integer");
+
                     b.Property<int>("ExtensionRuleMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MaxExtensionMinutes")
                         .HasColumnType("integer");
 
                     b.Property<decimal?>("MinDecrementAmount")
@@ -285,6 +300,13 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("OwnerCompanyId")
                         .HasColumnType("uuid");
+
+                    b.Property<int?>("PaymentTerm")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ReferenceCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<decimal?>("ReservePrice")
                         .HasPrecision(18, 4)
@@ -318,9 +340,56 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OwnerCompanyId");
 
+                    b.HasIndex("ReferenceCode");
+
                     b.HasIndex("Status");
 
                     b.ToTable("Auctions", (string)null);
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Auctions.AuctionAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuctionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuctionId");
+
+                    b.ToTable("AuctionAttachments", (string)null);
                 });
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Auctions.AuctionAward", b =>
@@ -482,8 +551,15 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 3)
                         .HasColumnType("numeric(18,3)");
 
+                    b.Property<DateTime?>("RequestedDeliveryDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Specification")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
 
                     b.Property<decimal?>("TargetPrice")
                         .HasPrecision(18, 4)
@@ -2127,6 +2203,17 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Navigation("OwnerCompany");
                 });
 
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Auctions.AuctionAttachment", b =>
+                {
+                    b.HasOne("ProcureLive.Domain.Entities.Auctions.Auction", "Auction")
+                        .WithMany("Attachments")
+                        .HasForeignKey("AuctionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Auction");
+                });
+
             modelBuilder.Entity("ProcureLive.Domain.Entities.Auctions.AuctionAward", b =>
                 {
                     b.HasOne("ProcureLive.Domain.Entities.Auctions.Auction", "Auction")
@@ -2700,6 +2787,8 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Auctions.Auction", b =>
                 {
+                    b.Navigation("Attachments");
+
                     b.Navigation("ExtensionLogs");
 
                     b.Navigation("Invitations");

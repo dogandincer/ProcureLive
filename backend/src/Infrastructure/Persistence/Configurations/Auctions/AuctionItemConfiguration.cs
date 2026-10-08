@@ -13,6 +13,7 @@ public sealed class AuctionItemConfiguration : IEntityTypeConfiguration<AuctionI
         builder.Property(i => i.Description).HasMaxLength(1000).IsRequired();
         builder.Property(i => i.Quantity).HasPrecision(18, 3);
         builder.Property(i => i.TargetPrice).HasPrecision(18, 4);
+        builder.Property(i => i.Specification).HasMaxLength(4000);
 
         builder.HasOne(i => i.Product)
             .WithMany()

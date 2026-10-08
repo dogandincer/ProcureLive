@@ -11,6 +11,7 @@ public sealed class AuctionConfiguration : IEntityTypeConfiguration<Auction>
         builder.ToTable("Auctions");
 
         builder.Property(a => a.Title).HasMaxLength(250).IsRequired();
+        builder.Property(a => a.ReferenceCode).HasMaxLength(50);
         builder.Property(a => a.Description).HasMaxLength(2000);
         builder.Property(a => a.ReservePrice).HasPrecision(18, 4);
         builder.Property(a => a.MinDecrementAmount).HasPrecision(18, 4);
@@ -18,6 +19,7 @@ public sealed class AuctionConfiguration : IEntityTypeConfiguration<Auction>
 
         builder.HasIndex(a => a.Status);
         builder.HasIndex(a => a.EndAt);
+        builder.HasIndex(a => a.ReferenceCode);
 
         builder.HasOne(a => a.OwnerCompany)
             .WithMany()
@@ -42,6 +44,11 @@ public sealed class AuctionConfiguration : IEntityTypeConfiguration<Auction>
         builder.HasMany(a => a.ExtensionLogs)
             .WithOne(l => l.Auction)
             .HasForeignKey(l => l.AuctionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(a => a.Attachments)
+            .WithOne(x => x.Auction)
+            .HasForeignKey(x => x.AuctionId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

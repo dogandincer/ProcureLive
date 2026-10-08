@@ -59,6 +59,8 @@ public interface IApplicationDbContext
 
     DbSet<AuctionAward> AuctionAwards { get; }
 
+    DbSet<AuctionAttachment> AuctionAttachments { get; }
+
     DbSet<RfiTemplate> RfiTemplates { get; }
 
     DbSet<RfiQuestion> RfiQuestions { get; }

@@ -952,6 +952,26 @@
       }
     }
   },
+  "tender": {
+    "grid": {
+      "addLine": "Kalem Ekle",
+      "lineCount": "{n} kalem",
+      "bulkDelivery": "Toplu teslim tarihi:",
+      "applyAll": "Tümüne uygula",
+      "empty": "Henüz kalem eklenmedi. Ürün havuzundan seçin veya boş kalem ekleyin.",
+      "descPlaceholder": "Kalem açıklaması / adı",
+      "optional": "ops.",
+      "removeConfirm": "\"{name}\" kalemini silmek istiyor musunuz?",
+      "col": {
+        "item": "Ürün / Açıklama",
+        "qty": "Miktar",
+        "unit": "Birim",
+        "target": "Hedef Fiyat",
+        "delivery": "Teslim Tarihi",
+        "spec": "Şartname"
+      }
+    }
+  },
   "scoreboard": {
     "title": "Cari Değerlendirme Panosu",
     "subtitle": "Değerlendirilen cariler, en popüler sektörler ve sektör bazlı en iyi cariler",

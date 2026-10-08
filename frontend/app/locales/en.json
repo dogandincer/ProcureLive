@@ -952,6 +952,26 @@
       }
     }
   },
+  "tender": {
+    "grid": {
+      "addLine": "Add Line",
+      "lineCount": "{n} lines",
+      "bulkDelivery": "Bulk delivery date:",
+      "applyAll": "Apply to all",
+      "empty": "No lines yet. Pick from the product pool or add a blank line.",
+      "descPlaceholder": "Line description / name",
+      "optional": "opt.",
+      "removeConfirm": "Remove the line \"{name}\"?",
+      "col": {
+        "item": "Product / Description",
+        "qty": "Quantity",
+        "unit": "Unit",
+        "target": "Target Price",
+        "delivery": "Delivery Date",
+        "spec": "Spec"
+      }
+    }
+  },
   "scoreboard": {
     "title": "Supplier Scoreboard",
     "subtitle": "Evaluated suppliers, most popular sectors, and the top supplier in each sector",

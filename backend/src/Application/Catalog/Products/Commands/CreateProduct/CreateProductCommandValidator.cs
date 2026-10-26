@@ -28,5 +28,12 @@ public sealed class CreateProductCommandValidator : AbstractValidator<CreateProd
             .MustAsync(async (currencyId, cancellationToken) =>
                 currencyId is null || await context.Currencies.AnyAsync(c => c.Id == currencyId, cancellationToken))
             .WithMessage("Para birimi bulunamadı.");
+
+        // Sistem işyeri bazlı: ürün oluştururken geçerli bir işyeri zorunlu.
+        RuleFor(x => x.WorkspaceId)
+            .NotNull().WithMessage("İşyeri seçimi zorunludur. Önce bir işyeri tanımlayın/seçin.")
+            .MustAsync(async (id, cancellationToken) =>
+                id.HasValue && await context.Workspaces.AnyAsync(w => w.Id == id.Value, cancellationToken))
+            .WithMessage("Geçerli bir işyeri seçin.");
     }
 }

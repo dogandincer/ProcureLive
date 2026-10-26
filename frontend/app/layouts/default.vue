@@ -26,6 +26,25 @@ const { currentUser, isInternalRole, isSupplierRole, isAdminRole, logout } = use
 const api = useApi();
 const { connect } = useNotificationHub();
 const { t, locale } = useI18n();
+const route = useRoute();
+
+// Sistem işyeri bazlı: hiç işyeri tanımlı değilse (iç kullanıcı) panel kilitlenir,
+// kullanıcı önce bir işyeri tanımlamaya yönlendirilir.
+const { workspaces } = useWorkspace();
+const workspacesLoaded = ref(false);
+async function loadWorkspaces() {
+  try {
+    workspaces.value = await api.get("/api/workspaces");
+  } catch {
+    // sessiz
+  } finally {
+    workspacesLoaded.value = true;
+  }
+}
+const workspaceGate = computed(() =>
+  isInternalRole() && workspacesLoaded.value && workspaces.value.length === 0
+  && !route.path.startsWith("/admin/workspaces"),
+);
 
 const notifications = ref<NotificationDto[]>([]);
 const unreadCount = ref(0);
@@ -157,6 +176,7 @@ watch(unreadOnly, loadNotifications);
 watch(locale, loadNotifications);
 
 onMounted(async () => {
+  if (isInternalRole()) loadWorkspaces();
   await loadNotifications();
 
   await connect((notification) => {
@@ -313,7 +333,19 @@ onMounted(async () => {
       </header>
 
       <main class="flex-1 overflow-x-hidden p-4 sm:p-6">
-        <slot />
+        <div v-if="workspaceGate" class="flex min-h-[60vh] items-center justify-center">
+          <div class="max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50">
+              <BuildingOfficeIcon class="h-6 w-6 text-indigo-600" />
+            </div>
+            <h2 class="text-lg font-bold text-slate-800">{{ $t("workspaceGate.title") }}</h2>
+            <p class="mt-2 text-sm text-slate-500">{{ $t("workspaceGate.message") }}</p>
+            <NuxtLink to="/admin/workspaces" class="mt-5 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
+              {{ $t("workspaceGate.cta") }}
+            </NuxtLink>
+          </div>
+        </div>
+        <slot v-else />
       </main>
     </div>
   </div>

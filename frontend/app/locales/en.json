@@ -966,6 +966,12 @@
       }
     }
   },
+  "workspaceGate": {
+    "title": "Workspace Required",
+    "message": "The system is workspace-based. You must define at least one workspace before proceeding.",
+    "cta": "Define Workspace",
+    "selectFirst": "Select a workspace from the top-right switcher first. Companies/products are created under a workspace."
+  },
   "tender": {
     "pool": {
       "title": "Product Pool",

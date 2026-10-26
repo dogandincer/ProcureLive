@@ -966,6 +966,12 @@
       }
     }
   },
+  "workspaceGate": {
+    "title": "İşyeri Tanımı Gerekli",
+    "message": "Sistem işyeri bazlı çalışır. Devam etmek için önce en az bir işyeri tanımlamanız gerekir.",
+    "cta": "İşyeri Tanımla",
+    "selectFirst": "Önce sağ üstteki seçiciden bir işyeri seçin. Cari/ürün bir işyerine bağlı olarak oluşturulur."
+  },
   "tender": {
     "pool": {
       "title": "Ürün Havuzu",

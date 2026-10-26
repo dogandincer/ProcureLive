@@ -108,6 +108,10 @@ async function saveStatus(company: CompanyDto) {
 }
 
 async function create() {
+  if (!selectedWorkspaceId.value) {
+    toast.error(t("workspaceGate.selectFirst"));
+    return;
+  }
   submitting.value = true;
   try {
     await api.post("/api/companies", {

@@ -22,5 +22,12 @@ public sealed class CreateCompanyCommandValidator : AbstractValidator<CreateComp
         RuleFor(x => x.CompanyType).IsInEnum();
 
         RuleFor(x => x.Website).MaximumLength(250);
+
+        // Sistem işyeri bazlı: cari oluştururken geçerli bir işyeri zorunlu.
+        RuleFor(x => x.WorkspaceId)
+            .NotNull().WithMessage("İşyeri seçimi zorunludur. Önce bir işyeri tanımlayın/seçin.")
+            .MustAsync(async (id, cancellationToken) =>
+                id.HasValue && await context.Workspaces.AnyAsync(w => w.Id == id.Value, cancellationToken))
+            .WithMessage("Geçerli bir işyeri seçin.");
     }
 }

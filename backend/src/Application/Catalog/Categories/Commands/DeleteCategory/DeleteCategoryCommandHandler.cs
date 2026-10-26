@@ -31,6 +31,12 @@ public sealed class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategor
             throw new ConflictException("Alt kategorileri olan bir kategori silinemez.");
         }
 
+        bool inUse = await _context.Products.AnyAsync(p => p.CategoryId == request.Id, cancellationToken);
+        if (inUse)
+        {
+            throw new ConflictException("Ürünlerde kullanılan kategori silinemez. Önce bu kategorideki ürünleri taşıyın veya silin.");
+        }
+
         _context.Categories.Remove(category);
         await _context.SaveChangesAsync(cancellationToken);
     }

@@ -27,6 +27,12 @@ public sealed class DeleteSectorCommandHandler : IRequestHandler<DeleteSectorCom
             throw new NotFoundException(nameof(Sector), request.Id);
         }
 
+        bool inUse = await _context.CompanySectors.AnyAsync(cs => cs.SectorId == request.Id, cancellationToken);
+        if (inUse)
+        {
+            throw new ConflictException("Bir veya daha fazla cariye atanmış olan sektör silinemez. Önce cari-sektör atamalarını kaldırın.");
+        }
+
         _context.Sectors.Remove(sector);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }

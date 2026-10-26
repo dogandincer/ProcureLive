@@ -26,6 +26,13 @@ public sealed class DeleteProductCommandHandler : IRequestHandler<DeleteProductC
             throw new NotFoundException(nameof(Product), request.Id);
         }
 
+        bool inUse = await _context.AuctionItems.AnyAsync(i => i.ProductId == request.Id, cancellationToken)
+                  || await _context.RfqLineItems.AnyAsync(l => l.ProductId == request.Id, cancellationToken);
+        if (inUse)
+        {
+            throw new ConflictException("Bir ihale veya RFQ kaleminde kullanılan ürün silinemez.");
+        }
+
         product.IsDeleted = true;
         product.DeletedAt = _dateTime.UtcNow;
 

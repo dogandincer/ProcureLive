@@ -19,7 +19,8 @@ public sealed record ParticipationRequestDto(
     DateTime? CompanyApprovedAt,
     DateTime? DecidedAt,
     string? RejectReason,
-    IReadOnlyList<ParticipationRequestLineDto> Lines);
+    IReadOnlyList<ParticipationRequestLineDto> Lines,
+    DateTime? PreOfferAppliedAt = null);
 
 public sealed record ParticipationRequestLineDto(
     Guid AuctionItemId,
@@ -28,7 +29,8 @@ public sealed record ParticipationRequestLineDto(
     string UnitOfMeasure,
     decimal UnitPrice,
     decimal LineTotal,
-    string? Note);
+    string? Note,
+    bool? AppliedAsBid = null);
 
 public sealed record ParticipationLineInput(Guid AuctionItemId, decimal UnitPrice, string? Note);
 

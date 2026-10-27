@@ -11,6 +11,13 @@ public sealed class RfqProcessConfiguration : IEntityTypeConfiguration<RfqProces
         builder.ToTable("RfqProcesses");
         builder.Property(p => p.Title).HasMaxLength(250).IsRequired();
 
+        builder.HasIndex(p => p.WorkspaceId);
+
+        builder.HasOne<ProcureLive.Domain.Entities.Workspaces.Workspace>()
+            .WithMany()
+            .HasForeignKey(p => p.WorkspaceId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasOne(p => p.OwnerCompany)
             .WithMany()
             .HasForeignKey(p => p.OwnerCompanyId)

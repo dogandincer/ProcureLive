@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import type { CompanyDto, PagedResult, RfiProcessDto, RfiTemplateDto } from "~/types/api";
+import type { PagedResult, RfiProcessDto, RfiTemplateDto } from "~/types/api";
 
 const api = useApi();
 const toast = useToast();
 const { t } = useI18n();
 const processes = ref<RfiProcessDto[]>([]);
 const templates = ref<RfiTemplateDto[]>([]);
-const companies = ref<CompanyDto[]>([]);
 const loading = ref(true);
 
 const showTemplateForm = ref(false);
 const showProcessForm = ref(false);
 const templateForm = reactive({ name: "", description: "" });
-const processForm = reactive({ rfiTemplateId: "", title: "", ownerCompanyId: "", dueDate: "" });
+const processForm = reactive({ rfiTemplateId: "", title: "", ownerCompanyId: "", workspaceId: "", dueDate: "" });
+const { selectedFirmId } = useFirm();
+const { selectedWorkspaceId } = useWorkspace();
 const expandedTemplateId = ref<string | null>(null);
 const questionTypes = ["Text", "Number", "Boolean", "MultipleChoice", "FileUpload"];
 const questionForm = reactive({ questionText: "", questionType: "Text", isRequired: true, weight: 1, optionsText: "" });
@@ -33,28 +34,33 @@ const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "ros
   Evaluated: "indigo",
 };
 
+// Başlıktaki firma/işyeri art arda kurulur; geç dönen eski yanıt yenisinin üzerine yazmasın (yalnızca son istek uygulanır).
+let loadSeq = 0;
+
 async function load() {
+  const seq = ++loadSeq;
   loading.value = true;
   try {
-    const [processPage, templateList, companyPage] = await Promise.all([
-      api.get<PagedResult<RfiProcessDto>>("/api/rfi/processes", { page: 1, pageSize: 50 }),
+    const [processPage, templateList] = await Promise.all([
+      api.get<PagedResult<RfiProcessDto>>("/api/rfi/processes", {
+        page: 1,
+        pageSize: 50,
+        firmId: selectedFirmId.value ?? undefined,
+        workspaceId: selectedWorkspaceId.value ?? undefined,
+      }),
       api.get<RfiTemplateDto[]>("/api/rfi/templates"),
-      api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 }),
     ]);
+    if (seq !== loadSeq) return;
     processes.value = processPage.items;
     templates.value = templateList;
-    companies.value = companyPage.items;
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("rfi.loadError")));
     return;
   } finally {
-    loading.value = false;
+    if (seq === loadSeq) loading.value = false;
   }
 
   if (!processForm.rfiTemplateId && templates.value.length > 0) processForm.rfiTemplateId = templates.value[0].id;
-  if (!processForm.ownerCompanyId && companies.value.length > 0) {
-    processForm.ownerCompanyId = companies.value.find((c) => c.companyType === "Internal")?.id ?? companies.value[0].id;
-  }
 }
 
 async function createTemplate() {
@@ -98,6 +104,7 @@ async function createProcess() {
       rfiTemplateId: processForm.rfiTemplateId,
       title: processForm.title,
       ownerCompanyId: processForm.ownerCompanyId,
+      workspaceId: processForm.workspaceId || null,
       dueDate: new Date(processForm.dueDate).toISOString(),
     });
     showProcessForm.value = false;
@@ -107,6 +114,7 @@ async function createProcess() {
 }
 
 onMounted(load);
+watch([selectedFirmId, selectedWorkspaceId], load);
 </script>
 
 <template>
@@ -182,9 +190,7 @@ onMounted(load);
       <select v-model="processForm.rfiTemplateId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm">
         <option v-for="tpl in templates" :key="tpl.id" :value="tpl.id">{{ tpl.name }} ({{ tpl.questions.length }} {{ $t("rfi.questionCount") }})</option>
       </select>
-      <select v-model="processForm.ownerCompanyId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm">
-        <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
-      </select>
+      <FirmWorkspaceSelect v-model:owner="processForm.ownerCompanyId" v-model:workspace="processForm.workspaceId" />
       <input v-model="processForm.title" :placeholder="$t('rfi.processForm.titlePlaceholder')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
       <input v-model="processForm.dueDate" type="datetime-local" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
       <AppButton type="submit">{{ $t("rfi.processForm.create") }}</AppButton>
@@ -206,7 +212,10 @@ onMounted(load);
           </thead>
           <tbody>
             <tr v-for="p in processes" :key="p.id" class="border-b border-slate-50">
-              <td class="py-2 font-medium text-slate-700">{{ p.title }}</td>
+              <td class="py-2 font-medium text-slate-700">
+                {{ p.title }}
+                <span v-if="p.workspaceName" class="block text-[11px] font-normal text-slate-400">{{ p.ownerCompanyName }} · {{ p.workspaceName }}</span>
+              </td>
               <td class="py-2 text-slate-500">{{ p.templateName }}</td>
               <td class="py-2"><AppBadge :tone="statusTone[p.status]">{{ $t(`enums.processStatus.${p.status}`) }}</AppBadge></td>
               <td class="py-2 text-slate-500">{{ p.invitationCount }}</td>

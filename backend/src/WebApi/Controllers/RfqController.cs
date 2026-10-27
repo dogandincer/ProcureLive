@@ -1,4 +1,6 @@
 using MediatR;
+using ProcureLive.Contracts.Workspaces;
+using ProcureLive.Application.Workspaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProcureLive.Application.Common.Security;
@@ -36,11 +38,13 @@ public sealed class RfqController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PagedResult<RfqProcessDto>>> GetList(
         [FromQuery] string? status,
+        [FromQuery] Guid? firmId,
+        [FromQuery] Guid? workspaceId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        return Ok(await _sender.Send(new GetRfqProcessesListQuery(status, page, pageSize), cancellationToken));
+        return Ok(await _sender.Send(new GetRfqProcessesListQuery(status, page, pageSize, firmId, workspaceId), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
@@ -55,7 +59,7 @@ public sealed class RfqController : ControllerBase
     public async Task<ActionResult<Guid>> Create(CreateRfqProcessRequest request, CancellationToken cancellationToken)
     {
         Guid id = await _sender.Send(
-            new CreateRfqProcessCommand(request.Title, request.OwnerCompanyId, request.CurrencyId, request.DueDate),
+            new CreateRfqProcessCommand(request.Title, request.OwnerCompanyId, request.CurrencyId, request.DueDate, request.WorkspaceId),
             cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id }, id);
@@ -82,6 +86,15 @@ public sealed class RfqController : ControllerBase
     }
 
     /// <summary>Kurulum adım 3/4: tedarikçi davetleri.</summary>
+    /// <summary>Sürecin işyeri (satınalmacı kapsamı bu işyerine göre). Kapanmış süreçte değişmez.</summary>
+    [HttpPut("{id:guid}/workspace")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> ChangeWorkspace(Guid id, ChangeProcessWorkspaceRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ChangeRfqWorkspaceCommand(id, request.WorkspaceId), cancellationToken);
+        return NoContent();
+    }
+
     [HttpPost("{id:guid}/invitations")]
     [Authorize(Policy = Policies.RequireInternalUser)]
     public async Task<IActionResult> InviteCompanies(Guid id, InviteCompaniesToRfqRequest request, CancellationToken cancellationToken)

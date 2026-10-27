@@ -1,5 +1,5 @@
 using MediatR;
-using ProcureLive.Application.Auctions.Participation;
+using ProcureLive.Application.Workspaces;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Security;
 using ProcureLive.Domain.Entities.Auctions;
@@ -22,7 +22,7 @@ public sealed class CreateAuctionCommandHandler : IRequestHandler<CreateAuctionC
 
     public async Task<Guid> Handle(CreateAuctionCommand request, CancellationToken cancellationToken)
     {
-        Guid? workspaceId = await AuctionWorkspaceRules.ResolveAsync(
+        Guid? workspaceId = await FirmWorkspaceRules.ResolveAsync(
             _context, request.OwnerCompanyId, request.WorkspaceId, await _scope.GetAsync(cancellationToken), cancellationToken);
 
         var auction = new Auction

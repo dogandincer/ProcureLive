@@ -16,3 +16,6 @@ public sealed record WorkspaceDto(
 public sealed record CreateWorkspaceRequest(string Name, string? Description, Guid FirmId, bool IsDefault = false);
 
 public sealed record UpdateWorkspaceRequest(string Name, string? Description, bool IsActive, Guid FirmId, bool IsDefault = false);
+
+/// <summary>RFI / RFQ sürecinin işyerini değiştirme.</summary>
+public sealed record ChangeProcessWorkspaceRequest(Guid WorkspaceId);

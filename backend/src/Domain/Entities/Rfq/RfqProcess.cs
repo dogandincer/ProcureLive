@@ -13,6 +13,9 @@ public class RfqProcess : AuditableEntity
 
     public Company OwnerCompany { get; set; } = null!;
 
+    /// <summary>Sürecin işyeri (sahip firmanın işyerlerinden). Satınalmacı kapsamı bu işyerine göre uygulanır.</summary>
+    public Guid? WorkspaceId { get; set; }
+
     public Guid CurrencyId { get; set; }
 
     public Currency Currency { get; set; } = null!;

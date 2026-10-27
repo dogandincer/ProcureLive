@@ -177,6 +177,15 @@ onMounted(async () => {
         <p class="text-sm text-slate-500">
           {{ $t("rfq.detail.statusLabel") }}: {{ $t(`enums.processStatus.${process.status}`) }} · {{ $t("rfq.detail.currencyLabel") }}: {{ process.currencyCode }}
         </p>
+        <ProcessWorkspace
+          kind="rfq"
+          :process-id="process.id"
+          :owner-company-id="process.ownerCompanyId"
+          :workspace-id="process.workspaceId"
+          :workspace-name="process.workspaceName"
+          :status="process.status"
+          @changed="load"
+        />
       </div>
       <div class="flex gap-2">
         <AppButton v-if="process.status === 'Sent'" @click="publish">

@@ -1,4 +1,6 @@
 using MediatR;
+using ProcureLive.Contracts.Workspaces;
+using ProcureLive.Application.Workspaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProcureLive.Application.Common.Security;
@@ -87,11 +89,13 @@ public sealed class RfiProcessesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PagedResult<RfiProcessDto>>> GetList(
         [FromQuery] string? status,
+        [FromQuery] Guid? firmId,
+        [FromQuery] Guid? workspaceId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        return Ok(await _sender.Send(new GetRfiProcessesListQuery(status, page, pageSize), cancellationToken));
+        return Ok(await _sender.Send(new GetRfiProcessesListQuery(status, page, pageSize, firmId, workspaceId), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
@@ -105,10 +109,19 @@ public sealed class RfiProcessesController : ControllerBase
     public async Task<ActionResult<Guid>> Create(CreateRfiProcessRequest request, CancellationToken cancellationToken)
     {
         Guid id = await _sender.Send(
-            new CreateRfiProcessCommand(request.RfiTemplateId, request.Title, request.OwnerCompanyId, request.DueDate),
+            new CreateRfiProcessCommand(request.RfiTemplateId, request.Title, request.OwnerCompanyId, request.DueDate, request.WorkspaceId),
             cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id }, id);
+    }
+
+    /// <summary>Sürecin işyeri (satınalmacı kapsamı bu işyerine göre). Kapanmış süreçte değişmez.</summary>
+    [HttpPut("{id:guid}/workspace")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> ChangeWorkspace(Guid id, ChangeProcessWorkspaceRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ChangeRfiWorkspaceCommand(id, request.WorkspaceId), cancellationToken);
+        return NoContent();
     }
 
     [HttpPost("{id:guid}/invitations")]

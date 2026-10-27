@@ -42,7 +42,8 @@ public sealed record RfiProcessDto(
     int ResponseCount,
     DateTime CreatedAt,
     string AccessLevel = "Full",
-    string? MyInvitationStatus = null);
+    string? MyInvitationStatus = null,
+    string? WorkspaceName = null);
 
 public sealed record RfiProcessDetailDto(
     Guid Id,
@@ -59,7 +60,9 @@ public sealed record RfiProcessDetailDto(
     bool IsOpen = false,
     bool HasSubmitted = false,
     bool CanSubmit = false,
-    IReadOnlyCollection<RfiMyAnswerDto>? MyAnswers = null);
+    IReadOnlyCollection<RfiMyAnswerDto>? MyAnswers = null,
+    Guid? WorkspaceId = null,
+    string? WorkspaceName = null);
 
 /// <summary>Tedarikçinin kendi gönderdiği yanıt (revizyon formunu doldurmak için).</summary>
 public sealed record RfiMyAnswerDto(
@@ -77,7 +80,7 @@ public sealed record RfiInvitationDto(
     DateTime? SentAt,
     DateTime? RespondedAt);
 
-public sealed record CreateRfiProcessRequest(Guid RfiTemplateId, string Title, Guid OwnerCompanyId, DateTime DueDate);
+public sealed record CreateRfiProcessRequest(Guid RfiTemplateId, string Title, Guid OwnerCompanyId, DateTime DueDate, Guid? WorkspaceId = null);
 
 public sealed record InviteCompaniesToRfiRequest(IReadOnlyCollection<Guid> CompanyIds);
 

@@ -16,6 +16,13 @@ public sealed class RfiProcessConfiguration : IEntityTypeConfiguration<RfiProces
             .HasForeignKey(p => p.RfiTemplateId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasIndex(p => p.WorkspaceId);
+
+        builder.HasOne<ProcureLive.Domain.Entities.Workspaces.Workspace>()
+            .WithMany()
+            .HasForeignKey(p => p.WorkspaceId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasOne(p => p.OwnerCompany)
             .WithMany()
             .HasForeignKey(p => p.OwnerCompanyId)

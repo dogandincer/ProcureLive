@@ -46,13 +46,14 @@ public sealed class GetRfqProcessesListQueryHandler : IRequestHandler<GetRfqProc
         }
         else
         {
-            // Satınalmacı yalnızca yetkili firmalarının süreçlerini görür.
-            DataScope scope = await _scope.GetAsync(cancellationToken);
-            if (!scope.IsUnrestricted)
-            {
-                List<Guid> firmIds = scope.FirmIds.ToList();
-                query = query.Where(p => firmIds.Contains(p.OwnerCompanyId));
-            }
+            // Satınalmacı yalnızca yetkili işyerlerinin süreçlerini görür (işyeri atanmamış eski süreçte firma yetkisi).
+            query = query.InScope(await _scope.GetAsync(cancellationToken));
+
+            // Başlıktaki seçim: işyeri seçiliyse o işyeri, "Tüm İşyerleri"nde firmanın tümü.
+            if (request.WorkspaceId is Guid workspaceId)
+                query = query.Where(p => p.WorkspaceId == workspaceId);
+            else if (request.FirmId is Guid firmId)
+                query = query.Where(p => p.OwnerCompanyId == firmId);
         }
 
         if (!string.IsNullOrWhiteSpace(request.Status))
@@ -77,13 +78,16 @@ public sealed class GetRfqProcessesListQueryHandler : IRequestHandler<GetRfqProc
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
+        Dictionary<Guid, string> workspaceNames = await WorkspaceNamesAsync(processes.Select(p => p.WorkspaceId), access is null, cancellationToken);
+
         List<RfqProcessDto> items = processes.Select(p =>
         {
             if (access is null)
             {
                 return new RfqProcessDto(
                     p.Id, p.Title, p.OwnerCompanyId, p.OwnerCompany.Name, p.CurrencyId, p.Currency.Code,
-                    p.Status.ToString(), p.DueDate, p.LineItems.Count, p.Invitations.Count, p.Quotes.Count, p.CreatedAt);
+                    p.Status.ToString(), p.DueDate, p.LineItems.Count, p.Invitations.Count, p.Quotes.Count, p.CreatedAt,
+                    WorkspaceName: p.WorkspaceId is Guid w ? workspaceNames.GetValueOrDefault(w) : null);
             }
 
             // Tedarikçi: kendi davet durumu + kota kısıtı; rakip davet/teklif sayıları dönmez.
@@ -96,5 +100,12 @@ public sealed class GetRfqProcessesListQueryHandler : IRequestHandler<GetRfqProc
         }).ToList();
 
         return new PagedResult<RfqProcessDto>(items, totalCount, page, pageSize);
+    }
+
+    private async Task<Dictionary<Guid, string>> WorkspaceNamesAsync(IEnumerable<Guid?> ids, bool internalUser, CancellationToken ct)
+    {
+        if (!internalUser) return new Dictionary<Guid, string>();
+        List<Guid> wanted = ids.Where(id => id.HasValue).Select(id => id!.Value).Distinct().ToList();
+        return await _context.Workspaces.Where(w => wanted.Contains(w.Id)).ToDictionaryAsync(w => w.Id, w => w.Name, ct);
     }
 }

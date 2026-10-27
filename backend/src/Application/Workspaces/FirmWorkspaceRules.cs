@@ -3,12 +3,12 @@ using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Security;
 
-namespace ProcureLive.Application.Auctions.Participation;
+namespace ProcureLive.Application.Workspaces;
 
-public static class AuctionWorkspaceRules
+public static class FirmWorkspaceRules
 {
     /// <summary>
-    /// İhalenin işyeri: istenen işyeri sahip firmaya ait olmalı; verilmemişse firmanın varsayılan (yoksa ilk) işyeri —
+    /// İhale / RFI / RFQ'nun işyeri: istenen işyeri sahip firmaya ait olmalı; verilmemişse firmanın varsayılan (yoksa ilk) işyeri —
     /// satınalmacı için yalnızca yetkili olduğu işyerleri arasından. Firmanın hiç işyeri yoksa null
     /// (cari onayı firma düzeyinde değerlendirilir).
     /// </summary>
@@ -19,7 +19,7 @@ public static class AuctionWorkspaceRules
         {
             bool belongs = await context.Workspaces.AnyAsync(w => w.Id == id && w.FirmId == ownerFirmId, ct);
             if (!belongs)
-                throw new ConflictException("Seçilen işyeri ihale sahibi firmaya ait değil.");
+                throw new ConflictException("Seçilen işyeri sahip firmaya ait değil.");
             return id;
         }
 

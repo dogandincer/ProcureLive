@@ -61,19 +61,21 @@ public sealed class ScopeAuthorizationBehavior<TRequest, TResponse> : IPipelineB
         {
             var a = await _context.Auctions.Where(x => x.Id == auction.AuctionId)
                 .Select(x => new { x.OwnerCompanyId, x.WorkspaceId }).FirstOrDefaultAsync(ct);
-            if (a is not null && !scope.HasAuction(a.WorkspaceId, a.OwnerCompanyId)) return false;
+            if (a is not null && !scope.HasOwned(a.WorkspaceId, a.OwnerCompanyId)) return false;
         }
 
         if (request is IRfiScopedRequest rfi)
         {
-            Guid? firm = await _context.RfiProcesses.Where(p => p.Id == rfi.RfiProcessId).Select(p => (Guid?)p.OwnerCompanyId).FirstOrDefaultAsync(ct);
-            if (firm is Guid f && !scope.HasFirm(f)) return false;
+            var p = await _context.RfiProcesses.Where(x => x.Id == rfi.RfiProcessId)
+                .Select(x => new { x.OwnerCompanyId, x.WorkspaceId }).FirstOrDefaultAsync(ct);
+            if (p is not null && !scope.HasOwned(p.WorkspaceId, p.OwnerCompanyId)) return false;
         }
 
         if (request is IRfqScopedRequest rfq)
         {
-            Guid? firm = await _context.RfqProcesses.Where(p => p.Id == rfq.RfqProcessId).Select(p => (Guid?)p.OwnerCompanyId).FirstOrDefaultAsync(ct);
-            if (firm is Guid f && !scope.HasFirm(f)) return false;
+            var p = await _context.RfqProcesses.Where(x => x.Id == rfq.RfqProcessId)
+                .Select(x => new { x.OwnerCompanyId, x.WorkspaceId }).FirstOrDefaultAsync(ct);
+            if (p is not null && !scope.HasOwned(p.WorkspaceId, p.OwnerCompanyId)) return false;
         }
 
         if (request is ICompanyScopedRequest company)

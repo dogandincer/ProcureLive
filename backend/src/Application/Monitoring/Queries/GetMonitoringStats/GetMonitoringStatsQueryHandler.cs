@@ -31,17 +31,14 @@ public sealed class GetMonitoringStatsQueryHandler
         DateTime todayStart = now.Date;
         DateTime weekStart = now.Date.AddDays(-7);
 
-        // Satınalmacı yalnızca yetkili işyerlerinin ihalelerini / yetkili firmalarının RFQ'larını ve bunların tekliflerini görür.
+        // Satınalmacı yalnızca yetkili işyerlerinin ihalelerini, RFQ'larını ve bunların tekliflerini görür.
         DataScope scope = await _scope.GetAsync(cancellationToken);
         IQueryable<Auction> auctions = _context.Auctions.InScope(scope);
         IQueryable<Guid> auctionIds = auctions.Select(a => a.Id);
         IQueryable<Bid> bids = scope.IsUnrestricted
             ? _context.Bids
             : _context.Bids.Where(b => auctionIds.Contains(b.AuctionItem.AuctionId));
-        List<Guid> firmIds = scope.FirmIds.ToList();
-        IQueryable<ProcureLive.Domain.Entities.Rfq.RfqProcess> rfqs = scope.IsUnrestricted
-            ? _context.RfqProcesses
-            : _context.RfqProcesses.Where(r => firmIds.Contains(r.OwnerCompanyId));
+        IQueryable<ProcureLive.Domain.Entities.Rfq.RfqProcess> rfqs = _context.RfqProcesses.InScope(scope);
 
         // Auction counts by status
         var auctionGroups = await auctions

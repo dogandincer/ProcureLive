@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ProcureLive.Application.Auctions.Participation;
 using ProcureLive.Application.Auctions.Status;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Notifications;
@@ -96,6 +97,23 @@ public sealed class AuctionLifecycleHostedService : BackgroundService
         foreach (Auction auction in toStart)
         {
             await notificationService.AuctionStartedAsync(auction.Id, cancellationToken);
+        }
+
+        // Zamanı gelip canlıya geçen ihalelerde kabul edilmiş ön teklifler ilk teklif olarak yazılır.
+        if (toStart.Count > 0)
+        {
+            PreOfferBidService preOffers = scope.ServiceProvider.GetRequiredService<PreOfferBidService>();
+            foreach (Auction auction in toStart)
+            {
+                try
+                {
+                    await preOffers.ApplyAsync(auction.Id, cancellationToken);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    _logger.LogError(ex, "Ön teklifler işlenemedi (ihale {AuctionId}).", auction.Id);
+                }
+            }
         }
 
         foreach (Auction auction in toEnd)

@@ -4,4 +4,5 @@ using ProcureLive.Contracts.Rfi;
 
 namespace ProcureLive.Application.Rfi.Queries.GetRfiProcessesList;
 
-public sealed record GetRfiProcessesListQuery(string? Status, int Page, int PageSize) : IRequest<PagedResult<RfiProcessDto>>;
+public sealed record GetRfiProcessesListQuery(string? Status, int Page, int PageSize, Guid? FirmId = null, Guid? WorkspaceId = null)
+    : IRequest<PagedResult<RfiProcessDto>>;

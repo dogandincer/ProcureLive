@@ -14,7 +14,8 @@ public sealed record RfqProcessDto(
     int QuoteCount,
     DateTime CreatedAt,
     string AccessLevel = "Full",
-    string? MyInvitationStatus = null);
+    string? MyInvitationStatus = null,
+    string? WorkspaceName = null);
 
 public sealed record RfqProcessDetailDto(
     Guid Id,
@@ -31,7 +32,9 @@ public sealed record RfqProcessDetailDto(
     string AccessLevel = "Full",
     bool IsOpen = false,
     bool HasSubmitted = false,
-    bool CanSubmit = false);
+    bool CanSubmit = false,
+    Guid? WorkspaceId = null,
+    string? WorkspaceName = null);
 
 public sealed record RfqLineItemDto(
     Guid Id,
@@ -69,7 +72,7 @@ public sealed record RfqQuoteLineItemDto(
     int? LeadTimeDays,
     string? Notes);
 
-public sealed record CreateRfqProcessRequest(string Title, Guid OwnerCompanyId, Guid CurrencyId, DateTime DueDate);
+public sealed record CreateRfqProcessRequest(string Title, Guid OwnerCompanyId, Guid CurrencyId, DateTime DueDate, Guid? WorkspaceId = null);
 
 public sealed record AddRfqLineItemRequest(Guid? ProductId, string Description, decimal Quantity, string UnitOfMeasure, int SortOrder);
 

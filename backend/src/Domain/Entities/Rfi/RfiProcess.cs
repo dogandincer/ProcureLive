@@ -16,6 +16,9 @@ public class RfiProcess : AuditableEntity
 
     public Company OwnerCompany { get; set; } = null!;
 
+    /// <summary>Sürecin işyeri (sahip firmanın işyerlerinden). Satınalmacı kapsamı bu işyerine göre uygulanır.</summary>
+    public Guid? WorkspaceId { get; set; }
+
     public ProcessStatus Status { get; set; } = ProcessStatus.Draft;
 
     public DateTime DueDate { get; set; }

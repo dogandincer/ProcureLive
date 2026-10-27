@@ -1712,7 +1712,7 @@
   "participation": {
     "requestCta": "Katılım talebi",
     "title": "Katılım talebi ve ön teklif",
-    "intro": "Bu ihaleye katılmak için {owner} firmasının cari onayı gerekiyor. Ön teklifinizi girin; sorumlu satınalmacı önce cari kaydınızı onaylar, sonra teklifinizi inceleyip sizi ihaleye dahil eder.",
+    "intro": "Bu ihaleye katılmak için {owner} firmasının cari onayı gerekiyor. Ön teklifinizi girin; sorumlu satınalmacı önce cari kaydınızı onaylar, sonra teklifinizi inceleyip sizi ihaleye dahil eder. Kabul edilen ön teklif, ihale canlıya geçtiğinde ilk teklifiniz olarak işlenir.",
     "sentAt": "Gönderildi: {date}",
     "rejected": "Talebiniz reddedildi",
     "sentToast": "Katılım talebiniz gönderildi.",
@@ -1760,7 +1760,11 @@
         "approve-company": "{company} cari olarak onaylandı.",
         "accept": "{company} ihaleye dahil edildi.",
         "reject": "{company} talebi reddedildi."
-      }
+      },
+      "applied": "İlk teklif oldu",
+      "skipped": "Atlandı (en iyiyi geçmedi)",
+      "willApply": "İhale canlıya geçince ön teklif ilk teklif olarak işlenecek.",
+      "appliedAt": "Ön teklif ilk teklif olarak işlendi: {date}"
     },
     "bidAfterAccept": "Katılım talebiniz kabul edilince bu kaleme teklif verebilirsiniz."
   },
@@ -1773,5 +1777,11 @@
     "revise": "Yanıtı Güncelle",
     "reviseQuote": "Teklifi Güncelle",
     "standardOnce": "Standart üyelikte gönderdikten sonra değişiklik yapılamaz."
+  },
+  "processWorkspace": {
+    "owner": "Sahip firma",
+    "workspace": "İşyeri",
+    "saved": "İşyeri güncellendi.",
+    "saveError": "İşyeri güncellenemedi."
   }
 }

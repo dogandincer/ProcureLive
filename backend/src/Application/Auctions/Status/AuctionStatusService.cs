@@ -20,19 +20,23 @@ public sealed class AuctionStatusService
     private readonly IDateTime _dateTime;
     private readonly IAuctionNotificationService _auctionNotifications;
     private readonly INotificationRealtimeService _notificationRealtimeService;
+    private readonly Participation.PreOfferBidService _preOffers;
 
     public AuctionStatusService(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
         IDateTime dateTime,
         IAuctionNotificationService auctionNotifications,
-        INotificationRealtimeService notificationRealtimeService)
+        INotificationRealtimeService notificationRealtimeService,
+        Participation.PreOfferBidService preOffers
+)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTime = dateTime;
         _auctionNotifications = auctionNotifications;
         _notificationRealtimeService = notificationRealtimeService;
+        _preOffers = preOffers;
     }
 
     public async Task ChangeAsync(
@@ -104,6 +108,12 @@ public sealed class AuctionStatusService
         await _context.SaveChangesAsync(cancellationToken);
 
         await NotifyAsync(auction, from, to, reason, cancellationToken);
+
+        // Canlıya her geçişte (başlatma / devam / yeniden açma) bekleyen kabul edilmiş ön teklifler ilk teklif olur.
+        if (to == AuctionStatus.Live)
+        {
+            await _preOffers.ApplyAsync(auction.Id, cancellationToken);
+        }
     }
 
     private static void EnsurePublishable(Auction auction)

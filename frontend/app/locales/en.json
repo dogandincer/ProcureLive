@@ -1712,7 +1712,7 @@
   "participation": {
     "requestCta": "Request to join",
     "title": "Participation request & preliminary offer",
-    "intro": "Joining this auction requires supplier approval from {owner}. Enter your preliminary offer; the responsible buyer first approves your supplier record, then reviews your offer and adds you to the auction.",
+    "intro": "Joining this auction requires supplier approval from {owner}. Enter your preliminary offer; the responsible buyer first approves your supplier record, then reviews your offer and adds you to the auction. An accepted preliminary offer becomes your first bid when the auction goes live.",
     "sentAt": "Sent: {date}",
     "rejected": "Your request was rejected",
     "sentToast": "Your participation request was sent.",
@@ -1760,7 +1760,11 @@
         "approve-company": "{company} was approved as a supplier.",
         "accept": "{company} was added to the auction.",
         "reject": "{company}'s request was rejected."
-      }
+      },
+      "applied": "Became first bid",
+      "skipped": "Skipped (did not beat best)",
+      "willApply": "The preliminary offer will be applied as the first bid when the auction goes live.",
+      "appliedAt": "Preliminary offer applied as first bid: {date}"
     },
     "bidAfterAccept": "You can bid on this item once your participation request is accepted."
   },
@@ -1773,5 +1777,11 @@
     "revise": "Update Response",
     "reviseQuote": "Update Quote",
     "standardOnce": "With a Standard membership, changes are not possible after submitting."
+  },
+  "processWorkspace": {
+    "owner": "Owner firm",
+    "workspace": "Workspace",
+    "saved": "Workspace updated.",
+    "saveError": "The workspace could not be updated."
   }
 }

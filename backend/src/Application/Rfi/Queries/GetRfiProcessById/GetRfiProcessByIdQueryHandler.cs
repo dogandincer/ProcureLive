@@ -55,10 +55,13 @@ public sealed class GetRfiProcessByIdQueryHandler : IRequestHandler<GetRfiProces
 
         if (isInternalUser || viewerCompanyId is not Guid companyId)
         {
+            string? workspaceName = process.WorkspaceId is Guid ws
+                ? await _context.Workspaces.Where(w => w.Id == ws).Select(w => w.Name).FirstOrDefaultAsync(cancellationToken)
+                : null;
             return new RfiProcessDetailDto(
                 process.Id, process.RfiTemplateId, process.RfiTemplate.Name, process.Title,
                 process.OwnerCompanyId, process.OwnerCompany.Name, process.Status.ToString(), process.DueDate,
-                questions, invitations, IsOpen: isOpen);
+                questions, invitations, IsOpen: isOpen, WorkspaceId: process.WorkspaceId, WorkspaceName: workspaceName);
         }
 
         SupplierAccessContext access = await _accessService.GetContextAsync(companyId, cancellationToken);

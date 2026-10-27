@@ -35,6 +35,9 @@ public class ParticipationRequest : AuditableEntity
 
     public string? RejectReason { get; set; }
 
+    /// <summary>Kabul edilmiş ön teklifin, ihale canlıyken ilk teklif olarak işlendiği an (bir kez işlenir).</summary>
+    public DateTime? PreOfferAppliedAt { get; set; }
+
     public ICollection<ParticipationRequestLine> Lines { get; set; } = new List<ParticipationRequestLine>();
 }
 
@@ -52,4 +55,7 @@ public class ParticipationRequestLine : BaseEntity
     public decimal UnitPrice { get; set; }
 
     public string? Note { get; set; }
+
+    /// <summary>Ön teklif ilk teklif olarak işlendiyse oluşan teklif; işlenip null kaldıysa mevcut en iyiyi geçmediği için atlandı.</summary>
+    public Guid? BidId { get; set; }
 }

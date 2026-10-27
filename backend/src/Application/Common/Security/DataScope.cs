@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Domain.Entities.Auctions;
+using ProcureLive.Domain.Entities.Rfi;
+using ProcureLive.Domain.Entities.Rfq;
 
 namespace ProcureLive.Application.Common.Security;
 
@@ -30,16 +32,16 @@ public sealed class DataScope
     public bool HasWorkspace(Guid? workspaceId) => IsUnrestricted || (workspaceId is Guid id && WorkspaceIds.Contains(id));
 
     /// <summary>
-    /// İhale kapsamı: ihalenin işyeri yetkili işyerlerinden biri olmalı. İşyeri atanmamış (eski) ihalelerde
+    /// İhale / RFI / RFQ kapsamı: kaydın işyeri yetkili işyerlerinden biri olmalı. İşyeri atanmamış (eski) kayıtlarda
     /// sahip firmaya yetki yeterlidir.
     /// </summary>
-    public bool HasAuction(Guid? auctionWorkspaceId, Guid ownerFirmId) =>
-        auctionWorkspaceId is Guid w ? HasWorkspace(w) : HasFirm(ownerFirmId);
+    public bool HasOwned(Guid? workspaceId, Guid ownerFirmId) =>
+        workspaceId is Guid w ? HasWorkspace(w) : HasFirm(ownerFirmId);
 }
 
+/// <summary>SQL'e çevrilebilir <see cref="DataScope.HasOwned"/>: satınalmacının görebileceği ihale / RFI / RFQ'lar.</summary>
 public static class DataScopeQueryExtensions
 {
-    /// <summary>SQL'e çevrilebilir <see cref="DataScope.HasAuction"/>: satınalmacının görebileceği ihaleler.</summary>
     public static IQueryable<Auction> InScope(this IQueryable<Auction> query, DataScope scope)
     {
         if (scope.IsUnrestricted) return query;
@@ -49,6 +51,28 @@ public static class DataScopeQueryExtensions
         return query.Where(a => a.WorkspaceId != null
             ? workspaceIds.Contains(a.WorkspaceId.Value)
             : firmIds.Contains(a.OwnerCompanyId));
+    }
+
+    public static IQueryable<RfiProcess> InScope(this IQueryable<RfiProcess> query, DataScope scope)
+    {
+        if (scope.IsUnrestricted) return query;
+
+        List<Guid> workspaceIds = scope.WorkspaceIds.ToList();
+        List<Guid> firmIds = scope.FirmIds.ToList();
+        return query.Where(p => p.WorkspaceId != null
+            ? workspaceIds.Contains(p.WorkspaceId.Value)
+            : firmIds.Contains(p.OwnerCompanyId));
+    }
+
+    public static IQueryable<RfqProcess> InScope(this IQueryable<RfqProcess> query, DataScope scope)
+    {
+        if (scope.IsUnrestricted) return query;
+
+        List<Guid> workspaceIds = scope.WorkspaceIds.ToList();
+        List<Guid> firmIds = scope.FirmIds.ToList();
+        return query.Where(p => p.WorkspaceId != null
+            ? workspaceIds.Contains(p.WorkspaceId.Value)
+            : firmIds.Contains(p.OwnerCompanyId));
     }
 }
 

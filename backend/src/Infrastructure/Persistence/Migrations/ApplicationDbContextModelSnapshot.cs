@@ -757,6 +757,9 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<DateTime?>("PreOfferAppliedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("RejectReason")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -791,6 +794,9 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("AuctionItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("BidId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Note")
@@ -1828,11 +1834,16 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("WorkspaceId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("OwnerCompanyId");
 
                     b.HasIndex("RfiTemplateId");
+
+                    b.HasIndex("WorkspaceId");
 
                     b.ToTable("RfiProcesses", (string)null);
                 });
@@ -2164,6 +2175,9 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("WinningQuoteId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("WorkspaceId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CurrencyId");
@@ -2171,6 +2185,8 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.HasIndex("OwnerCompanyId");
 
                     b.HasIndex("WinningQuoteId");
+
+                    b.HasIndex("WorkspaceId");
 
                     b.ToTable("RfqProcesses", (string)null);
                 });
@@ -3024,6 +3040,11 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ProcureLive.Domain.Entities.Workspaces.Workspace", null)
+                        .WithMany()
+                        .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("OwnerCompany");
 
                     b.Navigation("RfiTemplate");
@@ -3168,6 +3189,11 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("WinningQuoteId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ProcureLive.Domain.Entities.Workspaces.Workspace", null)
+                        .WithMany()
+                        .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Currency");
 

@@ -388,6 +388,8 @@ export interface ParticipationRequestLineDto {
   unitPrice: number;
   lineTotal: number;
   note: string | null;
+  /** null: henüz işlenmedi · true: teklif oldu · false: mevcut en iyiyi geçmediği için atlandı. */
+  appliedAsBid: boolean | null;
 }
 
 /** Katılım talebi + ön teklif. isCompanyApproved: cari ihalenin işyerinde onaylı mı. */
@@ -410,6 +412,8 @@ export interface ParticipationRequestDto {
   decidedAt: string | null;
   rejectReason: string | null;
   lines: ParticipationRequestLineDto[];
+  /** Ön teklifin ihale canlıyken ilk teklif olarak işlendiği an (bir kez). */
+  preOfferAppliedAt: string | null;
 }
 
 /** Sarı alan (LookupField) seçim penceresi satırı: ID döner, Kodu/Adı gösterilir. */
@@ -703,6 +707,8 @@ export interface RfiProcessDto {
   /** Tedarikçi: Standart kota dolu ve davet kabul edilmemişse QuotaExceeded ("Plus alınız"). */
   accessLevel: AccessLevel;
   myInvitationStatus: string | null;
+  /** Yalnızca iç kullanıcıya dolu. */
+  workspaceName: string | null;
 }
 
 export interface RfiMyAnswerDto {
@@ -731,6 +737,9 @@ export interface RfiProcessDetailDto {
   /** İlk yanıt her üyeye; gönderilmiş yanıtın revizyonu yalnızca Plus'a ve açık süreçte. */
   canSubmit: boolean;
   myAnswers: RfiMyAnswerDto[] | null;
+  /** Yalnızca iç kullanıcıya dolu. */
+  workspaceId: string | null;
+  workspaceName: string | null;
 }
 
 export interface RfiResponseDto {
@@ -770,6 +779,8 @@ export interface RfqProcessDto {
   /** Tedarikçi: Standart kota dolu ve davet kabul edilmemişse QuotaExceeded ("Plus alınız"). */
   accessLevel: AccessLevel;
   myInvitationStatus: string | null;
+  /** Yalnızca iç kullanıcıya dolu. */
+  workspaceName: string | null;
 }
 
 export interface RfqLineItemDto {
@@ -799,6 +810,9 @@ export interface RfqProcessDetailDto {
   hasSubmitted: boolean;
   /** İlk yanıt her üyeye; gönderilmiş yanıtın revizyonu yalnızca Plus'a ve açık süreçte. */
   canSubmit: boolean;
+  /** Yalnızca iç kullanıcıya dolu. */
+  workspaceId: string | null;
+  workspaceName: string | null;
 }
 
 export interface RfqQuoteLineItemDto {

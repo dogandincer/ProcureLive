@@ -194,6 +194,12 @@ public static class MessageTranslator
         ["Sorumlu satınalmacı ihalenin işyerine yetkili, aktif bir iç kullanıcı olmalıdır."] = "The responsible buyer must be an active internal user authorized for the auction's workspace.",
         ["İhale Sorumluluğu"] = "Auction Responsibility",
 
+        // RFI/RFQ işyeri, ön teklif → ilk teklif
+        ["Seçilen işyeri sahip firmaya ait değil."] = "The selected workspace does not belong to the owner firm.",
+        ["Kapanmış sürecin işyeri değiştirilemez."] = "The workspace of a closed process cannot be changed.",
+        ["Ön Teklifiniz İşlendi"] = "Your Preliminary Offer Was Applied",
+        ["Ön Teklifler İşlendi"] = "Preliminary Offers Applied",
+
         // Cari / kendi kaydı / katılım talebi
         ["Firma tanımı Firma Tanım ekranından yapılır; Cari ekranı yalnızca tedarikçiler içindir."] = "Firms are defined on the Firm Definition screen; the Company screen is for suppliers only.",
         ["Geçerli bir kullanıcı e-postası girin."] = "Enter a valid user e-mail.",
@@ -352,6 +358,11 @@ public static class MessageTranslator
         // RespondToRfqInvitationCommandHandler
         (new Regex(@"^""([^""]+)"" ""([^""]+)"" RFQ süreci davetini (kabul etti|reddetti)\.(?: Gerekçe: (.+))?$"),
             m => RenderInvitationResponse(m, "RFQ process")),
+        (new Regex(@"^""([^""]+)"" ihalesinde ön teklifiniz (\d+) kalemde ilk teklif olarak işlendi\.(?: (\d+) kalem mevcut en iyi teklifi geçmediği için işlenmedi; canlı ihalede teklif verebilirsiniz\.)?$"),
+            m => $"Your preliminary offer was applied as your first bid on {m.Groups[2].Value} item(s) in auction \"{m.Groups[1].Value}\"."
+                + (m.Groups[3].Success ? $" {m.Groups[3].Value} item(s) did not beat the current best bid and were not applied; you can bid in the live auction." : "")),
+        (new Regex(@"^""([^""]+)"" ihalesinde (\d+) tedarikçinin ön teklifi ilk teklif olarak işlendi\.$"),
+            m => $"Preliminary offers of {m.Groups[2].Value} supplier(s) were applied as first bids in auction \"{m.Groups[1].Value}\"."),
         (new Regex(@"^""([^""]+)"" ihalesinin sorumlu satınalmacısı olarak atandınız; katılım talepleri size düşecek\.$"),
             m => $"You were assigned as the responsible buyer of auction \"{m.Groups[1].Value}\"; participation requests will come to you."),
 

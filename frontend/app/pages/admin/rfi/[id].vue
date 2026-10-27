@@ -97,6 +97,15 @@ onMounted(async () => {
         <p class="text-sm text-slate-500">
           {{ $t("rfi.detail.templateLabel") }}: {{ process.templateName }} · {{ $t("rfi.detail.statusLabel") }}: {{ $t(`enums.processStatus.${process.status}`) }}
         </p>
+        <ProcessWorkspace
+          kind="rfi"
+          :process-id="process.id"
+          :owner-company-id="process.ownerCompanyId"
+          :workspace-id="process.workspaceId"
+          :workspace-name="process.workspaceName"
+          :status="process.status"
+          @changed="load"
+        />
       </div>
       <AppButton v-if="!['Closed', 'Evaluated'].includes(process.status)" variant="secondary" @click="close">
         {{ $t("rfi.detail.closeProcess") }}

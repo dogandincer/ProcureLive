@@ -284,7 +284,8 @@ onBeforeUnmount(() => {
     <AuctionStatusPanel :auction-id="auctionId" :status="auction.status" :can-manage="isAdminRole()" @changed="load" />
 
     <!-- Davetsiz tedarikçilerin katılım talepleri: cari onayı → ön teklif kabulü / red -->
-    <ParticipationRequestsPanel v-if="auction.status !== 'Draft'" :auction-id="auctionId" @changed="load" />
+    <!-- Durum değişince (ör. canlıya geçişte ön teklifler teklife dönüşür) panel yeniden yüklenir. -->
+    <ParticipationRequestsPanel v-if="auction.status !== 'Draft'" :key="auction.status" :auction-id="auctionId" @changed="load" />
 
     <!-- ============================================================ -->
     <!-- EVALUATION MODE: Ended / Awarded                            -->

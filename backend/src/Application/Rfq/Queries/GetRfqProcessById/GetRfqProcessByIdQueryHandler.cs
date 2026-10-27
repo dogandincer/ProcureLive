@@ -54,10 +54,14 @@ public sealed class GetRfqProcessByIdQueryHandler : IRequestHandler<GetRfqProces
 
         if (isInternalUser || viewerCompanyId is not Guid companyId)
         {
+            string? workspaceName = process.WorkspaceId is Guid ws
+                ? await _context.Workspaces.Where(w => w.Id == ws).Select(w => w.Name).FirstOrDefaultAsync(cancellationToken)
+                : null;
             return new RfqProcessDetailDto(
                 process.Id, process.Title, process.OwnerCompanyId, process.OwnerCompany.Name,
                 process.CurrencyId, process.Currency.Code, process.Status.ToString(), process.DueDate,
-                process.WinningQuoteId, lineItems, invitations, IsOpen: isOpen);
+                process.WinningQuoteId, lineItems, invitations, IsOpen: isOpen,
+                WorkspaceId: process.WorkspaceId, WorkspaceName: workspaceName);
         }
 
         SupplierAccessContext access = await _accessService.GetContextAsync(companyId, cancellationToken);

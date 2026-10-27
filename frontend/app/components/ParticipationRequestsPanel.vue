@@ -125,6 +125,13 @@ defineExpose({ load });
                   <td class="py-1 text-slate-700">
                     {{ l.itemDescription }}
                     <span v-if="l.note" class="block text-[11px] text-slate-400">{{ l.note }}</span>
+                    <span
+                      v-if="l.appliedAsBid !== null"
+                      class="mt-0.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-medium"
+                      :class="l.appliedAsBid ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'"
+                    >
+                      {{ l.appliedAsBid ? $t("participation.panel.applied") : $t("participation.panel.skipped") }}
+                    </span>
                   </td>
                   <td class="py-1 text-right text-slate-500">{{ l.quantity }} {{ $t(`enums.unitOfMeasure.${l.unitOfMeasure}`) }}</td>
                   <td class="py-1 text-right font-mono">{{ money(l.unitPrice) }}</td>
@@ -138,6 +145,9 @@ defineExpose({ load });
             </table>
           </div>
           <p v-if="r.note" class="rounded bg-slate-50 px-2 py-1.5 text-xs text-slate-600">“{{ r.note }}”</p>
+          <p v-if="r.status === 'Accepted'" class="text-xs" :class="r.preOfferAppliedAt ? 'text-emerald-700' : 'text-indigo-700'">
+            {{ r.preOfferAppliedAt ? $t("participation.panel.appliedAt", { date: formatDateTime(r.preOfferAppliedAt) }) : $t("participation.panel.willApply") }}
+          </p>
           <p v-if="r.status === 'Rejected' && r.rejectReason" class="text-xs text-rose-600">{{ $t("participation.panel.rejectReason") }}: {{ r.rejectReason }}</p>
 
           <div v-if="r.status === 'Pending' || r.status === 'CompanyApproved'" class="flex flex-wrap gap-2">

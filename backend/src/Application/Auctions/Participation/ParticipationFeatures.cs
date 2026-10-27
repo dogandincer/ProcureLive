@@ -47,6 +47,7 @@ public static class ParticipationRules
                 r.CompanyApprovedAt,
                 r.DecidedAt,
                 r.RejectReason,
+                r.PreOfferAppliedAt,
                 Lines = r.Lines.Select(l => new
                 {
                     l.AuctionItemId,
@@ -56,6 +57,7 @@ public static class ParticipationRules
                     l.AuctionItem.SortOrder,
                     l.UnitPrice,
                     l.Note,
+                    l.BidId,
                 }).ToList(),
             })
             .ToListAsync(ct);
@@ -70,13 +72,15 @@ public static class ParticipationRules
                 .OrderBy(l => l.SortOrder)
                 .Select(l => new ParticipationRequestLineDto(
                     l.AuctionItemId, l.Description, l.Quantity, l.UnitOfMeasure.ToString(), l.UnitPrice,
-                    Math.Round(l.UnitPrice * l.Quantity, 2), l.Note))
+                    Math.Round(l.UnitPrice * l.Quantity, 2), l.Note,
+                    r.PreOfferAppliedAt is null ? null : l.BidId is not null))
                 .ToList();
 
             return new ParticipationRequestDto(
                 r.Id, r.AuctionId, r.AuctionTitle, r.CompanyId, r.CompanyName, r.CompanyCode, r.TaxNumber,
                 r.CompanyStatus.ToString(), approved, r.Status.ToString(), r.Note, r.CurrencyCode,
-                lines.Sum(l => l.LineTotal), r.CreatedAt, r.CompanyApprovedAt, r.DecidedAt, r.RejectReason, lines);
+                lines.Sum(l => l.LineTotal), r.CreatedAt, r.CompanyApprovedAt, r.DecidedAt, r.RejectReason, lines,
+                r.PreOfferAppliedAt);
         }).ToList();
     }
 
@@ -322,16 +326,18 @@ public sealed class AcceptParticipationRequestCommandHandler : IRequestHandler<A
     private readonly ISupplierAccessService _accessService;
     private readonly INotificationRealtimeService _realtime;
     private readonly IDateTime _dateTime;
+    private readonly PreOfferBidService _preOffers;
 
     public AcceptParticipationRequestCommandHandler(
         IApplicationDbContext context, ICurrentUserService currentUser, ISupplierAccessService accessService,
-        INotificationRealtimeService realtime, IDateTime dateTime)
+        INotificationRealtimeService realtime, IDateTime dateTime, PreOfferBidService preOffers)
     {
         _context = context;
         _currentUser = currentUser;
         _accessService = accessService;
         _realtime = realtime;
         _dateTime = dateTime;
+        _preOffers = preOffers;
     }
 
     public async Task Handle(AcceptParticipationRequestCommand request, CancellationToken cancellationToken)
@@ -402,6 +408,12 @@ public sealed class AcceptParticipationRequestCommandHandler : IRequestHandler<A
             "Katılımcı Eklendi",
             $"\"{participation.Company.Name}\" ön teklifi kabul edilerek \"{auction.Title}\" ihalesine dahil edildi.",
             cancellationToken);
+
+        // İhale zaten canlıysa ön teklif hemen ilk teklif olur; değilse canlıya geçişte işlenir.
+        if (auction.Status == AuctionStatus.Live)
+        {
+            await _preOffers.ApplyAsync(auction.Id, cancellationToken);
+        }
     }
 }
 

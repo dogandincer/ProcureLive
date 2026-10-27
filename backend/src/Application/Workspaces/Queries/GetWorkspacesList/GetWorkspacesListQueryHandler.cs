@@ -2,16 +2,19 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Contracts.Workspaces;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Workspaces.Queries.GetWorkspacesList;
 
 public sealed class GetWorkspacesListQueryHandler : IRequestHandler<GetWorkspacesListQuery, List<WorkspaceDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IDataScopeService _scope;
 
-    public GetWorkspacesListQueryHandler(IApplicationDbContext context)
+    public GetWorkspacesListQueryHandler(IApplicationDbContext context, IDataScopeService scope)
     {
         _context = context;
+        _scope = scope;
     }
 
     public async Task<List<WorkspaceDto>> Handle(GetWorkspacesListQuery request, CancellationToken cancellationToken)
@@ -21,6 +24,14 @@ public sealed class GetWorkspacesListQueryHandler : IRequestHandler<GetWorkspace
         if (request.ActiveOnly == true)
         {
             query = query.Where(w => w.IsActive);
+        }
+
+        // Satınalmacı yalnızca kendisine atanan işyerlerini görür.
+        DataScope scope = await _scope.GetAsync(cancellationToken);
+        if (!scope.IsUnrestricted)
+        {
+            List<Guid> allowed = scope.WorkspaceIds.ToList();
+            query = query.Where(w => allowed.Contains(w.Id));
         }
 
         if (request.FirmId is Guid firmId)

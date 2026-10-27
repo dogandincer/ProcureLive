@@ -2188,6 +2188,34 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.ToTable("CompanySubscriptions", (string)null);
                 });
 
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Workspaces.UserWorkspaceAccess", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("GrantedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("GrantedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("WorkspaceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkspaceId");
+
+                    b.HasIndex("UserId", "WorkspaceId")
+                        .IsUnique();
+
+                    b.ToTable("UserWorkspaceAccesses", (string)null);
+                });
+
             modelBuilder.Entity("ProcureLive.Domain.Entities.Workspaces.Workspace", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2295,6 +2323,9 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("LockedOutAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -3032,6 +3063,23 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Workspaces.UserWorkspaceAccess", b =>
+                {
+                    b.HasOne("ProcureLive.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProcureLive.Domain.Entities.Workspaces.Workspace", "Workspace")
+                        .WithMany()
+                        .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Workspaces.Workspace", b =>

@@ -15,6 +15,19 @@ public static class FirmRules
     public static IQueryable<Company> Firms(IApplicationDbContext context) =>
         context.Companies.Where(c => c.CompanyType == CompanyType.Internal);
 
+    /// <summary>Kullanılmamış ilk "FIRMA-###" kodu (silinmiş kayıtlar dahil hiçbir kodla çakışmaz).</summary>
+    public static async Task<string> NextCodeAsync(IApplicationDbContext context, CancellationToken ct)
+    {
+        HashSet<string> used = (await context.Companies.IgnoreQueryFilters()
+            .Where(c => c.Code != null && c.Code.StartsWith("FIRMA-"))
+            .Select(c => c.Code!)
+            .ToListAsync(ct)).ToHashSet();
+
+        int n = 1;
+        while (used.Contains($"FIRMA-{n:000}")) n++;
+        return $"FIRMA-{n:000}";
+    }
+
     public static BrandingDto Branding(Company? defaultFirm)
     {
         string suffix = string.IsNullOrWhiteSpace(defaultFirm?.AppTitleSuffix) ? DefaultSuffix : defaultFirm!.AppTitleSuffix!.Trim();

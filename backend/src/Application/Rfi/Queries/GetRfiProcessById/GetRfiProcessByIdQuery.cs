@@ -6,8 +6,10 @@ using ProcureLive.Contracts.Rfi;
 
 namespace ProcureLive.Application.Rfi.Queries.GetRfiProcessById;
 
-public sealed record GetRfiProcessByIdQuery(Guid Id) : IRequest<RfiProcessDetailDto>, IRequireResourceAuthorization
+public sealed record GetRfiProcessByIdQuery(Guid Id) : IRequest<RfiProcessDetailDto>, IRequireResourceAuthorization, IRfiScopedRequest
 {
+    Guid IRfiScopedRequest.RfiProcessId => Id;
+
     public string PolicyName => Policies.RfiProcessAccess;
 
     public async Task<object?> LoadResourceAsync(IApplicationDbContext context, CancellationToken cancellationToken)

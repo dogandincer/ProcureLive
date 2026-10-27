@@ -6,6 +6,7 @@ using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Contracts.Catalog;
 using ProcureLive.Contracts.Common;
 using ProcureLive.Domain.Entities.Catalog;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Catalog.Products.Queries.GetProductsList;
 
@@ -13,16 +14,25 @@ public sealed class GetProductsListQueryHandler : IRequestHandler<GetProductsLis
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
+    private readonly IDataScopeService _scope;
 
-    public GetProductsListQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetProductsListQueryHandler(IApplicationDbContext context, IMapper mapper, IDataScopeService scope)
     {
         _context = context;
         _mapper = mapper;
+        _scope = scope;
     }
 
     public async Task<PagedResult<ProductDto>> Handle(GetProductsListQuery request, CancellationToken cancellationToken)
     {
         IQueryable<Product> query = _context.Products.AsQueryable();
+
+        DataScope scope = await _scope.GetAsync(cancellationToken);
+        if (!scope.IsUnrestricted)
+        {
+            List<Guid> workspaceIds = scope.WorkspaceIds.ToList();
+            query = query.Where(p => p.WorkspaceId.HasValue && workspaceIds.Contains(p.WorkspaceId.Value));
+        }
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {

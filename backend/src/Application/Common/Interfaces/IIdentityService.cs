@@ -33,10 +33,20 @@ public interface IIdentityService
 
     Task<bool> SetActiveAsync(Guid userId, bool isActive, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Hatalı şifre denemesini sayar; deneme sayısı <paramref name="maxFailedAttempts"/>'ı aşarsa hesabı pasife alır ve
+    /// true döner. Son aktif Admin hiçbir zaman otomatik pasife alınmaz (sistem yöneticisiz kalmasın).
+    /// </summary>
+    Task<bool> RegisterFailedLoginAsync(Guid userId, DateTime utcNow, int maxFailedAttempts, CancellationToken cancellationToken);
+
+    Task ResetFailedLoginsAsync(Guid userId, CancellationToken cancellationToken);
+
+    /// <summary><paramref name="roles"/> verilirse yalnızca bu rollerden en az birine sahip kullanıcılar listelenir.</summary>
     Task<PagedResult<ApplicationUserInfo>> ListUsersAsync(
         string? searchTerm,
         Guid? companyId,
         int page,
         int pageSize,
+        IReadOnlyCollection<string>? roles,
         CancellationToken cancellationToken);
 }

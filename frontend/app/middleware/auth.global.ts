@@ -30,8 +30,9 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo(homePathForRole());
   }
 
-  // Firma ve İşyeri tanım ekranları yalnızca Admin'e açık (sunucu da RequireAdmin ile korur).
-  if ((to.path.startsWith("/admin/firms") || to.path.startsWith("/admin/workspaces")) && !isAdminRole()) {
+  // Firma, İşyeri, Kullanıcı Tanım ve Yetki ekranları yalnızca Admin'e açık (sunucu da RequireAdmin ile korur).
+  const adminOnly = ["/admin/firms", "/admin/workspaces", "/admin/users", "/admin/permissions"];
+  if (adminOnly.some((p) => to.path.startsWith(p)) && !isAdminRole()) {
     return navigateTo("/admin");
   }
 

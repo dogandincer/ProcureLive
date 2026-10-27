@@ -9,7 +9,8 @@ public sealed record ApplicationUserInfo(
     Guid? CompanyId,
     bool IsActive,
     DateTime? LastLoginAt,
-    IReadOnlyCollection<string> Roles);
+    IReadOnlyCollection<string> Roles,
+    DateTime? LockedOutAt = null);
 
 public sealed record IdentityOperationResult(bool Succeeded, Guid? UserId, IReadOnlyCollection<string> Errors)
 {

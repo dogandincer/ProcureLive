@@ -251,6 +251,8 @@ export interface UserDto {
   companyId: string | null;
   isActive: boolean;
   lastLoginAt: string | null;
+  /** Art arda 3'ten fazla hatalı şifre nedeniyle otomatik pasife alındığı an. */
+  lockedOutAt: string | null;
 }
 
 export interface AuctionDto {

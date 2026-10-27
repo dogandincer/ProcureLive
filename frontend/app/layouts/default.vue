@@ -26,6 +26,7 @@ import {
   BuildingOffice2Icon,
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
+  ShieldCheckIcon,
 } from "@heroicons/vue/24/outline";
 import type { FirmDto, WorkspaceDto } from "~/types/api";
 
@@ -105,7 +106,8 @@ const adminSections: NavSection[] = [
       { to: "/admin/workspaces", labelKey: "nav.workspaces", icon: BuildingOfficeIcon, adminOnly: true },
       { to: "/admin/companies", labelKey: "nav.companies", icon: BuildingOfficeIcon },
       { to: "/admin/supplier-scoreboard", labelKey: "nav.scoreboard", icon: StarIcon },
-      { to: "/admin/users", labelKey: "nav.users", icon: UsersIcon },
+      { to: "/admin/users", labelKey: "nav.users", icon: UsersIcon, adminOnly: true },
+      { to: "/admin/permissions", labelKey: "nav.permissions", icon: ShieldCheckIcon, adminOnly: true },
     ],
   },
   {
@@ -426,9 +428,9 @@ onMounted(async () => {
               <BuildingOffice2Icon v-if="setupGate === 'firm'" class="h-6 w-6 text-indigo-600" />
               <BuildingOfficeIcon v-else class="h-6 w-6 text-indigo-600" />
             </div>
-            <h2 class="text-lg font-bold text-slate-800">{{ $t(`workspaceGate.${setupGate}.title`) }}</h2>
+            <h2 class="text-lg font-bold text-slate-800">{{ isAdminRole() ? $t(`workspaceGate.${setupGate}.title`) : $t("workspaceGate.noAccessTitle") }}</h2>
             <p class="mt-2 text-sm text-slate-500">
-              {{ isAdminRole() ? $t(`workspaceGate.${setupGate}.message`) : $t("workspaceGate.askAdmin") }}
+              {{ isAdminRole() ? $t(`workspaceGate.${setupGate}.message`) : $t("workspaceGate.noAccess") }}
             </p>
             <NuxtLink
               v-if="isAdminRole()"

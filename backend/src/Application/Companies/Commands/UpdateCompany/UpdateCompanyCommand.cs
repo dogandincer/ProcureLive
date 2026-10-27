@@ -18,8 +18,10 @@ public sealed record UpdateCompanyCommand(
     string? Email = null,
     int? FoundationYear = null,
     int? EmployeeCount = null,
-    string? Description = null) : IRequest, IRequireResourceAuthorization
+    string? Description = null) : IRequest, IRequireResourceAuthorization, ICompanyScopedRequest
 {
+    Guid ICompanyScopedRequest.CompanyId => Id;
+
     public string PolicyName => Policies.CompanyAccess;
 
     public async Task<object?> LoadResourceAsync(IApplicationDbContext context, CancellationToken cancellationToken)

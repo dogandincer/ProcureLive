@@ -1,5 +1,6 @@
 using MediatR;
 using ProcureLive.Domain.Enums;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Companies.Commands.AddAddress;
 
@@ -11,4 +12,4 @@ public sealed record AddAddressCommand(
     string? District,
     string? PostalCode,
     string Line1,
-    string? Line2) : IRequest<Guid>;
+    string? Line2) : IRequest<Guid>, ICompanyScopedRequest;

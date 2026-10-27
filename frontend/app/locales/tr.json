@@ -38,7 +38,7 @@
     "supplyChainGroup": "Tedarik Zinciri",
     "companies": "Cariler",
     "scoreboard": "Değerlendirme Panosu",
-    "users": "Kullanıcılar",
+    "users": "Kullanıcı Tanım",
     "catalogGroup": "Katalog",
     "products": "Stok / Ürünler",
     "categories": "Kategoriler",
@@ -63,7 +63,8 @@
     "firms": "Firmalar",
     "collapse": "Menüyü daralt",
     "expand": "Menüyü genişlet",
-    "toggleMenu": "Menü"
+    "toggleMenu": "Menü",
+    "permissions": "Yetkiler"
   },
   "language": {
     "label": "Dil",
@@ -739,24 +740,27 @@
     }
   },
   "users": {
-    "title": "Kullanıcılar",
-    "new": "+ Yeni Kullanıcı",
+    "title": "Kullanıcı Tanım",
+    "new": "Yeni Kullanıcı",
     "form": {
       "email": "E-posta",
       "password": "Şifre",
       "firstName": "Ad",
       "lastName": "Soyad",
-      "selectCompany": "Cari seç..."
+      "selectCompany": "Cari seç...",
+      "buyerAccessHint": "Satınalmacılar yalnızca Yetkiler ekranında kendilerine atanan firma ve işyerlerini görür; Admin tüm firmalara yetkilidir."
     },
     "table": {
       "email": "E-posta",
       "fullName": "Ad Soyad",
       "company": "Cari",
-      "role": "Rol"
+      "role": "Rol",
+      "name": "Ad Soyad / E-posta",
+      "lastLogin": "Son Giriş"
     },
-    "deactivate": "Devre Dışı Bırak",
-    "activate": "Etkinleştir",
-    "empty": "Henüz kullanıcı yok",
+    "deactivate": "Pasife Al",
+    "activate": "Aktifleştir",
+    "empty": "Henüz iç kullanıcı yok.",
     "loadError": "Kayıtlar yüklenemedi.",
     "createError": "Kullanıcı oluşturulamadı.",
     "roleUpdateError": "Rol güncellenemedi.",
@@ -771,8 +775,15 @@
       "role": "Rol",
       "company": "Cari",
       "companyHint": "Rol Supplier ise zorunlu - mevcut bir Cari adı",
-      "companyNotFound": "Cari bulunamadı: \"{name}\""
-    }
+      "companyNotFound": "Cari bulunamadı: \"{name}\"",
+      "internalRoleOnly": "Bu ekrandan yalnızca {roles} rolü tanımlanabilir."
+    },
+    "subtitle": "Şirket içi hesaplar (Admin ve Satınalmacı). Tedarikçi hesapları Cari ekranından yönetilir. Art arda 3'ten fazla hatalı şifre giren hesap otomatik pasife alınır.",
+    "unlock": "Kilidi Aç",
+    "unlocked": "Hesabın kilidi açıldı.",
+    "locked": "Kilitli",
+    "lockedHint": "Art arda 3'ten fazla hatalı şifre nedeniyle {date} tarihinde pasife alındı.",
+    "permissions": "Yetkiler"
   },
   "rfi": {
     "title": "RFI (Bilgi Talebi)",
@@ -1070,7 +1081,8 @@
       "message": "Cari, ürün ve ihale işlemleri işyeri bazlıdır. Devam etmek için firmanıza bağlı en az bir işyeri tanımlayın.",
       "cta": "İşyeri Tanımla"
     },
-    "askAdmin": "Firma ve işyeri tanımlarını Admin yapar. Lütfen sistem yöneticinize başvurun."
+    "noAccessTitle": "Henüz yetkiniz yok",
+    "noAccess": "Size henüz bir firma veya işyeri yetkisi verilmemiş. Yetki tanımı için sistem yöneticinize başvurun."
   },
   "tender": {
     "pool": {
@@ -1560,5 +1572,50 @@
       "workspaces": "İşyeri",
       "default": "Varsayılan"
     }
+  },
+  "permissions": {
+    "title": "Yetkiler",
+    "subtitle": "Rollerin neler yapabildiği ve Satınalmacılara verilen firma/işyeri yetkileri. Yetkiler sunucuda her istekte ayrıca uygulanır.",
+    "matrixTitle": "Rol Yetki Matrisi",
+    "capability": "Yetki",
+    "roles": {
+      "admin": "Admin",
+      "buyer": "Satınalmacı",
+      "supplier": "Tedarikçi",
+      "plus": "Tedarikçi Plus"
+    },
+    "rows": {
+      "defineFirms": "Firma ve işyeri tanımlama",
+      "manageUsers": "Kullanıcı tanımlama ve yetki dağıtma",
+      "scope": "Görebildiği firma / işyerleri",
+      "manageTenders": "İhale, RFI ve RFQ açma ve yönetme",
+      "changeStatus": "İhale durumunu değiştirme (başlat, duraklat, iptal...)",
+      "manageSuppliers": "Cari (tedarikçi) yönetimi",
+      "seeTenders": "Görebildiği ihaleler",
+      "joinQuota": "İhale katılım hakkı",
+      "search": "Detaylı arama"
+    },
+    "cell": {
+      "all": "Tümü",
+      "assigned": "Atananlar",
+      "assignedFirms": "Atanan firmalar",
+      "assignedWorkspaces": "Atanan işyerleri",
+      "invited": "Davet edildikleri + davet eden firmanın açık ihaleleri",
+      "invitedPlusListed": "Ek olarak listelemeye açık tüm açık ihaleler",
+      "twoTenders": "En fazla 2",
+      "unlimited": "Sınırsız"
+    },
+    "buyersTitle": "Satınalmacılar",
+    "searchBuyer": "Ad veya e-posta ile ara...",
+    "noBuyers": "Satınalmacı kullanıcı yok. Kullanıcı Tanım ekranından ekleyin.",
+    "accessTitle": "Firma / İşyeri Yetkileri",
+    "accessFor": "{name} — Firma / İşyeri Yetkileri",
+    "pickBuyer": "Yetki vermek için soldan bir satınalmacı seçin.",
+    "treeHint": "Firmayı işaretlemek tüm işyerlerini verir; işyerleri tek tek de seçilebilir. Satınalmacı yalnızca seçilen işyerlerini ve bu işyerlerinin firmalarını görür.",
+    "noWorkspaces": "Bu firmanın işyeri yok.",
+    "saved": "Yetkiler kaydedildi.",
+    "saveError": "Yetkiler kaydedilemedi.",
+    "loadError": "Yetkiler yüklenemedi.",
+    "discardConfirm": "Kaydedilmemiş değişiklikler var. Vazgeçilsin mi?"
   }
 }

@@ -1,5 +1,6 @@
 using MediatR;
 using ProcureLive.Domain.Enums;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Auctions.Commands.AddAuctionItem;
 
@@ -10,4 +11,4 @@ public sealed record AddAuctionItemCommand(
     decimal Quantity,
     UnitOfMeasure UnitOfMeasure,
     decimal? TargetPrice,
-    int SortOrder) : IRequest<Guid>;
+    int SortOrder) : IRequest<Guid>, IAuctionScopedRequest;

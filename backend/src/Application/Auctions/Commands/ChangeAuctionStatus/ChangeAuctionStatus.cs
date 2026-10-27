@@ -2,11 +2,12 @@ using FluentValidation;
 using MediatR;
 using ProcureLive.Application.Auctions.Status;
 using ProcureLive.Domain.Enums;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Auctions.Commands.ChangeAuctionStatus;
 
 public sealed record ChangeAuctionStatusCommand(
-    Guid AuctionId, AuctionStatus TargetStatus, string? Reason, DateTime? NewStartAt, DateTime? NewEndAt) : IRequest;
+    Guid AuctionId, AuctionStatus TargetStatus, string? Reason, DateTime? NewStartAt, DateTime? NewEndAt) : IRequest, IAuctionScopedRequest;
 
 public sealed class ChangeAuctionStatusCommandValidator : AbstractValidator<ChangeAuctionStatusCommand>
 {

@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProcureLive.Application.Common.Security;
+using ProcureLive.Application.Users.Access;
 using ProcureLive.Application.Users.Commands.ActivateUser;
 using ProcureLive.Application.Users.Commands.AssignRoles;
 using ProcureLive.Application.Users.Commands.DeactivateUser;
@@ -28,12 +29,13 @@ public sealed class UsersController : ControllerBase
     public async Task<ActionResult<PagedResult<UserDto>>> GetList(
         [FromQuery] string? searchTerm,
         [FromQuery] Guid? companyId,
+        [FromQuery] string? kind,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
         PagedResult<UserDto> result = await _sender.Send(
-            new GetUsersListQuery(searchTerm, companyId, page, pageSize), cancellationToken);
+            new GetUsersListQuery(searchTerm, companyId, page, pageSize, kind), cancellationToken);
 
         return Ok(result);
     }
@@ -53,6 +55,23 @@ public sealed class UsersController : ControllerBase
     public async Task<IActionResult> AssignRoles(Guid id, AssignRolesRequest request, CancellationToken cancellationToken)
     {
         await _sender.Send(new AssignRolesCommand(id, request.Roles), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Satınalmacının işyeri (dolayısıyla firma) yetkileri — Yetki ekranı.</summary>
+    [HttpGet("{id:guid}/workspace-access")]
+    [Authorize(Policy = Policies.RequireAdmin)]
+    public async Task<ActionResult<UserWorkspaceAccessDto>> GetWorkspaceAccess(Guid id, CancellationToken cancellationToken)
+    {
+        UserWorkspaceAccessDto result = await _sender.Send(new GetUserWorkspaceAccessQuery(id), cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPut("{id:guid}/workspace-access")]
+    [Authorize(Policy = Policies.RequireAdmin)]
+    public async Task<IActionResult> SetWorkspaceAccess(Guid id, SetUserWorkspaceAccessRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new SetUserWorkspaceAccessCommand(id, request.WorkspaceIds), cancellationToken);
         return NoContent();
     }
 

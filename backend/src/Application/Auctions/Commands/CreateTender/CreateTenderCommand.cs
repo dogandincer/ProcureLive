@@ -1,5 +1,6 @@
 using MediatR;
 using ProcureLive.Domain.Enums;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Auctions.Commands.CreateTender;
 
@@ -27,7 +28,7 @@ public sealed record CreateTenderCommand(
     IReadOnlyCollection<TenderLineInput> Lines,
     IReadOnlyCollection<Guid> VendorIds,
     IReadOnlyCollection<TenderAttachmentInput> Attachments,
-    bool IsListedForPlus = false) : IRequest<Guid>;
+    bool IsListedForPlus = false) : IRequest<Guid>, IOwnerFirmScopedRequest;
 
 public sealed record TenderLineInput(
     Guid? ProductId,

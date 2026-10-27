@@ -18,6 +18,7 @@ public static class DependencyInjection
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnhandledExceptionBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ScopeAuthorizationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
         services.AddAutoMapper(assembly);
@@ -25,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<Common.Interfaces.ISubscriptionService, Subscriptions.SubscriptionService>();
         services.AddScoped<Common.Interfaces.ISupplierAccessService, Common.Security.SupplierAccessService>();
         services.AddScoped<Auctions.Status.AuctionStatusService>();
+        services.AddScoped<Common.Security.IDataScopeService, Common.Security.DataScopeService>();
 
         return services;
     }

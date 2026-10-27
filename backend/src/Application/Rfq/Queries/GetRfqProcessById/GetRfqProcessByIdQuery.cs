@@ -6,8 +6,10 @@ using ProcureLive.Contracts.Rfq;
 
 namespace ProcureLive.Application.Rfq.Queries.GetRfqProcessById;
 
-public sealed record GetRfqProcessByIdQuery(Guid Id) : IRequest<RfqProcessDetailDto>, IRequireResourceAuthorization
+public sealed record GetRfqProcessByIdQuery(Guid Id) : IRequest<RfqProcessDetailDto>, IRequireResourceAuthorization, IRfqScopedRequest
 {
+    Guid IRfqScopedRequest.RfqProcessId => Id;
+
     public string PolicyName => Policies.RfqProcessAccess;
 
     public async Task<object?> LoadResourceAsync(IApplicationDbContext context, CancellationToken cancellationToken)

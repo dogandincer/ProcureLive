@@ -120,6 +120,45 @@ public sealed class IdentityService : IIdentityService
         return result.Succeeded;
     }
 
+    public async Task<bool> RegisterFailedLoginAsync(Guid userId, DateTime utcNow, int maxFailedAttempts, CancellationToken cancellationToken)
+    {
+        ApplicationUser? user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null || !user.IsActive)
+        {
+            return false;
+        }
+
+        user.AccessFailedCount++;
+        bool deactivate = user.AccessFailedCount > maxFailedAttempts;
+
+        if (deactivate && await _userManager.IsInRoleAsync(user, Application.Common.Security.Roles.Admin))
+        {
+            // Son aktif Admin kilitlenirse kimse hesapları yeniden açamaz: bu durumda yalnızca sayaç tutulur.
+            IList<ApplicationUser> admins = await _userManager.GetUsersInRoleAsync(Application.Common.Security.Roles.Admin);
+            deactivate = admins.Count(a => a.IsActive && a.Id != user.Id) > 0;
+        }
+
+        if (deactivate)
+        {
+            user.IsActive = false;
+            user.LockedOutAt = utcNow;
+            user.AccessFailedCount = 0;
+        }
+
+        await _userManager.UpdateAsync(user);
+        return deactivate;
+    }
+
+    public async Task ResetFailedLoginsAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        ApplicationUser? user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is not null && user.AccessFailedCount != 0)
+        {
+            user.AccessFailedCount = 0;
+            await _userManager.UpdateAsync(user);
+        }
+    }
+
     public async Task<bool> SetActiveAsync(Guid userId, bool isActive, CancellationToken cancellationToken)
     {
         ApplicationUser? user = await _userManager.FindByIdAsync(userId.ToString());
@@ -130,6 +169,13 @@ public sealed class IdentityService : IIdentityService
         }
 
         user.IsActive = isActive;
+        if (isActive)
+        {
+            // Admin yeniden aktifleştirince hatalı giriş sayacı ve kilit kaydı sıfırlanır.
+            user.LockedOutAt = null;
+            user.AccessFailedCount = 0;
+        }
+
         IdentityResult result = await _userManager.UpdateAsync(user);
         return result.Succeeded;
     }
@@ -139,9 +185,24 @@ public sealed class IdentityService : IIdentityService
         Guid? companyId,
         int page,
         int pageSize,
+        IReadOnlyCollection<string>? roles,
         CancellationToken cancellationToken)
     {
         IQueryable<ApplicationUser> query = _userManager.Users.AsQueryable();
+
+        if (roles is { Count: > 0 })
+        {
+            var ids = new HashSet<Guid>();
+            foreach (string role in roles)
+            {
+                foreach (ApplicationUser u in await _userManager.GetUsersInRoleAsync(role))
+                {
+                    ids.Add(u.Id);
+                }
+            }
+
+            query = query.Where(u => ids.Contains(u.Id));
+        }
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
@@ -185,6 +246,7 @@ public sealed class IdentityService : IIdentityService
             user.CompanyId,
             user.IsActive,
             user.LastLoginAt,
-            roles.ToArray());
+            roles.ToArray(),
+            user.LockedOutAt);
     }
 }

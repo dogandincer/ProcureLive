@@ -9,6 +9,9 @@ namespace ProcureLive.Application.Auth.Commands.Login;
 
 public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResultDto>
 {
+    /// <summary>"Şifresini 3'ten fazla [hatalı] giren kullanıcı pasife alınır" → 4. hatalı denemede.</summary>
+    public const int MaxFailedAttempts = 3;
+
     private readonly IIdentityService _identityService;
     private readonly ITokenService _tokenService;
     private readonly IApplicationDbContext _context;
@@ -30,7 +33,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResu
     {
         ApplicationUserInfo? user = await _identityService.FindByEmailAsync(request.Email, cancellationToken);
 
-        if (user is null || !user.IsActive)
+        if (user is null)
         {
             throw new ForbiddenAccessException("E-posta veya şifre hatalı.");
         }
@@ -39,8 +42,29 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResu
 
         if (!passwordValid)
         {
+            // Art arda 3'ten fazla hatalı şifre → hesap pasife alınır. Kilit mesajı yalnızca doğru şifreden
+            // sonra gösterilir; yanlış denemeler hesabın varlığını/durumunu ele vermez.
+            if (user.IsActive)
+            {
+                await _identityService.RegisterFailedLoginAsync(user.Id, _dateTime.UtcNow, MaxFailedAttempts, cancellationToken);
+            }
+
             throw new ForbiddenAccessException("E-posta veya şifre hatalı.");
         }
+
+        if (!user.IsActive)
+        {
+            if (user.LockedOutAt is not null)
+            {
+                throw new ForbiddenAccessException(
+                    "Hesabınız art arda 3'ten fazla hatalı şifre girildiği için pasife alındı. Yöneticinize başvurun.",
+                    ErrorCodes.AccountLocked);
+            }
+
+            throw new ForbiddenAccessException("E-posta veya şifre hatalı.");
+        }
+
+        await _identityService.ResetFailedLoginsAsync(user.Id, cancellationToken);
 
         (string accessToken, DateTime expiresAt) = _tokenService.GenerateAccessToken(user);
         string refreshTokenValue = _tokenService.GenerateRefreshToken();

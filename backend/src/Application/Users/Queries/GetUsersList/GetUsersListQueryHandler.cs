@@ -1,6 +1,7 @@
 using MediatR;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Models;
+using ProcureLive.Application.Common.Security;
 using ProcureLive.Contracts.Common;
 using ProcureLive.Contracts.Users;
 
@@ -20,15 +21,23 @@ public sealed class GetUsersListQueryHandler : IRequestHandler<GetUsersListQuery
         int page = request.Page < 1 ? 1 : request.Page;
         int pageSize = request.PageSize < 1 ? 20 : request.PageSize;
 
+        string[]? roles = request.Kind?.ToLowerInvariant() switch
+        {
+            "internal" => [Roles.Admin, Roles.Buyer],
+            "supplier" => [Roles.Supplier],
+            _ => null,
+        };
+
         PagedResult<ApplicationUserInfo> result = await _identityService.ListUsersAsync(
             request.SearchTerm,
             request.CompanyId,
             page,
             pageSize,
+            roles,
             cancellationToken);
 
         List<UserDto> items = result.Items
-            .Select(u => new UserDto(u.Id, u.Email, u.FirstName, u.LastName, u.Roles, u.CompanyId, u.IsActive, u.LastLoginAt))
+            .Select(u => new UserDto(u.Id, u.Email, u.FirstName, u.LastName, u.Roles, u.CompanyId, u.IsActive, u.LastLoginAt, u.LockedOutAt))
             .ToList();
 
         return new PagedResult<UserDto>(items, result.TotalCount, result.Page, result.PageSize);

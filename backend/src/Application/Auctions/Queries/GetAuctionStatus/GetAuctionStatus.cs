@@ -6,11 +6,12 @@ using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Contracts.Auctions;
 using ProcureLive.Domain.Entities.Auctions;
 using ProcureLive.Domain.Enums;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Auctions.Queries.GetAuctionStatus;
 
 /// <summary>Durum yönetimi paneli: mevcut durum, şu an yapılabilecek geçişler ve tüm durum geçmişi.</summary>
-public sealed record GetAuctionStatusQuery(Guid AuctionId) : IRequest<AuctionStatusPanelDto>;
+public sealed record GetAuctionStatusQuery(Guid AuctionId) : IRequest<AuctionStatusPanelDto>, IAuctionScopedRequest;
 
 public sealed class GetAuctionStatusQueryHandler : IRequestHandler<GetAuctionStatusQuery, AuctionStatusPanelDto>
 {

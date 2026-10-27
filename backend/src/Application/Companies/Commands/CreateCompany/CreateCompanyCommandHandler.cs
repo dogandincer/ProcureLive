@@ -9,11 +9,13 @@ public sealed class CreateCompanyCommandHandler : IRequestHandler<CreateCompanyC
 {
     private readonly ICompanyRepository _companyRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IApplicationDbContext _context;
 
-    public CreateCompanyCommandHandler(ICompanyRepository companyRepository, IUnitOfWork unitOfWork)
+    public CreateCompanyCommandHandler(ICompanyRepository companyRepository, IUnitOfWork unitOfWork, IApplicationDbContext context)
     {
         _companyRepository = companyRepository;
         _unitOfWork = unitOfWork;
+        _context = context;
     }
 
     public async Task<Guid> Handle(CreateCompanyCommand request, CancellationToken cancellationToken)
@@ -35,6 +37,12 @@ public sealed class CreateCompanyCommandHandler : IRequestHandler<CreateCompanyC
             Description = request.Description,
             Status = CompanyStatus.PendingApproval
         };
+
+        // Internal cari = Firma; firmalarda kod zorunlu olduğundan bu yoldan açılan firmaya da kod üretilir.
+        if (company.CompanyType == CompanyType.Internal)
+        {
+            company.Code = await Firms.FirmRules.NextCodeAsync(_context, cancellationToken);
+        }
 
         await _companyRepository.AddAsync(company, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

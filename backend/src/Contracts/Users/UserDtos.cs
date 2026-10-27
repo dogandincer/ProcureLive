@@ -10,7 +10,13 @@ public sealed record UserDto(
     IReadOnlyCollection<string> Roles,
     Guid? CompanyId,
     bool IsActive,
-    DateTime? LastLoginAt);
+    DateTime? LastLoginAt,
+    DateTime? LockedOutAt = null);
+
+/// <summary>Satınalmacıya Admin'in verdiği işyeri yetkileri (firma yetkisi işyerinin firmasından türer).</summary>
+public sealed record UserWorkspaceAccessDto(Guid UserId, IReadOnlyList<Guid> WorkspaceIds);
+
+public sealed record SetUserWorkspaceAccessRequest(IReadOnlyList<Guid> WorkspaceIds);
 
 public sealed record UpdateUserRequest(string FirstName, string LastName, Guid? CompanyId);
 

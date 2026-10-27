@@ -13,9 +13,11 @@ public sealed class GetRfiProcessesListQueryHandler : IRequestHandler<GetRfiProc
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IDataScopeService _scope;
 
-    public GetRfiProcessesListQueryHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public GetRfiProcessesListQueryHandler(IApplicationDbContext context, ICurrentUserService currentUserService, IDataScopeService scope)
     {
+        _scope = scope;
         _context = context;
         _currentUserService = currentUserService;
     }
@@ -35,6 +37,16 @@ public sealed class GetRfiProcessesListQueryHandler : IRequestHandler<GetRfiProc
         {
             Guid companyId = _currentUserService.CompanyId ?? Guid.Empty;
             query = query.Where(p => p.Invitations.Any(i => i.CompanyId == companyId));
+        }
+        else
+        {
+            // Satınalmacı yalnızca yetkili firmalarının süreçlerini görür.
+            DataScope scope = await _scope.GetAsync(cancellationToken);
+            if (!scope.IsUnrestricted)
+            {
+                List<Guid> firmIds = scope.FirmIds.ToList();
+                query = query.Where(p => firmIds.Contains(p.OwnerCompanyId));
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(request.Status))

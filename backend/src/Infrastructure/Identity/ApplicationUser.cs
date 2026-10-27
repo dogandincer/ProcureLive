@@ -13,4 +13,7 @@ public class ApplicationUser : IdentityUser<Guid>
     public bool IsActive { get; set; } = true;
 
     public DateTime? LastLoginAt { get; set; }
+
+    /// <summary>Art arda 3'ten fazla hatalı şifre nedeniyle otomatik pasife alındığı an (Admin aktifleştirince temizlenir).</summary>
+    public DateTime? LockedOutAt { get; set; }
 }

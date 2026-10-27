@@ -1,5 +1,6 @@
 using MediatR;
 using ProcureLive.Domain.Enums;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Catalog.Products.Commands.UpdateProduct;
 
@@ -11,4 +12,7 @@ public sealed record UpdateProductCommand(
     UnitOfMeasure UnitOfMeasure,
     string? Brand,
     Guid? DefaultCurrencyId,
-    bool IsActive) : IRequest;
+    bool IsActive) : IRequest, IProductScopedRequest
+{
+    Guid IProductScopedRequest.ProductId => Id;
+}

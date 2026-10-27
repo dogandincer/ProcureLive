@@ -7,6 +7,7 @@ using ProcureLive.Contracts.Common;
 using ProcureLive.Contracts.Companies;
 using ProcureLive.Domain.Entities.Companies;
 using ProcureLive.Domain.Enums;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Companies.Queries.GetCompaniesList;
 
@@ -14,16 +15,27 @@ public sealed class GetCompaniesListQueryHandler : IRequestHandler<GetCompaniesL
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
+    private readonly IDataScopeService _scope;
 
-    public GetCompaniesListQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetCompaniesListQueryHandler(IApplicationDbContext context, IMapper mapper, IDataScopeService scope)
     {
         _context = context;
         _mapper = mapper;
+        _scope = scope;
     }
 
     public async Task<PagedResult<CompanyDto>> Handle(GetCompaniesListQuery request, CancellationToken cancellationToken)
     {
         IQueryable<Company> query = _context.Companies.AsQueryable();
+
+        // Satınalmacı: yetkili işyerlerindeki cariler + yetkili firmalar.
+        DataScope scope = await _scope.GetAsync(cancellationToken);
+        if (!scope.IsUnrestricted)
+        {
+            List<Guid> workspaceIds = scope.WorkspaceIds.ToList();
+            List<Guid> firmIds = scope.FirmIds.ToList();
+            query = query.Where(c => (c.WorkspaceId.HasValue && workspaceIds.Contains(c.WorkspaceId.Value)) || firmIds.Contains(c.Id));
+        }
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {

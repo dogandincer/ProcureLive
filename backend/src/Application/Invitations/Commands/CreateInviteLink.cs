@@ -7,10 +7,11 @@ using ProcureLive.Contracts.Invitations;
 using ProcureLive.Domain.Entities.Auctions;
 using ProcureLive.Domain.Entities.Companies;
 using ProcureLive.Domain.Enums;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Invitations.Commands;
 
-public sealed record CreateInviteLinkCommand(Guid AuctionId, Guid CompanyId, string? Email, int? ValidDays) : IRequest<InviteLinkDto>;
+public sealed record CreateInviteLinkCommand(Guid AuctionId, Guid CompanyId, string? Email, int? ValidDays) : IRequest<InviteLinkDto>, IAuctionScopedRequest;
 
 public sealed class CreateInviteLinkCommandValidator : AbstractValidator<CreateInviteLinkCommand>
 {

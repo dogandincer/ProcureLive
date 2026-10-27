@@ -2,10 +2,11 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Contracts.Invitations;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Invitations.Queries;
 
-public sealed record GetInviteLinksQuery(Guid AuctionId) : IRequest<IReadOnlyList<InviteLinkDto>>;
+public sealed record GetInviteLinksQuery(Guid AuctionId) : IRequest<IReadOnlyList<InviteLinkDto>>, IAuctionScopedRequest;
 
 public sealed class GetInviteLinksQueryHandler : IRequestHandler<GetInviteLinksQuery, IReadOnlyList<InviteLinkDto>>
 {

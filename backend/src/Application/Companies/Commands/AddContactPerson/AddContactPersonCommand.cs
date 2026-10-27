@@ -1,4 +1,5 @@
 using MediatR;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Companies.Commands.AddContactPerson;
 
@@ -9,4 +10,4 @@ public sealed record AddContactPersonCommand(
     string? Title,
     string Email,
     string? Phone,
-    bool IsPrimary) : IRequest<Guid>;
+    bool IsPrimary) : IRequest<Guid>, ICompanyScopedRequest;

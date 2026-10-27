@@ -1,5 +1,6 @@
 using MediatR;
 using ProcureLive.Domain.Enums;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Catalog.Products.Commands.CreateProduct;
 
@@ -11,4 +12,4 @@ public sealed record CreateProductCommand(
     UnitOfMeasure UnitOfMeasure,
     string? Brand,
     Guid? DefaultCurrencyId,
-    Guid? WorkspaceId) : IRequest<Guid>;
+    Guid? WorkspaceId) : IRequest<Guid>, IWorkspaceTargetRequest;

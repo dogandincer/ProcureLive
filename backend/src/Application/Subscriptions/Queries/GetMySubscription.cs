@@ -47,7 +47,7 @@ public sealed class GetMySubscriptionQueryHandler : IRequestHandler<GetMySubscri
 
         CompanySubscription? plus = await _subscriptionService.GetActivePlusAsync(companyId, cancellationToken);
         SupplierAccessContext access = await _accessService.GetContextAsync(companyId, cancellationToken);
-        int userCount = (await _identityService.ListUsersAsync(null, companyId, 1, 1, cancellationToken)).TotalCount;
+        int userCount = (await _identityService.ListUsersAsync(null, companyId, 1, 1, null, cancellationToken)).TotalCount;
 
         return new MySubscriptionDto(
             companyId,

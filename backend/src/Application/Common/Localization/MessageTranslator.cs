@@ -158,6 +158,30 @@ public static class MessageTranslator
         ["İhale Sona Erdi"] = "Auction Ended",
         ["İhale İptal Edildi"] = "Auction Cancelled",
         ["İhale Yayından Kaldırıldı"] = "Auction Unpublished",
+
+        // Firma / işyeri / yetki
+        ["Bu kayıt yetkili olduğunuz firma/işyerlerine ait değil."] = "This record does not belong to a firm/workspace you are authorized for.",
+        ["Hesabınız art arda 3'ten fazla hatalı şifre girildiği için pasife alındı. Yöneticinize başvurun."] =
+            "Your account was deactivated after more than 3 consecutive wrong passwords. Please contact your administrator.",
+        ["Firma/işyeri yetkisi yalnızca Satınalmacı kullanıcılara verilir."] = "Firm/workspace access can only be granted to Buyer users.",
+        ["Seçilen işyerlerinden biri bulunamadı."] = "One of the selected workspaces was not found.",
+        ["Firma kodu zorunludur."] = "Firm code is required.",
+        ["Firma adı zorunludur."] = "Firm name is required.",
+        ["Bu kodla bir kayıt zaten mevcut."] = "A record with this code already exists.",
+        ["Vergi / TC kimlik numarası 10 veya 11 haneli olmalıdır."] = "The tax / ID number must be 10 or 11 digits.",
+        ["Varsayılan firma kaldırılamaz; önce başka bir firmayı varsayılan yapın."] = "The default firm cannot be unset; make another firm the default first.",
+        ["En az bir firma tanımlı olmalıdır."] = "At least one firm must be defined.",
+        ["Varsayılan firma silinemez; önce başka bir firmayı varsayılan yapın."] = "The default firm cannot be deleted; make another firm the default first.",
+        ["İşyeri bağlı olan firma silinemez. Önce işyerlerini başka bir firmaya taşıyın."] = "A firm with workspaces cannot be deleted. Move its workspaces to another firm first.",
+        ["İhale, RFI veya RFQ sahibi olan firma silinemez."] = "A firm that owns auctions, RFIs or RFQs cannot be deleted.",
+        ["Logo dosyası en fazla 2 MB olabilir."] = "The logo file can be at most 2 MB.",
+        ["Logo PNG, JPG, WEBP veya ICO formatında olmalıdır."] = "The logo must be a PNG, JPG, WEBP or ICO file.",
+        ["Bağlı olduğu firma seçilmelidir."] = "A parent firm must be selected.",
+        ["Seçilen firma bulunamadı."] = "The selected firm was not found.",
+        ["Bu firmada aynı isimde bir işyeri zaten mevcut."] = "A workspace with this name already exists in this firm.",
+        ["En az bir işyeri tanımlı olmalıdır."] = "At least one workspace must be defined.",
+        ["Varsayılan işyeri silinemez; önce firmanın başka bir işyerini varsayılan yapın."] = "The default workspace cannot be deleted; make another workspace of the firm the default first.",
+        ["Varsayılan işyeri kaldırılamaz; önce firmanın başka bir işyerini varsayılan yapın."] = "The default workspace cannot be unset; make another workspace of the firm the default first.",
     };
 
     private static readonly Dictionary<string, string> StatusNames = new()

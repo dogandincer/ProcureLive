@@ -1,5 +1,6 @@
 using MediatR;
 using ProcureLive.Domain.Enums;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Auctions.Commands.CreateAuction;
 
@@ -15,4 +16,4 @@ public sealed record CreateAuctionCommand(
     decimal? MinDecrementAmount,
     decimal? MinDecrementPercentage,
     int ExtensionRuleMinutes,
-    bool IsListedForPlus = false) : IRequest<Guid>;
+    bool IsListedForPlus = false) : IRequest<Guid>, IOwnerFirmScopedRequest;

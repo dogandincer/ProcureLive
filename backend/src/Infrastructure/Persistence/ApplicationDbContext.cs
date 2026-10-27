@@ -47,6 +47,8 @@ public class ApplicationDbContext
 
     public DbSet<Workspace> Workspaces => Set<Workspace>();
 
+    public DbSet<UserWorkspaceAccess> UserWorkspaceAccesses => Set<UserWorkspaceAccess>();
+
     public DbSet<Category> Categories => Set<Category>();
 
     public DbSet<Product> Products => Set<Product>();

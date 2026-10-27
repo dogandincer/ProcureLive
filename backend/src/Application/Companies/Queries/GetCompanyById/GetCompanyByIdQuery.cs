@@ -6,8 +6,10 @@ using ProcureLive.Domain.Entities.Companies;
 
 namespace ProcureLive.Application.Companies.Queries.GetCompanyById;
 
-public sealed record GetCompanyByIdQuery(Guid Id) : IRequest<CompanyDetailDto>, IRequireResourceAuthorization
+public sealed record GetCompanyByIdQuery(Guid Id) : IRequest<CompanyDetailDto>, IRequireResourceAuthorization, ICompanyScopedRequest
 {
+    Guid ICompanyScopedRequest.CompanyId => Id;
+
     public string PolicyName => Policies.CompanyAccess;
 
     public async Task<object?> LoadResourceAsync(IApplicationDbContext context, CancellationToken cancellationToken)

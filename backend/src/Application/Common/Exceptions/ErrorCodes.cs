@@ -16,4 +16,5 @@ public static class ErrorCodes
     public const string AccountExists = "AccountExists";
     public const string AuctionClosed = "AuctionClosed";
     public const string InvalidStatusTransition = "InvalidStatusTransition";
+    public const string AccountLocked = "AccountLocked";
 }

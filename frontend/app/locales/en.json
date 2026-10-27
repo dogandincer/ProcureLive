@@ -38,7 +38,7 @@
     "supplyChainGroup": "Supply Chain",
     "companies": "Companies",
     "scoreboard": "Scoreboard",
-    "users": "Users",
+    "users": "User Definitions",
     "catalogGroup": "Catalog",
     "products": "Stock / Products",
     "categories": "Categories",
@@ -63,7 +63,8 @@
     "firms": "Firms",
     "collapse": "Collapse menu",
     "expand": "Expand menu",
-    "toggleMenu": "Menu"
+    "toggleMenu": "Menu",
+    "permissions": "Permissions"
   },
   "language": {
     "label": "Language",
@@ -739,24 +740,27 @@
     }
   },
   "users": {
-    "title": "Users",
-    "new": "+ New User",
+    "title": "User Definitions",
+    "new": "New User",
     "form": {
       "email": "Email",
       "password": "Password",
       "firstName": "First Name",
       "lastName": "Last Name",
-      "selectCompany": "Select company..."
+      "selectCompany": "Select company...",
+      "buyerAccessHint": "Buyers only see the firms and workspaces assigned to them on the Permissions screen; Admins have access to all firms."
     },
     "table": {
       "email": "Email",
       "fullName": "Full Name",
       "company": "Company",
-      "role": "Role"
+      "role": "Role",
+      "name": "Name / Email",
+      "lastLogin": "Last Sign-in"
     },
     "deactivate": "Deactivate",
     "activate": "Activate",
-    "empty": "No users yet",
+    "empty": "No internal users yet.",
     "loadError": "Failed to load records.",
     "createError": "Failed to create user.",
     "roleUpdateError": "Failed to update role.",
@@ -771,8 +775,15 @@
       "role": "Role",
       "company": "Company",
       "companyHint": "Required if role is Supplier - an existing company name",
-      "companyNotFound": "Company not found: \"{name}\""
-    }
+      "companyNotFound": "Company not found: \"{name}\"",
+      "internalRoleOnly": "Only the {roles} roles can be defined here."
+    },
+    "subtitle": "Internal accounts (Admin and Buyer). Supplier accounts are managed on the Supplier screen. Accounts are deactivated automatically after more than 3 consecutive wrong passwords.",
+    "unlock": "Unlock",
+    "unlocked": "The account was unlocked.",
+    "locked": "Locked",
+    "lockedHint": "Deactivated on {date} after more than 3 consecutive wrong passwords.",
+    "permissions": "Permissions"
   },
   "rfi": {
     "title": "RFI (Request for Information)",
@@ -1070,7 +1081,8 @@
       "message": "Company, product and auction operations are workspace-based. Define at least one workspace under your firm to continue.",
       "cta": "Define Workspace"
     },
-    "askAdmin": "Firms and workspaces are defined by an Admin. Please contact your system administrator."
+    "noAccessTitle": "No access yet",
+    "noAccess": "You have not been granted access to any firm or workspace yet. Please contact your system administrator."
   },
   "tender": {
     "pool": {
@@ -1560,5 +1572,50 @@
       "workspaces": "Workspaces",
       "default": "Default"
     }
+  },
+  "permissions": {
+    "title": "Permissions",
+    "subtitle": "What each role can do, and the firm/workspace access granted to Buyers. Permissions are also enforced on the server for every request.",
+    "matrixTitle": "Role Permission Matrix",
+    "capability": "Permission",
+    "roles": {
+      "admin": "Admin",
+      "buyer": "Buyer",
+      "supplier": "Supplier",
+      "plus": "Supplier Plus"
+    },
+    "rows": {
+      "defineFirms": "Define firms and workspaces",
+      "manageUsers": "Define users and grant access",
+      "scope": "Visible firms / workspaces",
+      "manageTenders": "Open and manage auctions, RFIs and RFQs",
+      "changeStatus": "Change auction status (start, pause, cancel...)",
+      "manageSuppliers": "Supplier management",
+      "seeTenders": "Visible auctions",
+      "joinQuota": "Auction participation",
+      "search": "Advanced search"
+    },
+    "cell": {
+      "all": "All",
+      "assigned": "Assigned",
+      "assignedFirms": "Assigned firms",
+      "assignedWorkspaces": "Assigned workspaces",
+      "invited": "Invited ones + the inviting firm's open auctions",
+      "invitedPlusListed": "Plus every open auction listed for Plus",
+      "twoTenders": "Up to 2",
+      "unlimited": "Unlimited"
+    },
+    "buyersTitle": "Buyers",
+    "searchBuyer": "Search by name or email...",
+    "noBuyers": "No buyer users. Add one on the User Definitions screen.",
+    "accessTitle": "Firm / Workspace Access",
+    "accessFor": "{name} — Firm / Workspace Access",
+    "pickBuyer": "Pick a buyer on the left to grant access.",
+    "treeHint": "Ticking a firm grants all its workspaces; workspaces can also be picked one by one. The buyer only sees the selected workspaces and their firms.",
+    "noWorkspaces": "This firm has no workspaces.",
+    "saved": "Permissions saved.",
+    "saveError": "Permissions could not be saved.",
+    "loadError": "Failed to load permissions.",
+    "discardConfirm": "There are unsaved changes. Discard them?"
   }
 }

@@ -15,15 +15,18 @@ public sealed class GetAuctionsListQueryHandler : IRequestHandler<GetAuctionsLis
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly ISupplierAccessService _accessService;
+    private readonly IDataScopeService _scope;
 
     public GetAuctionsListQueryHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        ISupplierAccessService accessService)
+        ISupplierAccessService accessService,
+        IDataScopeService scope)
     {
         _context = context;
         _currentUserService = currentUserService;
         _accessService = accessService;
+        _scope = scope;
     }
 
     public async Task<PagedResult<AuctionDto>> Handle(GetAuctionsListQuery request, CancellationToken cancellationToken)
@@ -56,6 +59,17 @@ public sealed class GetAuctionsListQueryHandler : IRequestHandler<GetAuctionsLis
                     || (open.Contains(a.Status)
                         && (ownerIds.Contains(a.OwnerCompanyId)
                             || (isPlus && a.IsListedForPlus && a.OwnerCompany.ListTendersForPlus)))));
+        }
+
+        // Satınalmacı yalnızca yetkili firmalarının ihalelerini görür.
+        if (isInternalUser)
+        {
+            DataScope scope = await _scope.GetAsync(cancellationToken);
+            if (!scope.IsUnrestricted)
+            {
+                List<Guid> firmIds = scope.FirmIds.ToList();
+                query = query.Where(a => firmIds.Contains(a.OwnerCompanyId));
+            }
         }
 
         // İç kullanıcı: başlıktaki firma = ihale sahibi firma.

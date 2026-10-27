@@ -1,5 +1,6 @@
 using MediatR;
 using ProcureLive.Domain.Enums;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Companies.Commands.CreateCompany;
 
@@ -16,4 +17,4 @@ public sealed record CreateCompanyCommand(
     string? Email = null,
     int? FoundationYear = null,
     int? EmployeeCount = null,
-    string? Description = null) : IRequest<Guid>;
+    string? Description = null) : IRequest<Guid>, IWorkspaceTargetRequest;

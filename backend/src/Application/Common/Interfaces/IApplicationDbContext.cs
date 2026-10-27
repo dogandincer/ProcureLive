@@ -36,6 +36,8 @@ public interface IApplicationDbContext
 
     DbSet<Workspace> Workspaces { get; }
 
+    DbSet<UserWorkspaceAccess> UserWorkspaceAccesses { get; }
+
     DbSet<Category> Categories { get; }
 
     DbSet<Product> Products { get; }

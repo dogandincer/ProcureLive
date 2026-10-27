@@ -66,7 +66,7 @@ public sealed class PurchaseSubscriptionCommandHandler : IRequestHandler<Purchas
         SeatBandPrice band = SubscriptionPricing.For(request.SeatBand);
 
         // Paket, firmadaki mevcut kullanıcı sayısını karşılamalı (5-10 paketi 12 kullanıcılı firmaya satılamaz).
-        int userCount = (await _identityService.ListUsersAsync(null, companyId, 1, 1, cancellationToken)).TotalCount;
+        int userCount = (await _identityService.ListUsersAsync(null, companyId, 1, 1, null, cancellationToken)).TotalCount;
         if (band.MaxUsers is int maxUsers && userCount > maxUsers)
         {
             throw new ConflictException(

@@ -1,5 +1,6 @@
 using MediatR;
 using ProcureLive.Contracts.Auctions;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Auctions.Queries.GetItemBidsForComparison;
 
@@ -8,4 +9,4 @@ namespace ProcureLive.Application.Auctions.Queries.GetItemBidsForComparison;
 /// in different currencies can be compared side by side before picking a winner.
 /// </summary>
 public sealed record GetItemBidsForComparisonQuery(Guid AuctionId, Guid AuctionItemId)
-    : IRequest<IReadOnlyCollection<BidComparisonDto>>;
+    : IRequest<IReadOnlyCollection<BidComparisonDto>>, IAuctionScopedRequest;

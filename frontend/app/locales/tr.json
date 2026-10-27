@@ -1351,6 +1351,11 @@
     "PlusRequired": {
       "title": "Detaylı arama Plus üyelere özel",
       "body": "Şirket, ihale ve ürün bazlı arama; ihale türü ve katılımcı sayısına göre filtreleme için Plus'a geçin."
+    },
+    "process": {
+      "title": "Katılım hakkınız doldu",
+      "body": "Standart üyelikte ihale katılım kotanız doldu. Bu davetin içeriğini görmek ve kabul etmek için Plus'a geçin.",
+      "declineInstead": "Ya da daveti reddedin"
     }
   },
   "subscription": {
@@ -1751,5 +1756,15 @@
       }
     },
     "bidAfterAccept": "Katılım talebiniz kabul edilince bu kaleme teklif verebilirsiniz."
+  },
+  "rfx": {
+    "closed": "Bu süreç yanıtlara kapalı; gönderdiğiniz bilgiler aşağıda.",
+    "submittedStandard": "Yanıtınız gönderildi. Standart üyelikte yanıt revize edilemez; revize etmek için Plus'a geçin.",
+    "submittedPlus": "Yanıtınız gönderildi. Plus üyesi olarak süreç açık kaldıkça revize edebilirsiniz.",
+    "submittedStandardQuote": "Teklifiniz gönderildi. Standart üyelikte teklif revize edilemez; revize etmek için Plus'a geçin.",
+    "submittedPlusQuote": "Teklifiniz gönderildi. Plus üyesi olarak süreç açık kaldıkça revize edebilirsiniz.",
+    "revise": "Yanıtı Güncelle",
+    "reviseQuote": "Teklifi Güncelle",
+    "standardOnce": "Standart üyelikte gönderdikten sonra değişiklik yapılamaz."
   }
 }

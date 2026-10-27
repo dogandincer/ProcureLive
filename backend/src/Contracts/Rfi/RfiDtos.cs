@@ -40,7 +40,9 @@ public sealed record RfiProcessDto(
     DateTime DueDate,
     int InvitationCount,
     int ResponseCount,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    string AccessLevel = "Full",
+    string? MyInvitationStatus = null);
 
 public sealed record RfiProcessDetailDto(
     Guid Id,
@@ -52,7 +54,20 @@ public sealed record RfiProcessDetailDto(
     string Status,
     DateTime DueDate,
     IReadOnlyCollection<RfiQuestionDto> Questions,
-    IReadOnlyCollection<RfiInvitationDto> Invitations);
+    IReadOnlyCollection<RfiInvitationDto> Invitations,
+    string AccessLevel = "Full",
+    bool IsOpen = false,
+    bool HasSubmitted = false,
+    bool CanSubmit = false,
+    IReadOnlyCollection<RfiMyAnswerDto>? MyAnswers = null);
+
+/// <summary>Tedarikçinin kendi gönderdiği yanıt (revizyon formunu doldurmak için).</summary>
+public sealed record RfiMyAnswerDto(
+    Guid RfiQuestionId,
+    string? AnswerText,
+    decimal? AnswerNumber,
+    bool? AnswerBool,
+    Guid? SelectedOptionId);
 
 public sealed record RfiInvitationDto(
     Guid Id,

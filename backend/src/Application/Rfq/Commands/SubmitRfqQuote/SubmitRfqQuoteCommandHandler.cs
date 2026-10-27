@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Security;
 using ProcureLive.Domain.Entities.Rfq;
 using ProcureLive.Domain.Enums;
 using ProcureLive.Domain.ValueObjects;
@@ -13,15 +14,18 @@ public sealed class SubmitRfqQuoteCommandHandler : IRequestHandler<SubmitRfqQuot
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTime _dateTime;
+    private readonly ISupplierAccessService _accessService;
 
     public SubmitRfqQuoteCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTime dateTime)
+        IDateTime dateTime,
+        ISupplierAccessService accessService)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTime = dateTime;
+        _accessService = accessService;
     }
 
     public async Task<Guid> Handle(SubmitRfqQuoteCommand request, CancellationToken cancellationToken)
@@ -44,6 +48,13 @@ public sealed class SubmitRfqQuoteCommandHandler : IRequestHandler<SubmitRfqQuot
             throw new ForbiddenAccessException("Teklif verebilmek için davetin kabul edilmiş olması gerekir.");
         }
 
+        ProcessStatus status = await _context.RfqProcesses
+            .Where(p => p.Id == request.RfqProcessId).Select(p => p.Status).FirstAsync(cancellationToken);
+        if (!ProcessParticipationRules.IsOpen(status))
+        {
+            throw new ConflictException(ProcessParticipationRules.ClosedMessage, ErrorCodes.ProcessClosed);
+        }
+
         List<Guid> validLineItemIds = await _context.RfqLineItems
             .Where(l => l.RfqProcessId == request.RfqProcessId)
             .Select(l => l.Id)
@@ -60,6 +71,13 @@ public sealed class SubmitRfqQuoteCommandHandler : IRequestHandler<SubmitRfqQuot
         RfqQuote? quote = await _context.RfqQuotes
             .Include(q => q.LineItems)
             .FirstOrDefaultAsync(q => q.RfqProcessId == request.RfqProcessId && q.CompanyId == companyId.Value, cancellationToken);
+
+        // Gönderilmiş teklifin revizyonu Plus'a özel.
+        if (quote is { Status: RfqQuoteStatus.Submitted }
+            && !(await _accessService.GetContextAsync(companyId.Value, cancellationToken)).IsPlus)
+        {
+            throw new ConflictException(ProcessParticipationRules.RevisionMessage, ErrorCodes.PlusRequired);
+        }
 
         DateTime now = _dateTime.UtcNow;
         Guid userId = _currentUserService.UserId ?? Guid.Empty;
@@ -94,10 +112,13 @@ public sealed class SubmitRfqQuoteCommandHandler : IRequestHandler<SubmitRfqQuot
             quote.LineItems.Clear();
         }
 
+        // Satırlar DbSet üzerinden eklenir: izlenen (mevcut) teklifin koleksiyonuna eklenen, Id'si önceden atanmış
+        // varlık EF tarafından UPDATE edilmeye çalışılır (revizyonda DbUpdateConcurrencyException).
         foreach (var lineItem in request.LineItems)
         {
-            quote.LineItems.Add(new RfqQuoteLineItem
+            _context.RfqQuoteLineItems.Add(new RfqQuoteLineItem
             {
+                RfqQuote = quote,
                 RfqLineItemId = lineItem.RfqLineItemId,
                 UnitPrice = new Money(lineItem.UnitPrice, lineItem.CurrencyId),
                 LeadTimeDays = lineItem.LeadTimeDays,

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Notifications;
+using ProcureLive.Application.Common.Security;
 using ProcureLive.Domain.Entities.Notifications;
 using ProcureLive.Domain.Entities.Rfq;
 using ProcureLive.Domain.Enums;
@@ -15,13 +16,16 @@ public sealed class RespondToRfqInvitationCommandHandler : IRequestHandler<Respo
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTime _dateTime;
     private readonly INotificationRealtimeService _notificationRealtimeService;
+    private readonly ISupplierAccessService _accessService;
 
     public RespondToRfqInvitationCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
         IDateTime dateTime,
-        INotificationRealtimeService notificationRealtimeService)
+        INotificationRealtimeService notificationRealtimeService,
+        ISupplierAccessService accessService)
     {
+        _accessService = accessService;
         _context = context;
         _currentUserService = currentUserService;
         _dateTime = dateTime;
@@ -48,6 +52,12 @@ public sealed class RespondToRfqInvitationCommandHandler : IRequestHandler<Respo
         if (invitation.Status != InvitationStatus.Invited)
         {
             throw new ConflictException("Bu davete zaten yanıt verilmiş.");
+        }
+
+        // Standart kota dolduysa yeni RFI/RFQ daveti kabul edilemez ("Plus alınız"); reddetmek her zaman serbest.
+        if (request.Accept && (await _accessService.GetContextAsync(companyId.Value, cancellationToken)).QuotaReached)
+        {
+            throw new ConflictException(ProcessParticipationRules.QuotaMessage, ErrorCodes.QuotaExceeded);
         }
 
         RfqProcess? process = await _context.RfqProcesses.FirstOrDefaultAsync(p => p.Id == request.RfqProcessId, cancellationToken);

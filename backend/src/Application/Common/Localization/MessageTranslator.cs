@@ -183,6 +183,11 @@ public static class MessageTranslator
         ["Varsayılan işyeri silinemez; önce firmanın başka bir işyerini varsayılan yapın."] = "The default workspace cannot be deleted; make another workspace of the firm the default first.",
         ["Varsayılan işyeri kaldırılamaz; önce firmanın başka bir işyerini varsayılan yapın."] = "The default workspace cannot be unset; make another workspace of the firm the default first.",
 
+        // RFI/RFQ: kota ve revizyon (Plus)
+        ["Standart üyelik katılım kotanız doldu. Yeni RFI/RFQ davetlerini kabul etmek için Plus'a geçin."] = "Your Standard membership quota is used up. Upgrade to Plus to accept new RFI/RFQ invitations.",
+        ["Gönderdiğiniz yanıtı revize etmek Plus üyelere açıktır."] = "Revising a submitted response is available to Plus members.",
+        ["Bu süreç yanıtlara kapalı."] = "This process is closed for responses.",
+
         // Cari / kendi kaydı / katılım talebi
         ["Firma tanımı Firma Tanım ekranından yapılır; Cari ekranı yalnızca tedarikçiler içindir."] = "Firms are defined on the Firm Definition screen; the Company screen is for suppliers only.",
         ["Geçerli bir kullanıcı e-postası girin."] = "Enter a valid user e-mail.",

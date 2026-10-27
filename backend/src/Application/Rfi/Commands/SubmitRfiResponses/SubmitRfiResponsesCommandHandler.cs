@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Security;
 using ProcureLive.Domain.Entities.Rfi;
 using ProcureLive.Domain.Enums;
 
@@ -11,11 +12,14 @@ public sealed class SubmitRfiResponsesCommandHandler : IRequestHandler<SubmitRfi
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ISupplierAccessService _accessService;
 
-    public SubmitRfiResponsesCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public SubmitRfiResponsesCommandHandler(
+        IApplicationDbContext context, ICurrentUserService currentUserService, ISupplierAccessService accessService)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _accessService = accessService;
     }
 
     public async Task Handle(SubmitRfiResponsesCommand request, CancellationToken cancellationToken)
@@ -38,6 +42,13 @@ public sealed class SubmitRfiResponsesCommandHandler : IRequestHandler<SubmitRfi
             throw new ForbiddenAccessException("Bu RFI sürecine yanıt vermek için davetin kabul edilmiş olması gerekir.");
         }
 
+        ProcessStatus status = await _context.RfiProcesses
+            .Where(p => p.Id == request.RfiProcessId).Select(p => p.Status).FirstAsync(cancellationToken);
+        if (!ProcessParticipationRules.IsOpen(status))
+        {
+            throw new ConflictException(ProcessParticipationRules.ClosedMessage, ErrorCodes.ProcessClosed);
+        }
+
         List<Guid> validQuestionIds = await _context.RfiQuestions
             .Where(q => q.RfiTemplateId == _context.RfiProcesses.Where(p => p.Id == request.RfiProcessId).Select(p => p.RfiTemplateId).FirstOrDefault())
             .Select(q => q.Id)
@@ -46,6 +57,12 @@ public sealed class SubmitRfiResponsesCommandHandler : IRequestHandler<SubmitRfi
         List<RfiResponse> existingResponses = await _context.RfiResponses
             .Where(r => r.RfiProcessId == request.RfiProcessId && r.CompanyId == companyId.Value)
             .ToListAsync(cancellationToken);
+
+        // Gönderilmiş yanıtın revizyonu Plus'a özel.
+        if (existingResponses.Count > 0 && !(await _accessService.GetContextAsync(companyId.Value, cancellationToken)).IsPlus)
+        {
+            throw new ConflictException(ProcessParticipationRules.RevisionMessage, ErrorCodes.PlusRequired);
+        }
 
         foreach (var answer in request.Answers)
         {

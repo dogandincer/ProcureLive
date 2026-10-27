@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PagedResult, RfiProcessDto } from "~/types/api";
+import { LockClosedIcon } from "@heroicons/vue/24/solid";
 
 const api = useApi();
 const toast = useToast();
@@ -40,11 +41,26 @@ onMounted(load);
             </tr>
           </thead>
           <tbody>
-            <tr v-for="p in processes" :key="p.id" class="border-b border-slate-50">
-              <td class="py-2 font-medium text-slate-700">{{ p.title }}</td>
+            <tr v-for="p in processes" :key="p.id" class="border-b border-slate-50" :class="{ 'bg-slate-50/60': p.accessLevel !== 'Full' }">
+              <td class="py-2 font-medium text-slate-700">
+                <div class="flex items-center gap-2">
+                  <LockClosedIcon v-if="p.accessLevel !== 'Full'" class="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                  {{ p.title }}
+                </div>
+                <span v-if="p.myInvitationStatus" class="text-[11px] font-normal text-slate-400">{{ $t(`enums.invitationStatus.${p.myInvitationStatus}`) }}</span>
+              </td>
               <td class="py-2 text-slate-500">{{ $t(`enums.processStatus.${p.status}`) }}</td>
               <td class="py-2 text-slate-500">{{ formatDate(p.dueDate) }}</td>
-              <td class="py-2 text-right"><NuxtLink :to="`/supplier/rfi/${p.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink></td>
+              <td class="py-2 text-right">
+                <!-- Standart kota dolu, davet kabul edilmemiş: içerik sunucuda düşürüldü → Plus alınız -->
+                <div class="flex items-center justify-end gap-2">
+                  <template v-if="p.accessLevel !== 'Full'">
+                    <span class="text-xs text-slate-400">{{ $t("restricted.QuotaExceeded.short") }}</span>
+                    <NuxtLink to="/supplier/pricing" class="rounded bg-amber-500 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-600">Plus</NuxtLink>
+                  </template>
+                  <NuxtLink :to="`/supplier/rfi/${p.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>

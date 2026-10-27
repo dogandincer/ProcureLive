@@ -8,6 +8,7 @@ const toast = useToast();
 const { t } = useI18n();
 const { formatDate } = useDateFormat();
 const { currentUser } = useAuth();
+const { isPlus, refresh: refreshSubscription } = useSubscription();
 
 const process = ref<RfiProcessDetailDto | null>(null);
 const loading = ref(true);
@@ -21,14 +22,25 @@ const myInvitation = computed(() =>
   process.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId) ?? null,
 );
 
-const canAnswer = computed(() => myInvitation.value && ["Accepted", "Participating"].includes(myInvitation.value.status));
+const accepted = computed(() => !!myInvitation.value && ["Accepted", "Participating"].includes(myInvitation.value.status));
+// Standart kota dolu ve davet kabul edilmemiş: sorular sunucuda düşürüldü → "Plus alınız".
+const restricted = computed(() => !!process.value && process.value.accessLevel !== "Full");
+// İlk yanıt herkese; gönderilmiş yanıtın revizyonu yalnızca Plus'a ve süreç açıkken (sunucu da zorlar).
+const canSubmit = computed(() => !!process.value?.canSubmit);
 
 async function load() {
   loading.value = true;
   try {
     process.value = await api.get<RfiProcessDetailDto>(`/api/rfi/processes/${processId}`);
+    const mine = new Map((process.value.myAnswers ?? []).map((a) => [a.rfiQuestionId, a]));
     for (const q of process.value.questions) {
-      answers[q.id] ??= { text: "", number: null, bool: null, optionId: null };
+      const a = mine.get(q.id);
+      answers[q.id] = {
+        text: a?.answerText ?? "",
+        number: a?.answerNumber ?? null,
+        bool: a?.answerBool ?? null,
+        optionId: a?.selectedOptionId ?? null,
+      };
     }
   } catch (error: any) {
     if (error?.response?.status === 403) {
@@ -48,6 +60,7 @@ async function accept() {
     await load();
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("rfi.answer.actionError")));
+    if (apiErrorCode(error) === "QuotaExceeded") await Promise.all([load(), refreshSubscription()]);
   }
 }
 
@@ -90,7 +103,7 @@ async function submitAnswers() {
   }
 }
 
-onMounted(load);
+onMounted(() => Promise.all([load(), refreshSubscription()]));
 </script>
 
 <template>
@@ -98,15 +111,35 @@ onMounted(load);
     <p class="text-sm font-medium text-slate-600">{{ $t("rfi.answer.accessDenied") }}</p>
   </div>
 
-  <LoadingSpinner v-else-if="loading" />
+  <LoadingSpinner v-else-if="loading && !process" />
 
   <div v-else-if="process" class="space-y-6">
     <div>
       <h1 class="text-xl font-bold text-slate-800">{{ process.title }}</h1>
-      <p class="text-sm text-slate-500">{{ $t("rfi.answer.dueDate") }}: {{ formatDate(process.dueDate) }}</p>
+      <p class="text-sm text-slate-500">
+        {{ process.ownerCompanyName }} · {{ $t("rfi.answer.dueDate") }}: {{ formatDate(process.dueDate) }}
+      </p>
     </div>
 
-    <div v-if="myInvitation?.status === 'Declined'" class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+    <RestrictedOverlay
+      v-if="restricted"
+      level="QuotaExceeded"
+      :title="$t('restricted.process.title')"
+      :body="$t('restricted.process.body')"
+      :rows="3"
+    >
+      <template #extra>
+        <button type="button" class="mt-3 block w-full text-xs text-slate-400 hover:text-slate-600" @click="showDecline = true">
+          {{ $t("restricted.process.declineInstead") }}
+        </button>
+        <div v-if="showDecline" class="mt-2 flex gap-2">
+          <input v-model="declineReason" :placeholder="$t('common.declineReasonPlaceholder')" class="min-w-0 flex-1 rounded-md border border-slate-300 px-2 py-1 text-xs" />
+          <AppButton variant="danger" @click="decline">{{ $t("common.confirm") }}</AppButton>
+        </div>
+      </template>
+    </RestrictedOverlay>
+
+    <div v-else-if="myInvitation?.status === 'Declined'" class="rounded-xl border border-slate-200 bg-slate-50 p-5">
       <p class="text-sm font-medium text-slate-600">{{ $t("rfi.answer.declinedBanner") }}</p>
     </div>
 
@@ -122,25 +155,36 @@ onMounted(load);
       </div>
     </div>
 
-    <form v-else-if="canAnswer" class="space-y-4 rounded-xl border border-slate-200 bg-white p-5" @submit.prevent="submitAnswers">
-      <div v-for="q in process.questions" :key="q.id">
-        <label class="mb-1 block text-sm font-medium text-slate-700">{{ q.questionText }}</label>
-
-        <input v-if="q.questionType === 'Text'" v-model="answers[q.id].text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <input v-else-if="q.questionType === 'Number'" v-model.number="answers[q.id].number" type="number" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <select v-else-if="q.questionType === 'Boolean'" v-model="answers[q.id].bool" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
-          <option :value="true">{{ $t("common.yes") }}</option>
-          <option :value="false">{{ $t("common.no") }}</option>
-        </select>
-        <select v-else-if="q.questionType === 'MultipleChoice'" v-model="answers[q.id].optionId" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
-          <option v-for="o in q.options" :key="o.id" :value="o.id">{{ o.optionText }}</option>
-        </select>
-        <p v-else class="text-xs text-slate-400">{{ $t("rfi.answer.fileUploadUnsupported") }}</p>
+    <form v-else-if="accepted" class="space-y-4 rounded-xl border border-slate-200 bg-white p-5" @submit.prevent="submitAnswers">
+      <!-- Durum: kapalı süreç / gönderildi (Standart: revizyon Plus'a özel) / Plus: revize edilebilir -->
+      <p v-if="!process.isOpen" class="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-600">{{ $t("rfx.closed") }}</p>
+      <div v-else-if="process.hasSubmitted && !canSubmit" class="flex flex-wrap items-center justify-between gap-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <span>{{ $t("rfx.submittedStandard") }}</span>
+        <NuxtLink to="/supplier/pricing" class="rounded bg-amber-500 px-2 py-1 font-semibold text-white hover:bg-amber-600">{{ $t("restricted.upgradeCta") }}</NuxtLink>
       </div>
+      <p v-else-if="process.hasSubmitted" class="rounded-md bg-indigo-50 px-3 py-2 text-xs text-indigo-700">{{ $t("rfx.submittedPlus") }}</p>
 
-      <AppButton type="submit" :loading="submitting">
-        {{ submitting ? $t("rfi.answer.submitting") : $t("rfi.answer.submit") }}
+      <fieldset :disabled="!canSubmit" class="space-y-4 disabled:opacity-80">
+        <div v-for="q in process.questions" :key="q.id">
+          <label :for="`q-${q.id}`" class="mb-1 block text-sm font-medium text-slate-700">{{ q.questionText }}</label>
+
+          <input v-if="q.questionType === 'Text'" :id="`q-${q.id}`" v-model="answers[q.id].text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50" />
+          <input v-else-if="q.questionType === 'Number'" :id="`q-${q.id}`" v-model.number="answers[q.id].number" type="number" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50" />
+          <select v-else-if="q.questionType === 'Boolean'" :id="`q-${q.id}`" v-model="answers[q.id].bool" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50">
+            <option :value="true">{{ $t("common.yes") }}</option>
+            <option :value="false">{{ $t("common.no") }}</option>
+          </select>
+          <select v-else-if="q.questionType === 'MultipleChoice'" :id="`q-${q.id}`" v-model="answers[q.id].optionId" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50">
+            <option v-for="o in q.options" :key="o.id" :value="o.id">{{ o.optionText }}</option>
+          </select>
+          <p v-else class="text-xs text-slate-400">{{ $t("rfi.answer.fileUploadUnsupported") }}</p>
+        </div>
+      </fieldset>
+
+      <AppButton v-if="canSubmit" type="submit" :loading="submitting">
+        {{ submitting ? $t("rfi.answer.submitting") : process.hasSubmitted ? $t("rfx.revise") : $t("rfi.answer.submit") }}
       </AppButton>
+      <p v-if="canSubmit && !process.hasSubmitted && !isPlus" class="text-[11px] text-slate-400">{{ $t("rfx.standardOnce") }}</p>
     </form>
 
     <div v-else class="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">

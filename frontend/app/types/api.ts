@@ -690,6 +690,17 @@ export interface RfiProcessDto {
   invitationCount: number;
   responseCount: number;
   createdAt: string;
+  /** Tedarikçi: Standart kota dolu ve davet kabul edilmemişse QuotaExceeded ("Plus alınız"). */
+  accessLevel: AccessLevel;
+  myInvitationStatus: string | null;
+}
+
+export interface RfiMyAnswerDto {
+  rfiQuestionId: string;
+  answerText: string | null;
+  answerNumber: number | null;
+  answerBool: boolean | null;
+  selectedOptionId: string | null;
 }
 
 export interface RfiProcessDetailDto {
@@ -703,6 +714,13 @@ export interface RfiProcessDetailDto {
   dueDate: string;
   questions: RfiQuestionDto[];
   invitations: AuctionInvitationDto[];
+  accessLevel: AccessLevel;
+  /** Süreç yanıtlara açık mı (Gönderildi / Devam Ediyor). */
+  isOpen: boolean;
+  hasSubmitted: boolean;
+  /** İlk yanıt her üyeye; gönderilmiş yanıtın revizyonu yalnızca Plus'a ve açık süreçte. */
+  canSubmit: boolean;
+  myAnswers: RfiMyAnswerDto[] | null;
 }
 
 export interface RfiResponseDto {
@@ -739,6 +757,9 @@ export interface RfqProcessDto {
   invitationCount: number;
   quoteCount: number;
   createdAt: string;
+  /** Tedarikçi: Standart kota dolu ve davet kabul edilmemişse QuotaExceeded ("Plus alınız"). */
+  accessLevel: AccessLevel;
+  myInvitationStatus: string | null;
 }
 
 export interface RfqLineItemDto {
@@ -762,6 +783,12 @@ export interface RfqProcessDetailDto {
   winningQuoteId: string | null;
   lineItems: RfqLineItemDto[];
   invitations: AuctionInvitationDto[];
+  accessLevel: AccessLevel;
+  /** Süreç yanıtlara açık mı (Gönderildi / Devam Ediyor). */
+  isOpen: boolean;
+  hasSubmitted: boolean;
+  /** İlk yanıt her üyeye; gönderilmiş yanıtın revizyonu yalnızca Plus'a ve açık süreçte. */
+  canSubmit: boolean;
 }
 
 export interface RfqQuoteLineItemDto {

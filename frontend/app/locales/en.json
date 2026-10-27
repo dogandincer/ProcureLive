@@ -1351,6 +1351,11 @@
     "PlusRequired": {
       "title": "Advanced search is for Plus members",
       "body": "Upgrade to Plus to search by company, auction and product, and to filter by auction type and number of participants."
+    },
+    "process": {
+      "title": "Your participation quota is used up",
+      "body": "Your Standard membership auction quota is used up. Upgrade to Plus to see and accept this invitation.",
+      "declineInstead": "Or decline the invitation"
     }
   },
   "subscription": {
@@ -1751,5 +1756,15 @@
       }
     },
     "bidAfterAccept": "You can bid on this item once your participation request is accepted."
+  },
+  "rfx": {
+    "closed": "This process is closed for responses; what you submitted is shown below.",
+    "submittedStandard": "Your response was submitted. Standard members cannot revise responses; upgrade to Plus to revise.",
+    "submittedPlus": "Your response was submitted. As a Plus member you can revise it while the process is open.",
+    "submittedStandardQuote": "Your quote was submitted. Standard members cannot revise quotes; upgrade to Plus to revise.",
+    "submittedPlusQuote": "Your quote was submitted. As a Plus member you can revise it while the process is open.",
+    "revise": "Update Response",
+    "reviseQuote": "Update Quote",
+    "standardOnce": "With a Standard membership, changes are not possible after submitting."
   }
 }

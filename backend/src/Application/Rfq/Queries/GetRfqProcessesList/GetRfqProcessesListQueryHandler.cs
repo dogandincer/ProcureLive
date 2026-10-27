@@ -14,12 +14,15 @@ public sealed class GetRfqProcessesListQueryHandler : IRequestHandler<GetRfqProc
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDataScopeService _scope;
+    private readonly ISupplierAccessService _accessService;
 
-    public GetRfqProcessesListQueryHandler(IApplicationDbContext context, ICurrentUserService currentUserService, IDataScopeService scope)
+    public GetRfqProcessesListQueryHandler(
+        IApplicationDbContext context, ICurrentUserService currentUserService, IDataScopeService scope, ISupplierAccessService accessService)
     {
         _scope = scope;
         _context = context;
         _currentUserService = currentUserService;
+        _accessService = accessService;
     }
 
     public async Task<PagedResult<RfqProcessDto>> Handle(GetRfqProcessesListQuery request, CancellationToken cancellationToken)
@@ -33,11 +36,13 @@ public sealed class GetRfqProcessesListQueryHandler : IRequestHandler<GetRfqProc
             .AsQueryable();
 
         bool isInternalUser = _currentUserService.IsInRole(Roles.Admin) || _currentUserService.IsInRole(Roles.Buyer);
+        Guid supplierCompanyId = _currentUserService.CompanyId ?? Guid.Empty;
+        SupplierAccessContext? access = null;
 
         if (!isInternalUser)
         {
-            Guid companyId = _currentUserService.CompanyId ?? Guid.Empty;
-            query = query.Where(p => p.Invitations.Any(i => i.CompanyId == companyId));
+            query = query.Where(p => p.Invitations.Any(i => i.CompanyId == supplierCompanyId));
+            access = await _accessService.GetContextAsync(supplierCompanyId, cancellationToken);
         }
         else
         {
@@ -72,9 +77,23 @@ public sealed class GetRfqProcessesListQueryHandler : IRequestHandler<GetRfqProc
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        List<RfqProcessDto> items = processes.Select(p => new RfqProcessDto(
-            p.Id, p.Title, p.OwnerCompanyId, p.OwnerCompany.Name, p.CurrencyId, p.Currency.Code,
-            p.Status.ToString(), p.DueDate, p.LineItems.Count, p.Invitations.Count, p.Quotes.Count, p.CreatedAt)).ToList();
+        List<RfqProcessDto> items = processes.Select(p =>
+        {
+            if (access is null)
+            {
+                return new RfqProcessDto(
+                    p.Id, p.Title, p.OwnerCompanyId, p.OwnerCompany.Name, p.CurrencyId, p.Currency.Code,
+                    p.Status.ToString(), p.DueDate, p.LineItems.Count, p.Invitations.Count, p.Quotes.Count, p.CreatedAt);
+            }
+
+            // Tedarikçi: kendi davet durumu + kota kısıtı; rakip davet/teklif sayıları dönmez.
+            InvitationStatus? myStatus = p.Invitations.FirstOrDefault(i => i.CompanyId == supplierCompanyId)?.Status;
+            AuctionAccessLevel level = ProcessParticipationRules.Evaluate(access, myStatus);
+            return new RfqProcessDto(
+                p.Id, p.Title, p.OwnerCompanyId, p.OwnerCompany.Name, p.CurrencyId, p.Currency.Code,
+                p.Status.ToString(), p.DueDate, level == AuctionAccessLevel.Full ? p.LineItems.Count : 0, 0, 0, p.CreatedAt,
+                level.ToString(), myStatus?.ToString());
+        }).ToList();
 
         return new PagedResult<RfqProcessDto>(items, totalCount, page, pageSize);
     }

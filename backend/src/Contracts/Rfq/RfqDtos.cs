@@ -12,7 +12,9 @@ public sealed record RfqProcessDto(
     int LineItemCount,
     int InvitationCount,
     int QuoteCount,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    string AccessLevel = "Full",
+    string? MyInvitationStatus = null);
 
 public sealed record RfqProcessDetailDto(
     Guid Id,
@@ -25,7 +27,11 @@ public sealed record RfqProcessDetailDto(
     DateTime DueDate,
     Guid? WinningQuoteId,
     IReadOnlyCollection<RfqLineItemDto> LineItems,
-    IReadOnlyCollection<RfqInvitationDto> Invitations);
+    IReadOnlyCollection<RfqInvitationDto> Invitations,
+    string AccessLevel = "Full",
+    bool IsOpen = false,
+    bool HasSubmitted = false,
+    bool CanSubmit = false);
 
 public sealed record RfqLineItemDto(
     Guid Id,

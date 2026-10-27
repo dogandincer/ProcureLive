@@ -49,7 +49,12 @@ function flattenCategories(list: CategoryDto[]): CategoryDto[] {
   return list.flatMap((c) => [c, ...flattenCategories(c.children)]);
 }
 
+// Başlıktaki firma/işyeri açılışta art arda kurulur ve her değişim yeniden yükler; geç dönen eski (ör. filtresiz)
+// yanıt yenisinin üzerine yazmasın diye yalnızca son isteğin sonucu uygulanır.
+let loadSeq = 0;
+
 async function load() {
+  const seq = ++loadSeq;
   loading.value = true;
   try {
     const params: Record<string, unknown> = { page: 1, pageSize: 100 };
@@ -60,6 +65,7 @@ async function load() {
       api.get<PagedResult<ProductDto>>("/api/products", params),
       api.get<CategoryDto[]>("/api/categories"),
     ]);
+    if (seq !== loadSeq) return;
     products.value = productPage.items;
     categories.value = flattenCategories(categoryTree);
     if (!form.categoryId && categories.value.length > 0) {
@@ -68,7 +74,7 @@ async function load() {
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("products.loadError")));
   } finally {
-    loading.value = false;
+    if (seq === loadSeq) loading.value = false;
   }
 }
 

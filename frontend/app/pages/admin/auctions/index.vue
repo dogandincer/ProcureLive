@@ -14,6 +14,7 @@ const submitting = ref(false);
 const loading = ref(true);
 
 const { selectedFirmId } = useFirm();
+const { selectedWorkspaceId } = useWorkspace();
 
 const form = reactive({
   title: "",
@@ -39,14 +40,26 @@ const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "ros
   Cancelled: "rose",
 };
 
+// Başlıktaki firma/işyeri açılışta art arda kurulur ve her değişim yeniden yükler; geç dönen eski (ör. filtresiz)
+// yanıt yenisinin üzerine yazmasın diye yalnızca son isteğin sonucu uygulanır.
+let loadSeq = 0;
+
 async function load() {
+  const seq = ++loadSeq;
   loading.value = true;
   try {
     const [auctionPage, companyPage, currencyList] = await Promise.all([
-      api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 50, firmId: selectedFirmId.value ?? undefined }),
+      // Başlıkta işyeri seçiliyse yalnızca o işyerinin ihaleleri; "Tüm İşyerleri"nde firmanın tümü.
+      api.get<PagedResult<AuctionDto>>("/api/auctions", {
+        page: 1,
+        pageSize: 50,
+        firmId: selectedFirmId.value ?? undefined,
+        workspaceId: selectedWorkspaceId.value ?? undefined,
+      }),
       api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 }),
       api.get<CurrencyDto[]>("/api/currencies"),
     ]);
+    if (seq !== loadSeq) return;
     auctions.value = auctionPage.items;
     companies.value = companyPage.items;
     currencies.value = currencyList;
@@ -60,7 +73,7 @@ async function load() {
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("auctions.loadError")));
   } finally {
-    loading.value = false;
+    if (seq === loadSeq) loading.value = false;
   }
 }
 
@@ -91,7 +104,7 @@ async function createAuction() {
 }
 
 onMounted(load);
-watch(selectedFirmId, load);
+watch([selectedFirmId, selectedWorkspaceId], load);
 </script>
 
 <template>
@@ -182,7 +195,10 @@ watch(selectedFirmId, load);
           <tbody>
             <tr v-for="a in auctions" :key="a.id" class="border-b border-slate-50">
               <td class="py-2 font-medium text-slate-700">{{ a.title }}</td>
-              <td class="py-2 text-slate-500">{{ a.ownerCompanyName }}</td>
+              <td class="py-2 text-slate-500">
+                {{ a.ownerCompanyName }}
+                <span v-if="a.workspaceName" class="block text-[11px] text-slate-400">{{ a.workspaceName }}</span>
+              </td>
               <td class="py-2 text-slate-500">{{ $t(`enums.auctionType.${a.auctionType}`) }}</td>
               <td class="py-2">
                 <AppBadge :tone="statusTone[a.status]">{{ $t(`enums.auctionStatus.${a.status}`) }}</AppBadge>

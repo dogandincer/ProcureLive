@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Auctions.Participation;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Security;
 using ProcureLive.Domain.Entities.Auctions;
 using ProcureLive.Domain.Enums;
 
@@ -24,15 +25,18 @@ public sealed class CreateTenderCommandHandler : IRequestHandler<CreateTenderCom
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTime _dateTime;
+    private readonly IDataScopeService _scope;
 
     public CreateTenderCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTime dateTime)
+        IDateTime dateTime,
+        IDataScopeService scope)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTime = dateTime;
+        _scope = scope;
     }
 
     public async Task<Guid> Handle(CreateTenderCommand request, CancellationToken cancellationToken)
@@ -82,7 +86,8 @@ public sealed class CreateTenderCommandHandler : IRequestHandler<CreateTenderCom
         }
 
         // İhalenin işyeri (katılım taleplerinde cari onayı bu işyerine verilir) ve sorumlu satınalmacı (açan kullanıcı).
-        Guid? workspaceId = await AuctionWorkspaceRules.ResolveAsync(_context, request.OwnerCompanyId, request.WorkspaceId, cancellationToken);
+        Guid? workspaceId = await AuctionWorkspaceRules.ResolveAsync(
+            _context, request.OwnerCompanyId, request.WorkspaceId, await _scope.GetAsync(cancellationToken), cancellationToken);
 
         // --- Aggregate'i navigation koleksiyonlarıyla kur (tek SaveChanges ile yazılır) ---
         Guid invitedByUserId = _currentUserService.UserId ?? Guid.Empty;

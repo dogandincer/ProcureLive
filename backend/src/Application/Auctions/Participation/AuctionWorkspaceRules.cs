@@ -1,16 +1,19 @@
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Auctions.Participation;
 
 public static class AuctionWorkspaceRules
 {
     /// <summary>
-    /// İhalenin işyeri: istenen işyeri sahip firmaya ait olmalı; verilmemişse firmanın varsayılan (yoksa ilk) işyeri.
-    /// Firmanın hiç işyeri yoksa null (cari onayı firma düzeyinde değerlendirilir).
+    /// İhalenin işyeri: istenen işyeri sahip firmaya ait olmalı; verilmemişse firmanın varsayılan (yoksa ilk) işyeri —
+    /// satınalmacı için yalnızca yetkili olduğu işyerleri arasından. Firmanın hiç işyeri yoksa null
+    /// (cari onayı firma düzeyinde değerlendirilir).
     /// </summary>
-    public static async Task<Guid?> ResolveAsync(IApplicationDbContext context, Guid ownerFirmId, Guid? requested, CancellationToken ct)
+    public static async Task<Guid?> ResolveAsync(
+        IApplicationDbContext context, Guid ownerFirmId, Guid? requested, DataScope scope, CancellationToken ct)
     {
         if (requested is Guid id)
         {
@@ -20,8 +23,15 @@ public static class AuctionWorkspaceRules
             return id;
         }
 
-        return await context.Workspaces
-            .Where(w => w.FirmId == ownerFirmId && w.IsActive)
+        IQueryable<ProcureLive.Domain.Entities.Workspaces.Workspace> candidates =
+            context.Workspaces.Where(w => w.FirmId == ownerFirmId && w.IsActive);
+        if (!scope.IsUnrestricted)
+        {
+            List<Guid> allowed = scope.WorkspaceIds.ToList();
+            candidates = candidates.Where(w => allowed.Contains(w.Id));
+        }
+
+        return await candidates
             .OrderByDescending(w => w.IsDefault).ThenBy(w => w.CreatedAt)
             .Select(w => (Guid?)w.Id)
             .FirstOrDefaultAsync(ct);

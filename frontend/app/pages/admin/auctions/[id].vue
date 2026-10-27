@@ -4,8 +4,6 @@ import type {
   AuctionItemDto,
   BidComparisonDto,
   BidDto,
-  CompanyDto,
-  PagedResult,
 } from "~/types/api";
 import {
   ClockIcon,
@@ -32,13 +30,14 @@ const { connectAndJoin, disconnect } = useAuctionHub();
 const { isAdminRole } = useAuth();
 
 const auction = ref<AuctionDetailDto | null>(null);
-const companies = ref<CompanyDto[]>([]);
 const loading = ref(true);
 const now = ref(Date.now());
 const liveLog = ref<string[]>([]);
 
 const comparisons = reactive<Record<string, BidComparisonDto[]>>({});
-const inviteCompanyId = ref("");
+const inviteCompanyId = ref<string | null>(null);
+const inviteCompanyName = ref<string | null>(null);
+const { loadSupplierRows } = useSupplierLookup();
 const newItem = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece", targetPrice: null as number | null });
 
 // Track which item's award map (itemId -> bidId) to show awarded state inline
@@ -109,12 +108,8 @@ const evaluationSummary = computed(() => {
 async function load() {
   loading.value = true;
   try {
-    const [detail, companyPage] = await Promise.all([
-      api.get<AuctionDetailDto>(`/api/auctions/${auctionId}`),
-      api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100, companyType: "Supplier" }),
-    ]);
+    const detail = await api.get<AuctionDetailDto>(`/api/auctions/${auctionId}`);
     auction.value = detail;
-    companies.value = companyPage.items;
 
     // Auto-load all comparisons when in evaluation stage
     if (["Ended", "Awarded"].includes(detail.status)) {
@@ -151,7 +146,8 @@ async function invite() {
   if (!inviteCompanyId.value) return;
   await runAction(async () => {
     await api.post(`/api/auctions/${auctionId}/invitations`, { companyIds: [inviteCompanyId.value] });
-    inviteCompanyId.value = "";
+    inviteCompanyId.value = null;
+    inviteCompanyName.value = null;
     toast.success(t("auctions.detail.invitedToast"));
     await load();
   });
@@ -241,11 +237,8 @@ onBeforeUnmount(() => {
         </div>
         <h1 class="text-xl font-bold text-slate-800">{{ auction.title }}</h1>
         <p v-if="auction.description" class="mt-1 text-sm text-slate-500">{{ auction.description }}</p>
-        <p v-if="auction.workspaceName || auction.responsibleUserName" class="mt-1 text-xs text-slate-500">
-          <span v-if="auction.workspaceName">{{ $t("auctions.detail.workspace") }}: <span class="font-medium text-slate-700">{{ auction.workspaceName }}</span></span>
-          <span v-if="auction.workspaceName && auction.responsibleUserName"> · </span>
-          <span v-if="auction.responsibleUserName">{{ $t("auctions.detail.responsible") }}: <span class="font-medium text-slate-700">{{ auction.responsibleUserName }}</span></span>
-        </p>
+        <!-- İşyeri + sorumlu satınalmacı (katılım talepleri sorumluya düşer); düzenlenebilir -->
+        <AuctionAssignment :auction="auction" @changed="load" />
         <StepBadge v-if="workflowStep" class="mt-2" :step="workflowStep.step" :total="4" :label="workflowStep.label" />
       </div>
       <AppBadge :tone="statusTone[auction.status]" class="mt-1">
@@ -444,21 +437,24 @@ onBeforeUnmount(() => {
             <EmptyState v-else class="mt-3">{{ $t("auctions.detail.emptyInvites") }}</EmptyState>
 
             <div v-if="['Draft', 'Scheduled'].includes(auction.status)" class="mt-4 flex gap-2">
-              <select
+              <LookupField
                 v-model="inviteCompanyId"
-                class="flex-1 rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-indigo-400 focus:outline-none"
-              >
-                <option value="" disabled>{{ $t("auctions.detail.selectCompany") }}</option>
-                <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
-              </select>
-              <AppButton @click="invite">
+                class="min-w-0 flex-1"
+                :load="loadSupplierRows"
+                :title="$t('auctions.detail.selectCompany')"
+                :display="inviteCompanyName"
+                :placeholder="$t('auctions.detail.selectCompany')"
+                data-testid="invite-company"
+                @select="(r) => (inviteCompanyName = r ? `${r.code} · ${r.name}` : null)"
+              />
+              <AppButton :disabled="!inviteCompanyId" @click="invite">
                 <UserPlusIcon class="h-4 w-4" />
                 {{ $t("auctions.detail.invite") }}
               </AppButton>
             </div>
           </AppCard>
 
-          <InviteLinksPanel :auction-id="auctionId" :companies="companies" :status="auction.status" @created="load" />
+          <InviteLinksPanel :auction-id="auctionId" :status="auction.status" @created="load" />
 
           <AppCard :title="$t('auctions.detail.liveLog')">
             <ul v-if="liveLog.length > 0" class="space-y-1">

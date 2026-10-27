@@ -513,6 +513,13 @@
       },
       "empty": "Tamamlanmış ihale yok",
       "loadError": "Kayıtlar yüklenemedi."
+    },
+    "assignment": {
+      "selectResponsible": "Sorumlu seçin",
+      "saved": "İşyeri / sorumlu güncellendi.",
+      "saveError": "Atama kaydedilemedi.",
+      "candidatesError": "Sorumlu adayları yüklenemedi.",
+      "workspaceLocked": "İhale planlanmış aşamayı geçtiği için işyeri değiştirilemez; yalnızca sorumlu değişebilir."
     }
   },
   "currencies": {

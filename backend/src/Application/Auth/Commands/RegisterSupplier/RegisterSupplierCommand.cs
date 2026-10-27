@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Models;
+using ProcureLive.Contracts.Common;
 using ProcureLive.Application.Common.Notifications;
 using ProcureLive.Application.Common.Security;
 using ProcureLive.Application.Companies;
@@ -122,11 +123,16 @@ public sealed class RegisterSupplierCommandHandler : IRequestHandler<RegisterSup
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        await NotificationCreator.CreateForInternalUsersAsync(
-            _context, _realtime, _dateTime, NotificationType.System,
-            "Yeni Tedarikçi Kaydı",
-            $"\"{company.Name}\" kendi kaydını oluşturdu (onay bekliyor).",
-            nameof(Company), company.Id, cancellationToken);
+        // Bağlanmamış kayıt yalnızca Admin'in cari havuzunda görünür; bildirim de yalnızca aktif Admin'lere gider.
+        PagedResult<ApplicationUserInfo> admins = await _identityService.ListUsersAsync(null, null, 1, 100, [Roles.Admin], cancellationToken);
+        foreach (ApplicationUserInfo adminUser in admins.Items.Where(a => a.IsActive))
+        {
+            await NotificationCreator.CreateForInternalUserAsync(
+                _context, _realtime, _dateTime, adminUser.Id, NotificationType.System,
+                "Yeni Tedarikçi Kaydı",
+                $"\"{company.Name}\" kendi kaydını oluşturdu (onay bekliyor).",
+                nameof(Company), company.Id, cancellationToken);
+        }
 
         return new AuthResultDto(
             user.Id, user.Email, user.FirstName, user.LastName, user.Roles, user.CompanyId, accessToken, expiresAt, refreshTokenValue);

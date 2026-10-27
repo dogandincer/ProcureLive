@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { CompanyDto, InviteLinkDto } from "~/types/api";
+import type { InviteLinkDto } from "~/types/api";
 import { LinkIcon, ClipboardDocumentIcon, CheckIcon } from "@heroicons/vue/24/outline";
 
 /**
  * Admin: bir cari için benzersiz, süreli davet linki (/invite?token=...). Link oluşturulunca cari
  * ihaleye "Davetli" olarak da eklenir; davetli kayıt olur ya da mevcut hesabıyla giriş yapıp sahiplenir.
  */
-const props = defineProps<{ auctionId: string; companies: CompanyDto[]; status: string }>();
+const props = defineProps<{ auctionId: string; status: string }>();
 const emit = defineEmits<{ created: [] }>();
 
 const api = useApi();
@@ -15,7 +15,9 @@ const { t } = useI18n();
 const { formatDateTime } = useDateFormat();
 
 const links = ref<InviteLinkDto[]>([]);
-const form = reactive({ companyId: "", email: "", validDays: 7 });
+const form = reactive({ companyId: null as string | null, email: "", validDays: 7 });
+const companyName = ref<string | null>(null);
+const { loadSupplierRows } = useSupplierLookup();
 const creating = ref(false);
 const copiedId = ref<string | null>(null);
 
@@ -40,7 +42,8 @@ async function create() {
       validDays: form.validDays,
     });
     links.value = [link, ...links.value];
-    form.companyId = "";
+    form.companyId = null;
+    companyName.value = null;
     form.email = "";
     await copy(link);
     emit("created");
@@ -74,10 +77,16 @@ onMounted(load);
 <template>
   <AppCard :title="$t('inviteLinks.title')" :description="$t('inviteLinks.description')">
     <form v-if="canCreate" class="space-y-2" @submit.prevent="create">
-      <select v-model="form.companyId" required class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-indigo-400 focus:outline-none">
-        <option value="" disabled>{{ $t("auctions.detail.selectCompany") }}</option>
-        <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
-      </select>
+      <LookupField
+        v-model="form.companyId"
+        :load="loadSupplierRows"
+        :title="$t('auctions.detail.selectCompany')"
+        :display="companyName"
+        :placeholder="$t('auctions.detail.selectCompany')"
+        data-testid="invite-link-company"
+        required
+        @select="(r) => (companyName = r ? `${r.code} · ${r.name}` : null)"
+      />
       <input
         v-model="form.email"
         type="email"

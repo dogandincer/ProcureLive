@@ -113,7 +113,12 @@ async function importCompanyRow(row: Record<string, string | number | boolean | 
   });
 }
 
+// Başlıktaki firma/işyeri açılışta art arda kurulur ve her değişim yeniden yükler; geç dönen eski (ör. filtresiz)
+// yanıt yenisinin üzerine yazmasın diye yalnızca son isteğin sonucu uygulanır.
+let loadSeq = 0;
+
 async function load() {
+  const seq = ++loadSeq;
   loading.value = true;
   try {
     const params: Record<string, unknown> = { page: 1, pageSize: 100, companyType: "Supplier" };
@@ -121,6 +126,7 @@ async function load() {
     if (selectedWorkspaceId.value) params.workspaceId = selectedWorkspaceId.value;
     else if (selectedFirmId.value) params.firmId = selectedFirmId.value;
     const page = await api.get<PagedResult<CompanyDto>>("/api/companies", params);
+    if (seq !== loadSeq) return;
     companies.value = page.items;
     for (const c of companies.value) {
       statusDrafts[c.id] = c.status;
@@ -128,7 +134,7 @@ async function load() {
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("companies.loadError")));
   } finally {
-    loading.value = false;
+    if (seq === loadSeq) loading.value = false;
   }
 }
 

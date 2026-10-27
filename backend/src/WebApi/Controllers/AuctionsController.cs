@@ -45,11 +45,13 @@ public sealed class AuctionsController : ControllerBase
     public async Task<ActionResult<PagedResult<AuctionDto>>> GetList(
         [FromQuery] string? status,
         [FromQuery] Guid? firmId,
+        [FromQuery] Guid? workspaceId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        PagedResult<AuctionDto> result = await _sender.Send(new GetAuctionsListQuery(status, page, pageSize, firmId), cancellationToken);
+        PagedResult<AuctionDto> result = await _sender.Send(
+            new GetAuctionsListQuery(status, page, pageSize, firmId, workspaceId), cancellationToken);
         return Ok(result);
     }
 
@@ -228,6 +230,24 @@ public sealed class AuctionsController : ControllerBase
         Guid id, Guid requestId, RejectParticipationRequestRequest request, CancellationToken cancellationToken)
     {
         await _sender.Send(new RejectParticipationRequestCommand(id, requestId, request.Reason), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Sorumlu satınalmacı adayları (işyeri verilirse o işyerine göre).</summary>
+    [HttpGet("{id:guid}/responsible-candidates")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<IReadOnlyList<ResponsibleCandidateDto>>> GetResponsibleCandidates(
+        Guid id, [FromQuery] Guid? workspaceId, CancellationToken cancellationToken)
+    {
+        return Ok(await _sender.Send(new GetResponsibleCandidatesQuery(id, workspaceId), cancellationToken));
+    }
+
+    /// <summary>İhalenin işyeri (taslak/planlanmış iken) ve sorumlu satınalmacısı.</summary>
+    [HttpPut("{id:guid}/assignment")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> UpdateAssignment(Guid id, UpdateAuctionAssignmentRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new UpdateAuctionAssignmentCommand(id, request.WorkspaceId, request.ResponsibleUserId), cancellationToken);
         return NoContent();
     }
 

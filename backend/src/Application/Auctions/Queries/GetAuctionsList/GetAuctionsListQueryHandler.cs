@@ -61,19 +61,18 @@ public sealed class GetAuctionsListQueryHandler : IRequestHandler<GetAuctionsLis
                             || (isPlus && a.IsListedForPlus && a.OwnerCompany.ListTendersForPlus)))));
         }
 
-        // Satınalmacı yalnızca yetkili firmalarının ihalelerini görür.
+        // Satınalmacı yalnızca yetkili işyerlerinin ihalelerini görür (işyeri atanmamış eski ihalelerde firma yetkisi).
         if (isInternalUser)
         {
-            DataScope scope = await _scope.GetAsync(cancellationToken);
-            if (!scope.IsUnrestricted)
-            {
-                List<Guid> firmIds = scope.FirmIds.ToList();
-                query = query.Where(a => firmIds.Contains(a.OwnerCompanyId));
-            }
+            query = query.InScope(await _scope.GetAsync(cancellationToken));
         }
 
-        // İç kullanıcı: başlıktaki firma = ihale sahibi firma.
-        if (isInternalUser && request.FirmId is Guid firmId)
+        // İç kullanıcı: başlıktaki firma = ihale sahibi firma; işyeri seçiliyse yalnızca o işyerinin ihaleleri.
+        if (isInternalUser && request.WorkspaceId is Guid workspaceId)
+        {
+            query = query.Where(a => a.WorkspaceId == workspaceId);
+        }
+        else if (isInternalUser && request.FirmId is Guid firmId)
         {
             query = query.Where(a => a.OwnerCompanyId == firmId);
         }
@@ -100,12 +99,21 @@ public sealed class GetAuctionsListQueryHandler : IRequestHandler<GetAuctionsLis
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        List<AuctionDto> items = auctions.Select(a => ToDto(a, access)).ToList();
+        // İç kullanıcı listesinde işyeri adı (tek sorgu).
+        Dictionary<Guid, string> workspaceNames = new();
+        if (isInternalUser)
+        {
+            List<Guid> workspaceIds = auctions.Where(a => a.WorkspaceId.HasValue).Select(a => a.WorkspaceId!.Value).Distinct().ToList();
+            workspaceNames = await _context.Workspaces.Where(w => workspaceIds.Contains(w.Id))
+                .ToDictionaryAsync(w => w.Id, w => w.Name, cancellationToken);
+        }
+
+        List<AuctionDto> items = auctions.Select(a => ToDto(a, access, workspaceNames)).ToList();
 
         return new PagedResult<AuctionDto>(items, totalCount, page, pageSize);
     }
 
-    private static AuctionDto ToDto(Auction a, SupplierAccessContext? access)
+    private static AuctionDto ToDto(Auction a, SupplierAccessContext? access, IReadOnlyDictionary<Guid, string> workspaceNames)
     {
         if (access is null)
         {
@@ -114,7 +122,8 @@ public sealed class GetAuctionsListQueryHandler : IRequestHandler<GetAuctionsLis
                 a.OwnerCompanyId, a.OwnerCompany.Name, a.CurrencyId, a.Currency.Code,
                 a.StartAt, a.EndAt, a.ActualStartAt, a.ActualEndAt, a.ReservePrice, a.ExtensionRuleMinutes,
                 a.Items.Count, a.Invitations.Count, a.CreatedAt,
-                AccessLevel: nameof(AuctionAccessLevel.Full), IsListedForPlus: a.IsListedForPlus);
+                AccessLevel: nameof(AuctionAccessLevel.Full), IsListedForPlus: a.IsListedForPlus,
+                WorkspaceName: a.WorkspaceId is Guid w && workspaceNames.TryGetValue(w, out string? name) ? name : null);
         }
 
         var facts = new AuctionAccessFacts(a.Id, a.Status, a.OwnerCompanyId, a.IsListedForPlus, a.OwnerCompany.ListTendersForPlus);

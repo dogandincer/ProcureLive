@@ -288,6 +288,16 @@ export interface AuctionDto {
   /** Davetsiz ve onaylı cari değil: katılım için talep + ön teklif gerekir. */
   requiresApproval: boolean;
   participationStatus: ParticipationStatus | null;
+  /** Yalnızca iç kullanıcı listesinde dolu. */
+  workspaceName: string | null;
+}
+
+/** Sorumlu satınalmacı adayı: aktif Admin ya da ihalenin işyerine yetkili satınalmacı. */
+export interface ResponsibleCandidateDto {
+  id: string;
+  fullName: string;
+  email: string;
+  isAdmin: boolean;
 }
 
 /** Full: tam erişim · QuotaExceeded: Standart kota doldu (vitrin bilgisi) · NoAccess: içerik yok. */

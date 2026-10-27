@@ -513,6 +513,13 @@
       },
       "empty": "No completed auctions",
       "loadError": "Failed to load records."
+    },
+    "assignment": {
+      "selectResponsible": "Select responsible",
+      "saved": "Workspace / responsible updated.",
+      "saveError": "The assignment could not be saved.",
+      "candidatesError": "Responsible candidates could not be loaded.",
+      "workspaceLocked": "The auction is past the scheduled stage, so its workspace cannot change; only the responsible buyer can."
     }
   },
   "currencies": {

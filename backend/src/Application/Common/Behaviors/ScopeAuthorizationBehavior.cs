@@ -59,8 +59,9 @@ public sealed class ScopeAuthorizationBehavior<TRequest, TResponse> : IPipelineB
 
         if (request is IAuctionScopedRequest auction)
         {
-            Guid? firm = await _context.Auctions.Where(a => a.Id == auction.AuctionId).Select(a => (Guid?)a.OwnerCompanyId).FirstOrDefaultAsync(ct);
-            if (firm is Guid f && !scope.HasFirm(f)) return false;
+            var a = await _context.Auctions.Where(x => x.Id == auction.AuctionId)
+                .Select(x => new { x.OwnerCompanyId, x.WorkspaceId }).FirstOrDefaultAsync(ct);
+            if (a is not null && !scope.HasAuction(a.WorkspaceId, a.OwnerCompanyId)) return false;
         }
 
         if (request is IRfiScopedRequest rfi)
@@ -90,12 +91,11 @@ public sealed class ScopeAuthorizationBehavior<TRequest, TResponse> : IPipelineB
                     ? scope.HasFirm(company.CompanyId)
                     : scope.HasWorkspace(c.WorkspaceId) || c.Visible.Any(id => scope.HasWorkspace(id));
 
-                // Firmanın ihalesine katılım talebi gönderen (henüz cari onayı almamış) tedarikçi de görüntülenebilir.
+                // Yetkili olduğu bir ihaleye katılım talebi gönderen (henüz cari onayı almamış) tedarikçi de görüntülenebilir.
                 if (!allowed && c.CompanyType != CompanyType.Internal)
                 {
-                    List<Guid> firmIds = scope.FirmIds.ToList();
-                    allowed = await _context.ParticipationRequests.AnyAsync(
-                        r => r.CompanyId == company.CompanyId && firmIds.Contains(r.Auction.OwnerCompanyId), ct);
+                    allowed = await _context.Auctions.InScope(scope)
+                        .AnyAsync(x => _context.ParticipationRequests.Any(r => r.AuctionId == x.Id && r.CompanyId == company.CompanyId), ct);
                 }
 
                 if (!allowed) return false;

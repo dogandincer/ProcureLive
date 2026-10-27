@@ -188,6 +188,12 @@ public static class MessageTranslator
         ["Gönderdiğiniz yanıtı revize etmek Plus üyelere açıktır."] = "Revising a submitted response is available to Plus members.",
         ["Bu süreç yanıtlara kapalı."] = "This process is closed for responses.",
 
+        // İhale işyeri / sorumlu satınalmacı
+        ["İşyeri yalnızca taslak veya planlanmış ihalede değiştirilebilir."] = "The workspace can only be changed while the auction is a draft or scheduled.",
+        ["İşyeri seçimi zorunludur."] = "Selecting a workspace is required.",
+        ["Sorumlu satınalmacı ihalenin işyerine yetkili, aktif bir iç kullanıcı olmalıdır."] = "The responsible buyer must be an active internal user authorized for the auction's workspace.",
+        ["İhale Sorumluluğu"] = "Auction Responsibility",
+
         // Cari / kendi kaydı / katılım talebi
         ["Firma tanımı Firma Tanım ekranından yapılır; Cari ekranı yalnızca tedarikçiler içindir."] = "Firms are defined on the Firm Definition screen; the Company screen is for suppliers only.",
         ["Geçerli bir kullanıcı e-postası girin."] = "Enter a valid user e-mail.",
@@ -346,6 +352,8 @@ public static class MessageTranslator
         // RespondToRfqInvitationCommandHandler
         (new Regex(@"^""([^""]+)"" ""([^""]+)"" RFQ süreci davetini (kabul etti|reddetti)\.(?: Gerekçe: (.+))?$"),
             m => RenderInvitationResponse(m, "RFQ process")),
+        (new Regex(@"^""([^""]+)"" ihalesinin sorumlu satınalmacısı olarak atandınız; katılım talepleri size düşecek\.$"),
+            m => $"You were assigned as the responsible buyer of auction \"{m.Groups[1].Value}\"; participation requests will come to you."),
 
         // Cari kodu / kullanıcı
         (new Regex(@"^""([^""]+)"" cari kodu başka bir kayıtta kullanılıyor\.$"),

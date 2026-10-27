@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Domain.Entities.Auctions;
 
 namespace ProcureLive.Application.Common.Security;
 
@@ -27,6 +28,28 @@ public sealed class DataScope
     public bool HasFirm(Guid firmId) => IsUnrestricted || FirmIds.Contains(firmId);
 
     public bool HasWorkspace(Guid? workspaceId) => IsUnrestricted || (workspaceId is Guid id && WorkspaceIds.Contains(id));
+
+    /// <summary>
+    /// İhale kapsamı: ihalenin işyeri yetkili işyerlerinden biri olmalı. İşyeri atanmamış (eski) ihalelerde
+    /// sahip firmaya yetki yeterlidir.
+    /// </summary>
+    public bool HasAuction(Guid? auctionWorkspaceId, Guid ownerFirmId) =>
+        auctionWorkspaceId is Guid w ? HasWorkspace(w) : HasFirm(ownerFirmId);
+}
+
+public static class DataScopeQueryExtensions
+{
+    /// <summary>SQL'e çevrilebilir <see cref="DataScope.HasAuction"/>: satınalmacının görebileceği ihaleler.</summary>
+    public static IQueryable<Auction> InScope(this IQueryable<Auction> query, DataScope scope)
+    {
+        if (scope.IsUnrestricted) return query;
+
+        List<Guid> workspaceIds = scope.WorkspaceIds.ToList();
+        List<Guid> firmIds = scope.FirmIds.ToList();
+        return query.Where(a => a.WorkspaceId != null
+            ? workspaceIds.Contains(a.WorkspaceId.Value)
+            : firmIds.Contains(a.OwnerCompanyId));
+    }
 }
 
 public interface IDataScopeService

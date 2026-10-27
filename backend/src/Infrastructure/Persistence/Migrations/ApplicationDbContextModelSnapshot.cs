@@ -318,6 +318,9 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 4)
                         .HasColumnType("numeric(18,4)");
 
+                    b.Property<Guid?>("ResponsibleUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("StartAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -338,6 +341,9 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("WorkspaceId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CurrencyId");
@@ -349,6 +355,8 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.HasIndex("ReferenceCode");
 
                     b.HasIndex("Status");
+
+                    b.HasIndex("WorkspaceId");
 
                     b.ToTable("Auctions", (string)null);
                 });
@@ -713,6 +721,97 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("InvitationTokens", (string)null);
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Auctions.ParticipationRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuctionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CompanyApprovedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CompanyApprovedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DecidedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("RejectReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("RequestedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("AuctionId", "CompanyId");
+
+                    b.ToTable("ParticipationRequests", (string)null);
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Auctions.ParticipationRequestLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuctionItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("ParticipationRequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuctionItemId");
+
+                    b.HasIndex("ParticipationRequestId", "AuctionItemId")
+                        .IsUnique();
+
+                    b.ToTable("ParticipationRequestLines", (string)null);
                 });
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Audit.AuditLog", b =>
@@ -1239,6 +1338,28 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("CompanySupplierCategories", (string)null);
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.CompanyWorkspace", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("WorkspaceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkspaceId");
+
+                    b.HasIndex("CompanyId", "WorkspaceId")
+                        .IsUnique();
+
+                    b.ToTable("CompanyWorkspaces", (string)null);
                 });
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.ContactPerson", b =>
@@ -2437,6 +2558,11 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ProcureLive.Domain.Entities.Workspaces.Workspace", null)
+                        .WithMany()
+                        .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Currency");
 
                     b.Navigation("OwnerCompany");
@@ -2617,6 +2743,44 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Navigation("Company");
                 });
 
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Auctions.ParticipationRequest", b =>
+                {
+                    b.HasOne("ProcureLive.Domain.Entities.Auctions.Auction", "Auction")
+                        .WithMany()
+                        .HasForeignKey("AuctionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProcureLive.Domain.Entities.Companies.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Auction");
+
+                    b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Auctions.ParticipationRequestLine", b =>
+                {
+                    b.HasOne("ProcureLive.Domain.Entities.Auctions.AuctionItem", "AuctionItem")
+                        .WithMany()
+                        .HasForeignKey("AuctionItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ProcureLive.Domain.Entities.Auctions.ParticipationRequest", "ParticipationRequest")
+                        .WithMany("Lines")
+                        .HasForeignKey("ParticipationRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AuctionItem");
+
+                    b.Navigation("ParticipationRequest");
+                });
+
             modelBuilder.Entity("ProcureLive.Domain.Entities.Catalog.Category", b =>
                 {
                     b.HasOne("ProcureLive.Domain.Entities.Catalog.Category", "ParentCategory")
@@ -2742,6 +2906,25 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.CompanyWorkspace", b =>
+                {
+                    b.HasOne("ProcureLive.Domain.Entities.Companies.Company", "Company")
+                        .WithMany("VisibleWorkspaces")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProcureLive.Domain.Entities.Workspaces.Workspace", "Workspace")
+                        .WithMany()
+                        .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+
+                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.ContactPerson", b =>
@@ -3110,6 +3293,11 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Navigation("Bids");
                 });
 
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Auctions.ParticipationRequest", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
             modelBuilder.Entity("ProcureLive.Domain.Entities.Catalog.Category", b =>
                 {
                     b.Navigation("ChildCategories");
@@ -3135,6 +3323,8 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Navigation("Sectors");
 
                     b.Navigation("SupplierCategories");
+
+                    b.Navigation("VisibleWorkspaces");
                 });
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Companies.Sector", b =>

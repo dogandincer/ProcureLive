@@ -69,6 +69,19 @@ public sealed class JoinAuctionCommandHandler : IRequestHandler<JoinAuctionComma
                 ErrorCodes.QuotaExceeded);
         }
 
+        if (access.HasActiveRequest(auction.Id))
+        {
+            throw new ConflictException("Bu ihale için katılım talebiniz değerlendiriliyor.", ErrorCodes.RequestPending);
+        }
+
+        // Davetsiz ve ihalenin işyerinde onaylı cari değilse doğrudan katılım yok: talep + ön teklif gerekir.
+        if (access.NeedsApproval(facts, auction.WorkspaceId))
+        {
+            throw new ConflictException(
+                "Bu ihaleye katılmak için ihale sahibi firmanın cari onayı gerekiyor. Katılım talebi ve ön teklif gönderin.",
+                ErrorCodes.ApprovalRequired);
+        }
+
         DateTime now = _dateTime.UtcNow;
         Guid userId = _currentUserService.UserId ?? Guid.Empty;
 

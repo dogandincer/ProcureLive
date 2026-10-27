@@ -78,10 +78,26 @@ public sealed class ScopeAuthorizationBehavior<TRequest, TResponse> : IPipelineB
         if (request is ICompanyScopedRequest company)
         {
             var c = await _context.Companies.Where(x => x.Id == company.CompanyId)
-                .Select(x => new { x.CompanyType, x.WorkspaceId }).FirstOrDefaultAsync(ct);
+                .Select(x => new
+                {
+                    x.CompanyType,
+                    x.WorkspaceId,
+                    Visible = x.VisibleWorkspaces.Select(v => v.WorkspaceId).ToList(),
+                }).FirstOrDefaultAsync(ct);
             if (c is not null)
             {
-                bool allowed = c.CompanyType == CompanyType.Internal ? scope.HasFirm(company.CompanyId) : scope.HasWorkspace(c.WorkspaceId);
+                bool allowed = c.CompanyType == CompanyType.Internal
+                    ? scope.HasFirm(company.CompanyId)
+                    : scope.HasWorkspace(c.WorkspaceId) || c.Visible.Any(id => scope.HasWorkspace(id));
+
+                // Firmanın ihalesine katılım talebi gönderen (henüz cari onayı almamış) tedarikçi de görüntülenebilir.
+                if (!allowed && c.CompanyType != CompanyType.Internal)
+                {
+                    List<Guid> firmIds = scope.FirmIds.ToList();
+                    allowed = await _context.ParticipationRequests.AnyAsync(
+                        r => r.CompanyId == company.CompanyId && firmIds.Contains(r.Auction.OwnerCompanyId), ct);
+                }
+
                 if (!allowed) return false;
             }
         }

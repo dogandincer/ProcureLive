@@ -35,6 +35,11 @@ const canBid = computed(() => myInvitation.value && ["Accepted", "Participating"
 const restricted = computed(() => !!auction.value && auction.value.accessLevel !== "Full");
 const restrictedLevel = computed(() => (auction.value?.accessLevel === "NoAccess" ? "NoAccess" : "QuotaExceeded"));
 const showJoin = computed(() => !!auction.value && auction.value.canJoin && !myInvitation.value);
+const showParticipation = computed(() => {
+  const a = auction.value;
+  if (!a || myInvitation.value) return false;
+  return a.requiresApproval || (!!a.myParticipationRequest && a.myParticipationRequest.status !== "Accepted");
+});
 
 const timeLeftLabel = computed(() => {
   if (!auction.value) return "";
@@ -142,6 +147,14 @@ async function placeBid(item: AuctionItemDto) {
 function pushFeed(text: string) {
   feed.value = [{ text, time: Date.now() }, ...feed.value].slice(0, 30);
 }
+
+// Satınalmacı talebi onayladı / kabul etti / reddetti → sayfa yenilenmeden yansır.
+const lastNotification = useLastNotification();
+watch(lastNotification, (n) => {
+  if (n?.type === "ParticipationRequest" && n.relatedEntityId === auctionId) {
+    Promise.all([load(), refreshSubscription()]);
+  }
+});
 
 let ticker: ReturnType<typeof setInterval> | null = null;
 
@@ -314,6 +327,9 @@ onBeforeUnmount(() => {
       <AppButton :loading="joining" @click="join">{{ $t("auctions.live.joinCta") }}</AppButton>
     </div>
 
+    <!-- Onaylı cari değil: katılım talebi + ön teklif, ardından talep adımlarının durumu -->
+    <ParticipationRequestCard v-if="showParticipation" :auction="auction" @changed="load" />
+
     <div class="space-y-4">
       <div
         v-for="item in auction.items"
@@ -351,7 +367,9 @@ onBeforeUnmount(() => {
           </button>
         </div>
         <p v-if="bidErrors[item.id]" class="mt-2 text-sm text-rose-600">{{ bidErrors[item.id] }}</p>
-        <p v-if="!canBid" class="mt-3 text-xs text-slate-400">{{ $t("auctions.live.needAcceptedInvite") }}</p>
+        <p v-if="!canBid" class="mt-3 text-xs text-slate-400">
+          {{ showParticipation ? $t("participation.bidAfterAccept") : $t("auctions.live.needAcceptedInvite") }}
+        </p>
         <p v-else-if="auction.status !== 'Live'" class="mt-3 text-xs text-slate-400">{{ $t("auctions.live.notLive") }}</p>
       </div>
     </div>

@@ -15,8 +15,10 @@ using ProcureLive.Application.Companies.Queries.GetCompanyById;
 using ProcureLive.Application.Companies.Queries.GetSupplierScoreboard;
 using ProcureLive.Application.Companies.Queries.LookupCompany;
 using ProcureLive.Application.Companies.Settings;
+using ProcureLive.Application.Companies.Users;
 using ProcureLive.Contracts.Common;
 using ProcureLive.Contracts.Companies;
+using ProcureLive.Contracts.Users;
 using ProcureLive.Domain.Enums;
 
 namespace ProcureLive.WebApi.Controllers;
@@ -144,7 +146,9 @@ public sealed class CompaniesController : ControllerBase
             new CreateCompanyCommand(
                 request.Name, request.TaxNumber, request.TaxOffice, companyType, request.Website, request.WorkspaceId,
                 request.TradeName, request.MersisNo, request.Phone, request.Email,
-                request.FoundationYear, request.EmployeeCount, request.Description),
+                request.FoundationYear, request.EmployeeCount, request.Description,
+                request.Code, request.VisibleWorkspaceIds, request.SectorIds,
+                request.UserEmail, request.UserPassword, request.UserFirstName, request.UserLastName),
             cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id }, id);
@@ -165,7 +169,7 @@ public sealed class CompaniesController : ControllerBase
             new UpdateCompanyCommand(
                 id, request.Name, request.TaxOffice, status, request.Website,
                 request.TradeName, request.MersisNo, request.Phone, request.Email,
-                request.FoundationYear, request.EmployeeCount, request.Description),
+                request.FoundationYear, request.EmployeeCount, request.Description, request.Code),
             cancellationToken);
         return NoContent();
     }
@@ -203,6 +207,31 @@ public sealed class CompaniesController : ControllerBase
     {
         await _sender.Send(new AssignCompanyWorkspaceCommand(id, request.WorkspaceId), cancellationToken);
         return NoContent();
+    }
+
+    /// <summary>Carinin ek görünür işyerleri (onaylı olduğu işyerleri).</summary>
+    [HttpPut("{id:guid}/visible-workspaces")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> SetVisibleWorkspaces(Guid id, SetCompanyWorkspacesRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new SetCompanyWorkspacesCommand(id, request.WorkspaceIds), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpGet("{id:guid}/users")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<IReadOnlyList<UserDto>>> GetUsers(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await _sender.Send(new GetCompanyUsersQuery(id), cancellationToken));
+    }
+
+    [HttpPost("{id:guid}/users")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<Guid>> CreateUser(Guid id, CreateCompanyUserRequest request, CancellationToken cancellationToken)
+    {
+        Guid userId = await _sender.Send(
+            new CreateCompanyUserCommand(id, request.Email, request.Password, request.FirstName, request.LastName), cancellationToken);
+        return Ok(userId);
     }
 
     [HttpPost("{id:guid}/addresses")]

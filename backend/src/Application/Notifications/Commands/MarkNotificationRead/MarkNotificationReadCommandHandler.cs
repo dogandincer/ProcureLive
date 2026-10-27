@@ -35,7 +35,7 @@ public sealed class MarkNotificationReadCommandHandler : IRequestHandler<MarkNot
 
         bool isInternalUser = _currentUserService.IsInRole(Roles.Admin) || _currentUserService.IsInRole(Roles.Buyer);
         bool ownsNotification = isInternalUser
-            ? notification.CompanyId is null
+            ? notification.CompanyId is null && (notification.UserId is null || notification.UserId == _currentUserService.UserId)
             : notification.CompanyId == _currentUserService.CompanyId;
 
         if (!ownsNotification)

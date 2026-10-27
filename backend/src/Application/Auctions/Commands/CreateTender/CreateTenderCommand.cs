@@ -28,7 +28,8 @@ public sealed record CreateTenderCommand(
     IReadOnlyCollection<TenderLineInput> Lines,
     IReadOnlyCollection<Guid> VendorIds,
     IReadOnlyCollection<TenderAttachmentInput> Attachments,
-    bool IsListedForPlus = false) : IRequest<Guid>, IOwnerFirmScopedRequest;
+    bool IsListedForPlus = false,
+    Guid? WorkspaceId = null) : IRequest<Guid>, IOwnerFirmScopedRequest, IWorkspaceTargetRequest;
 
 public sealed record TenderLineInput(
     Guid? ProductId,

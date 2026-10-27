@@ -50,6 +50,8 @@ export interface SectorDto {
 
 export interface CompanyDto {
   id: string;
+  /** Cari kodu (CARI-#### otomatik ya da elle). */
+  code: string | null;
   name: string;
   taxNumber: string;
   taxOffice: string;
@@ -61,6 +63,8 @@ export interface CompanyDto {
   averageScore: number | null;
   evaluationCount: number;
   createdAt: string;
+  /** Birincil işyeri dışında görünür olduğu işyerleri. */
+  visibleWorkspaceNames: string[];
 }
 
 export interface CompanyEvaluationDto {
@@ -178,6 +182,8 @@ export interface CompanyDetailDto {
   addresses: AddressDto[];
   sectors: SectorDto[];
   evaluations: CompanyEvaluationDto[];
+  code: string | null;
+  visibleWorkspaceIds: string[];
 }
 
 export interface ProductImageDto {
@@ -279,6 +285,9 @@ export interface AuctionDto {
   isJoined: boolean;
   isListedForPlus: boolean;
   myInvitationStatus: string | null;
+  /** Davetsiz ve onaylı cari değil: katılım için talep + ön teklif gerekir. */
+  requiresApproval: boolean;
+  participationStatus: ParticipationStatus | null;
 }
 
 /** Full: tam erişim · QuotaExceeded: Standart kota doldu (vitrin bilgisi) · NoAccess: içerik yok. */
@@ -350,6 +359,47 @@ export interface AuctionDetailDto {
   canJoin: boolean;
   isListedForPlus: boolean;
   itemCount: number;
+  requiresApproval: boolean;
+  myParticipationRequest: ParticipationRequestDto | null;
+  /** Yalnızca iç kullanıcıya döner. */
+  workspaceId: string | null;
+  workspaceName: string | null;
+  responsibleUserId: string | null;
+  responsibleUserName: string | null;
+}
+
+export type ParticipationStatus = "Pending" | "CompanyApproved" | "Accepted" | "Rejected";
+
+export interface ParticipationRequestLineDto {
+  auctionItemId: string;
+  itemDescription: string;
+  quantity: number;
+  unitOfMeasure: string;
+  unitPrice: number;
+  lineTotal: number;
+  note: string | null;
+}
+
+/** Katılım talebi + ön teklif. isCompanyApproved: cari ihalenin işyerinde onaylı mı. */
+export interface ParticipationRequestDto {
+  id: string;
+  auctionId: string;
+  auctionTitle: string;
+  companyId: string;
+  companyName: string;
+  companyCode: string | null;
+  taxNumber: string;
+  companyStatus: string;
+  isCompanyApproved: boolean;
+  status: ParticipationStatus;
+  note: string | null;
+  currencyCode: string;
+  totalAmount: number;
+  createdAt: string;
+  companyApprovedAt: string | null;
+  decidedAt: string | null;
+  rejectReason: string | null;
+  lines: ParticipationRequestLineDto[];
 }
 
 /** Sarı alan (LookupField) seçim penceresi satırı: ID döner, Kodu/Adı gösterilir. */

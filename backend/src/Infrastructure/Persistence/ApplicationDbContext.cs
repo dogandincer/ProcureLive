@@ -49,6 +49,12 @@ public class ApplicationDbContext
 
     public DbSet<UserWorkspaceAccess> UserWorkspaceAccesses => Set<UserWorkspaceAccess>();
 
+    public DbSet<CompanyWorkspace> CompanyWorkspaces => Set<CompanyWorkspace>();
+
+    public DbSet<ParticipationRequest> ParticipationRequests => Set<ParticipationRequest>();
+
+    public DbSet<ParticipationRequestLine> ParticipationRequestLines => Set<ParticipationRequestLine>();
+
     public DbSet<Category> Categories => Set<Category>();
 
     public DbSet<Product> Products => Set<Product>();

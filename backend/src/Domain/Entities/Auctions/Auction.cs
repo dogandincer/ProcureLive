@@ -20,6 +20,12 @@ public class Auction : AuditableEntity
 
     public Guid OwnerCompanyId { get; set; }
 
+    /// <summary>İhalenin işyeri (sahip firmanın işyerlerinden). Cari onayı bu işyeri üzerinden yapılır.</summary>
+    public Guid? WorkspaceId { get; set; }
+
+    /// <summary>Sorumlu satınalmacı (varsayılan: ihaleyi açan iç kullanıcı) — katılım talepleri ona düşer.</summary>
+    public Guid? ResponsibleUserId { get; set; }
+
     public Company OwnerCompany { get; set; } = null!;
 
     public Guid CurrencyId { get; set; }

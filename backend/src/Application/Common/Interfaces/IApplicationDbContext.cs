@@ -38,6 +38,12 @@ public interface IApplicationDbContext
 
     DbSet<UserWorkspaceAccess> UserWorkspaceAccesses { get; }
 
+    DbSet<CompanyWorkspace> CompanyWorkspaces { get; }
+
+    DbSet<ParticipationRequest> ParticipationRequests { get; }
+
+    DbSet<ParticipationRequestLine> ParticipationRequestLines { get; }
+
     DbSet<Category> Categories { get; }
 
     DbSet<Product> Products { get; }

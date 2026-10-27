@@ -24,6 +24,8 @@ export interface TenderMaster {
   description: string;
   auctionType: AuctionTypeCode;
   ownerCompanyId: string;
+  /** İhalenin işyeri (sahip firmanın işyerlerinden); boşsa sunucu firmanın varsayılan işyerini atar. */
+  workspaceId: string;
   currencyId: string;
   startAt: string;             // ISO (datetime-local'dan dönüştürülür)
   endAt: string;
@@ -86,6 +88,7 @@ function emptyMaster(): TenderMaster {
     description: "",
     auctionType: "SealedBid",
     ownerCompanyId: "",
+    workspaceId: "",
     currencyId: "",
     startAt: "",
     endAt: "",
@@ -271,6 +274,7 @@ export function useTenderForm() {
         description: master.description || null,
         auctionType: master.auctionType,
         ownerCompanyId: master.ownerCompanyId,
+        workspaceId: master.workspaceId || null,
         currencyId: master.currencyId,
         startAt: toUtcIso(master.startAt),
         endAt: toUtcIso(master.endAt),

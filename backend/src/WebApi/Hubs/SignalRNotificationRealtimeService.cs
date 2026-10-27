@@ -24,4 +24,10 @@ public sealed class SignalRNotificationRealtimeService : INotificationRealtimeSe
         return _hubContext.Clients.Group(NotificationHub.InternalGroupName)
             .SendAsync("NotificationReceived", notification, cancellationToken);
     }
+
+    public Task NotifyUserAsync(Guid userId, NotificationDto notification, CancellationToken cancellationToken)
+    {
+        return _hubContext.Clients.Group(NotificationHub.UserGroupName(userId))
+            .SendAsync("NotificationReceived", notification, cancellationToken);
+    }
 }

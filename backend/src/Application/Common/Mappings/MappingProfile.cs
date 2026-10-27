@@ -20,7 +20,8 @@ public sealed class MappingProfile : Profile
             .ForCtorParam("EvaluationCount", opt => opt.MapFrom(_ => 0))
             .ForMember(d => d.CompanyType, opt => opt.MapFrom(s => s.CompanyType.ToString()))
             .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString()))
-            .ForMember(d => d.WorkspaceName, opt => opt.MapFrom(s => s.Workspace != null ? s.Workspace.Name : null));
+            .ForMember(d => d.WorkspaceName, opt => opt.MapFrom(s => s.Workspace != null ? s.Workspace.Name : null))
+            .ForCtorParam("VisibleWorkspaceNames", opt => opt.MapFrom(s => s.VisibleWorkspaces.Select(v => v.Workspace.Name).ToList()));
 
         CreateMap<Company, CompanyDetailDto>()
             .ForCtorParam("AverageScore", opt => opt.MapFrom(_ => (decimal?)null))
@@ -31,7 +32,8 @@ public sealed class MappingProfile : Profile
             .ForMember(d => d.Addresses, opt => opt.MapFrom(s => s.Addresses))
             .ForMember(d => d.Sectors, opt => opt.MapFrom(s => s.Sectors))
             .ForMember(d => d.Evaluations, opt => opt.MapFrom(s => s.Evaluations))
-            .ForMember(d => d.WorkspaceName, opt => opt.MapFrom(s => s.Workspace != null ? s.Workspace.Name : null));
+            .ForMember(d => d.WorkspaceName, opt => opt.MapFrom(s => s.Workspace != null ? s.Workspace.Name : null))
+            .ForCtorParam("VisibleWorkspaceIds", opt => opt.MapFrom(s => s.VisibleWorkspaces.Select(v => v.WorkspaceId).ToList()));
 
         CreateMap<CompanyEvaluation, CompanyEvaluationDto>()
             .ForCtorParam("CompanyName", opt => opt.MapFrom(s => s.Company.Name));

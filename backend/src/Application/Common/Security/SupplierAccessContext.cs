@@ -50,6 +50,18 @@ public sealed class SupplierAccessContext
     /// <summary>Bu cariyi (reddedilmemiş bir davetle) davet etmiş sahip firmalar.</summary>
     public required IReadOnlySet<Guid> InvitingOwnerIds { get; init; }
 
+    /// <summary>Carinin onaylı olduğu (birincil + ek görünür) işyerleri ve bu işyerlerinin firmaları.</summary>
+    public IReadOnlySet<Guid> ApprovedWorkspaceIds { get; init; } = new HashSet<Guid>();
+
+    public IReadOnlySet<Guid> ApprovedFirmIds { get; init; } = new HashSet<Guid>();
+
+    /// <summary>Pasif cari hiçbir işyerinde onaylı sayılmaz.</summary>
+    public bool IsCompanyActive { get; init; } = true;
+
+    /// <summary>İhale bazında son katılım talebinin durumu.</summary>
+    public IReadOnlyDictionary<Guid, ParticipationRequestStatus> RequestStatuses { get; init; } =
+        new Dictionary<Guid, ParticipationRequestStatus>();
+
     public int JoinedCount => JoinedAuctionIds.Count;
 
     public bool QuotaReached => !IsPlus && JoinedCount >= StandardJoinLimit;
@@ -78,7 +90,23 @@ public sealed class SupplierAccessContext
 
     public bool IsJoined(Guid auctionId) => JoinedAuctionIds.Contains(auctionId);
 
-    /// <summary>Henüz katılmamış, açık, görünür ve kota uygun ihaleye kendiliğinden katılabilir.</summary>
+    /// <summary>Henüz katılmamış, açık, görünür ve kota uygun ihaleye katılabilir (doğrudan ya da talep ile).</summary>
     public bool CanJoin(AuctionAccessFacts a) =>
         !IsJoined(a.AuctionId) && IsOpen(a.Status) && Evaluate(a) == AuctionAccessLevel.Full;
+
+    /// <summary>
+    /// Cari, ihalenin işyerinde (işyeri yoksa sahip firmanın herhangi bir işyerinde) görünür ve aktifse "onaylı"dır.
+    /// </summary>
+    public bool IsApprovedFor(Guid? auctionWorkspaceId, Guid ownerFirmId) =>
+        IsCompanyActive && (auctionWorkspaceId is Guid w ? ApprovedWorkspaceIds.Contains(w) : ApprovedFirmIds.Contains(ownerFirmId));
+
+    public ParticipationRequestStatus? RequestStatus(Guid auctionId) =>
+        RequestStatuses.TryGetValue(auctionId, out ParticipationRequestStatus s) ? s : null;
+
+    public bool HasActiveRequest(Guid auctionId) =>
+        RequestStatus(auctionId) is ParticipationRequestStatus.Pending or ParticipationRequestStatus.CompanyApproved;
+
+    /// <summary>Davetsiz ve onaylı cari değilse katılım için satınalmacı onayı (katılım talebi) gerekir.</summary>
+    public bool NeedsApproval(AuctionAccessFacts a, Guid? auctionWorkspaceId) =>
+        !InvitedAuctionIds.Contains(a.AuctionId) && !IsApprovedFor(auctionWorkspaceId, a.OwnerCompanyId);
 }

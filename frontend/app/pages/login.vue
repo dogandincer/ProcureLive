@@ -67,6 +67,11 @@ async function submit() {
           {{ loading ? $t("login.submitting") : $t("login.submit") }}
         </AppButton>
       </div>
+
+      <p class="mt-5 border-t border-slate-100 pt-4 text-center text-xs text-slate-500">
+        {{ $t("login.noAccount") }}
+        <NuxtLink to="/register" class="font-semibold text-indigo-600 hover:underline">{{ $t("login.registerSupplier") }}</NuxtLink>
+      </p>
     </form>
   </div>
 </template>

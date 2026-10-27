@@ -28,19 +28,21 @@ public sealed class GetCompaniesListQueryHandler : IRequestHandler<GetCompaniesL
     {
         IQueryable<Company> query = _context.Companies.AsQueryable();
 
-        // Satınalmacı: yetkili işyerlerindeki cariler + yetkili firmalar.
+        // Satınalmacı: yetkili işyerlerinde (birincil veya ek) görünen cariler + yetkili firmalar.
         DataScope scope = await _scope.GetAsync(cancellationToken);
         if (!scope.IsUnrestricted)
         {
             List<Guid> workspaceIds = scope.WorkspaceIds.ToList();
             List<Guid> firmIds = scope.FirmIds.ToList();
-            query = query.Where(c => (c.WorkspaceId.HasValue && workspaceIds.Contains(c.WorkspaceId.Value)) || firmIds.Contains(c.Id));
+            query = query.Where(c => (c.WorkspaceId.HasValue && workspaceIds.Contains(c.WorkspaceId.Value))
+                || c.VisibleWorkspaces.Any(v => workspaceIds.Contains(v.WorkspaceId))
+                || firmIds.Contains(c.Id));
         }
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             string term = request.SearchTerm.Trim();
-            query = query.Where(c => c.Name.Contains(term) || c.TaxNumber.Contains(term));
+            query = query.Where(c => c.Name.Contains(term) || c.TaxNumber.Contains(term) || (c.Code != null && c.Code.Contains(term)));
         }
 
         if (!string.IsNullOrWhiteSpace(request.CompanyType))
@@ -70,14 +72,23 @@ public sealed class GetCompaniesListQueryHandler : IRequestHandler<GetCompaniesL
             query = query.Where(c => c.Sectors.Any(cs => cs.SectorId == request.SectorId.Value));
         }
 
+        // Kendi kaydolmuş, henüz hiçbir işyerine bağlanmamış tedarikçiler Admin'e her firmada listelenir (onay havuzu).
+        bool includeUnassigned = scope.IsUnrestricted;
+
         if (request.WorkspaceId.HasValue)
         {
-            query = query.Where(c => c.WorkspaceId == request.WorkspaceId.Value);
+            Guid workspaceId = request.WorkspaceId.Value;
+            query = query.Where(c => c.WorkspaceId == workspaceId
+                || c.VisibleWorkspaces.Any(v => v.WorkspaceId == workspaceId)
+                || (includeUnassigned && c.CompanyType != CompanyType.Internal && c.WorkspaceId == null && !c.VisibleWorkspaces.Any()));
         }
         else if (request.FirmId.HasValue)
         {
             // İşyeri seçilmemişse ("Tüm İşyerleri") başlıktaki firmanın işyerleriyle sınırlanır.
-            query = query.Where(c => c.Workspace != null && c.Workspace.FirmId == request.FirmId.Value);
+            Guid firmId = request.FirmId.Value;
+            query = query.Where(c => (c.Workspace != null && c.Workspace.FirmId == firmId)
+                || c.VisibleWorkspaces.Any(v => v.Workspace.FirmId == firmId)
+                || (includeUnassigned && c.CompanyType != CompanyType.Internal && c.WorkspaceId == null && !c.VisibleWorkspaces.Any()));
         }
 
         int totalCount = await query.CountAsync(cancellationToken);

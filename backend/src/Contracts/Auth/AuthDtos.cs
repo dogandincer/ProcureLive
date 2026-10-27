@@ -10,6 +10,18 @@ public sealed record RegisterRequest(
     string Role,
     Guid? CompanyId);
 
+/// <summary>Davetsiz tedarikçi kendi kaydı (anonim).</summary>
+public sealed record RegisterSupplierRequest(
+    string CompanyName,
+    string TaxNumber,
+    string TaxOffice,
+    string? Phone,
+    string FirstName,
+    string LastName,
+    string Email,
+    string Password,
+    bool AcceptTerms);
+
 public sealed record RefreshTokenRequest(string RefreshToken);
 
 public sealed record RevokeTokenRequest(string RefreshToken);

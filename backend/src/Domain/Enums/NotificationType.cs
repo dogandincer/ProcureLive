@@ -10,5 +10,6 @@ public enum NotificationType
     AwardNotice = 5,
     System = 6,
     InvitationResponded = 7,
-    AuctionStatusChanged = 8
+    AuctionStatusChanged = 8,
+    ParticipationRequest = 9
 }

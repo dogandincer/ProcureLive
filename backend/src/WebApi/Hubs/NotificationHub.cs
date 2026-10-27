@@ -19,6 +19,13 @@ public sealed class NotificationHub : Hub
         if (isInternalUser)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, InternalGroupName);
+
+            string? userIdClaim = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                ?? Context.User?.FindFirst("sub")?.Value;
+            if (Guid.TryParse(userIdClaim, out Guid userId))
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, UserGroupName(userId));
+            }
         }
         else
         {
@@ -37,6 +44,8 @@ public sealed class NotificationHub : Hub
     }
 
     public static string CompanyGroupName(Guid companyId) => $"company:{companyId}";
+
+    public static string UserGroupName(Guid userId) => $"user:{userId}";
 
     public const string InternalGroupName = "internal";
 }

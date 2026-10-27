@@ -79,7 +79,17 @@ export function useExcelImport() {
             }
           }
 
-          const parsed: ParsedExcelRow[] = rawRows.map((rawRow, index) => {
+          // Şablonun 2. satırı (sütun ipuçları) dosyada bırakılmışsa veri sayılmaz.
+          const hintOf = (c: ExcelColumn) => c.hint ?? (c.required ? "(zorunlu)" : "(opsiyonel)");
+          const isHintRow = (rawRow: Record<string, unknown>) =>
+            columns.every((column) => {
+              const header = headerByNormalized.get(normalizeHeader(column.label)) ?? headerByNormalized.get(normalizeHeader(column.key));
+              const cell = header ? rawRow[header] : null;
+              return cell === null || cell === undefined || cell === "" || String(cell).trim() === hintOf(column);
+            });
+
+          const parsed: ParsedExcelRow[] = rawRows.flatMap((rawRow, index) => {
+            if (isHintRow(rawRow)) return [];
             const values: Record<string, string | number | boolean | null> = {};
             const errors: string[] = [];
 
@@ -96,7 +106,7 @@ export function useExcelImport() {
               values[column.key] = value;
             }
 
-            return { rowNumber: index + 2, values, errors }; // +2: header row is row 1, data starts at row 2
+            return [{ rowNumber: index + 2, values, errors }]; // +2: header row is row 1, data starts at row 2
           });
 
           resolve(parsed);

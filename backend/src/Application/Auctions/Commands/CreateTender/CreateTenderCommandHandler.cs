@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ProcureLive.Application.Auctions.Participation;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Domain.Entities.Auctions;
@@ -80,6 +81,9 @@ public sealed class CreateTenderCommandHandler : IRequestHandler<CreateTenderCom
             }
         }
 
+        // İhalenin işyeri (katılım taleplerinde cari onayı bu işyerine verilir) ve sorumlu satınalmacı (açan kullanıcı).
+        Guid? workspaceId = await AuctionWorkspaceRules.ResolveAsync(_context, request.OwnerCompanyId, request.WorkspaceId, cancellationToken);
+
         // --- Aggregate'i navigation koleksiyonlarıyla kur (tek SaveChanges ile yazılır) ---
         Guid invitedByUserId = _currentUserService.UserId ?? Guid.Empty;
 
@@ -93,6 +97,8 @@ public sealed class CreateTenderCommandHandler : IRequestHandler<CreateTenderCom
             AuctionType = request.AuctionType,
             Status = AuctionStatus.Draft,
             OwnerCompanyId = request.OwnerCompanyId,
+            WorkspaceId = workspaceId,
+            ResponsibleUserId = _currentUserService.UserId,
             CurrencyId = request.CurrencyId,
             StartAt = request.StartAt,
             EndAt = request.EndAt,

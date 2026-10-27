@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ProcureLive.Application.Auctions.Participation;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Security;
@@ -14,15 +15,18 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly ISupplierAccessService _accessService;
+    private readonly IIdentityService _identityService;
 
     public GetAuctionByIdQueryHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        ISupplierAccessService accessService)
+        ISupplierAccessService accessService,
+        IIdentityService identityService)
     {
         _context = context;
         _currentUserService = currentUserService;
         _accessService = accessService;
+        _identityService = identityService;
     }
 
     public async Task<AuctionDetailDto> Handle(GetAuctionByIdQuery request, CancellationToken cancellationToken)
@@ -45,6 +49,8 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
         AuctionAccessLevel level = AuctionAccessLevel.Full;
         bool isJoined = false;
         bool canJoin = false;
+        bool requiresApproval = false;
+        ParticipationRequestDto? myRequest = null;
 
         if (!isInternalUser)
         {
@@ -65,7 +71,36 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
             }
 
             isJoined = access.IsJoined(auction.Id);
-            canJoin = access.CanJoin(facts);
+
+            // Onaylı cari / davetli doğrudan katılır; diğerleri katılım talebi + ön teklif gönderir.
+            bool eligible = access.CanJoin(facts) && !access.HasActiveRequest(auction.Id);
+            bool needsApproval = access.NeedsApproval(facts, auction.WorkspaceId);
+            canJoin = eligible && !needsApproval;
+            requiresApproval = eligible && needsApproval;
+
+            if (access.RequestStatus(auction.Id) is not null)
+            {
+                myRequest = (await ParticipationRules.ToDtosAsync(
+                    _context.ParticipationRequests.Where(r => r.AuctionId == auction.Id && r.CompanyId == companyId),
+                    cancellationToken)).FirstOrDefault();
+            }
+        }
+
+        // Sorumlu satınalmacı ve işyeri yalnızca iç kullanıcıya döner.
+        string? workspaceName = null;
+        string? responsibleName = null;
+        if (isInternalUser)
+        {
+            if (auction.WorkspaceId is Guid wsId)
+            {
+                workspaceName = await _context.Workspaces.Where(w => w.Id == wsId).Select(w => w.Name).FirstOrDefaultAsync(cancellationToken);
+            }
+
+            if (auction.ResponsibleUserId is Guid responsibleId
+                && await _identityService.FindByIdAsync(responsibleId, cancellationToken) is { } responsible)
+            {
+                responsibleName = $"{responsible.FirstName} {responsible.LastName}".Trim();
+            }
         }
 
         // Tüm kalemlerin teklifleri tek sorguda (kalem başına sorgu/N+1 yerine), bellekte gruplanır.
@@ -140,7 +175,13 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
             IsJoined: isJoined,
             CanJoin: canJoin,
             IsListedForPlus: auction.IsListedForPlus,
-            ItemCount: auction.Items.Count);
+            ItemCount: auction.Items.Count,
+            RequiresApproval: requiresApproval,
+            MyParticipationRequest: myRequest,
+            WorkspaceId: isInternalUser ? auction.WorkspaceId : null,
+            WorkspaceName: workspaceName,
+            ResponsibleUserId: isInternalUser ? auction.ResponsibleUserId : null,
+            ResponsibleUserName: responsibleName);
     }
 
     /// <summary>

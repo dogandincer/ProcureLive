@@ -79,10 +79,27 @@ public static class NotificationCreator
     /// per-company group. No Email channel log is queued: there's no single recipient contact person for
     /// "every internal user", so email notification for this case is intentionally out of scope for now.
     /// </summary>
-    public static async Task CreateForInternalUsersAsync(
+    public static Task CreateForInternalUsersAsync(
         IApplicationDbContext context,
         INotificationRealtimeService realtimeService,
         IDateTime dateTime,
+        NotificationType type,
+        string title,
+        string body,
+        string? relatedEntityType,
+        Guid? relatedEntityId,
+        CancellationToken cancellationToken) =>
+        CreateForInternalUserAsync(context, realtimeService, dateTime, null, type, title, body, relatedEntityType, relatedEntityId, cancellationToken);
+
+    /// <summary>
+    /// <paramref name="userId"/> verilirse bildirim yalnızca o iç kullanıcıya düşer (ör. ihalenin sorumlu satınalmacısı);
+    /// null ise tüm iç kullanıcılara yayınlanır.
+    /// </summary>
+    public static async Task CreateForInternalUserAsync(
+        IApplicationDbContext context,
+        INotificationRealtimeService realtimeService,
+        IDateTime dateTime,
+        Guid? userId,
         NotificationType type,
         string title,
         string body,
@@ -94,6 +111,7 @@ public static class NotificationCreator
 
         var notification = new Notification
         {
+            UserId = userId,
             CompanyId = null,
             Type = type,
             Title = title,
@@ -119,6 +137,9 @@ public static class NotificationCreator
             notification.Id, notification.Type.ToString(), notification.Title, notification.Body,
             notification.RelatedEntityType, notification.RelatedEntityId, notification.IsRead, null, now);
 
-        await realtimeService.NotifyInternalUsersAsync(dto, cancellationToken);
+        if (userId is Guid target)
+            await realtimeService.NotifyUserAsync(target, dto, cancellationToken);
+        else
+            await realtimeService.NotifyInternalUsersAsync(dto, cancellationToken);
     }
 }

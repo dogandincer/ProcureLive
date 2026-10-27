@@ -241,6 +241,11 @@ onBeforeUnmount(() => {
         </div>
         <h1 class="text-xl font-bold text-slate-800">{{ auction.title }}</h1>
         <p v-if="auction.description" class="mt-1 text-sm text-slate-500">{{ auction.description }}</p>
+        <p v-if="auction.workspaceName || auction.responsibleUserName" class="mt-1 text-xs text-slate-500">
+          <span v-if="auction.workspaceName">{{ $t("auctions.detail.workspace") }}: <span class="font-medium text-slate-700">{{ auction.workspaceName }}</span></span>
+          <span v-if="auction.workspaceName && auction.responsibleUserName"> · </span>
+          <span v-if="auction.responsibleUserName">{{ $t("auctions.detail.responsible") }}: <span class="font-medium text-slate-700">{{ auction.responsibleUserName }}</span></span>
+        </p>
         <StepBadge v-if="workflowStep" class="mt-2" :step="workflowStep.step" :total="4" :label="workflowStep.label" />
       </div>
       <AppBadge :tone="statusTone[auction.status]" class="mt-1">
@@ -284,6 +289,9 @@ onBeforeUnmount(() => {
 
     <!-- Durum yönetimi: yayınla / başlat / duraklat / devam / bitir / yeniden aç / iptal + süre uzatma + geçmiş -->
     <AuctionStatusPanel :auction-id="auctionId" :status="auction.status" :can-manage="isAdminRole()" @changed="load" />
+
+    <!-- Davetsiz tedarikçilerin katılım talepleri: cari onayı → ön teklif kabulü / red -->
+    <ParticipationRequestsPanel v-if="auction.status !== 'Draft'" :auction-id="auctionId" @changed="load" />
 
     <!-- ============================================================ -->
     <!-- EVALUATION MODE: Ended / Awarded                            -->

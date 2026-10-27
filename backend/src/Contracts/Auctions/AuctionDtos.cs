@@ -22,7 +22,10 @@ public sealed record AuctionDto(
     string AccessLevel = "Full",
     bool IsJoined = false,
     bool IsListedForPlus = false,
-    string? MyInvitationStatus = null);
+    string? MyInvitationStatus = null,
+    bool RequiresApproval = false,
+    string? ParticipationStatus = null,
+    string? WorkspaceName = null);
 
 public sealed record AuctionDetailDto(
     Guid Id,
@@ -56,7 +59,13 @@ public sealed record AuctionDetailDto(
     bool IsJoined = false,
     bool CanJoin = false,
     bool IsListedForPlus = false,
-    int ItemCount = 0);
+    int ItemCount = 0,
+    bool RequiresApproval = false,
+    ParticipationRequestDto? MyParticipationRequest = null,
+    Guid? WorkspaceId = null,
+    string? WorkspaceName = null,
+    Guid? ResponsibleUserId = null,
+    string? ResponsibleUserName = null);
 
 public sealed record AuctionItemDto(
     Guid Id,
@@ -120,7 +129,8 @@ public sealed record CreateAuctionRequest(
     decimal? MinDecrementAmount,
     decimal? MinDecrementPercentage,
     int ExtensionRuleMinutes,
-    bool IsListedForPlus = false);
+    bool IsListedForPlus = false,
+    Guid? WorkspaceId = null);
 
 public sealed record AddAuctionItemRequest(
     Guid? ProductId,

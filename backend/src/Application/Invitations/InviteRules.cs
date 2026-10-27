@@ -67,7 +67,7 @@ internal static class InviteRules
             return;
         }
 
-        if (invitation.Origin == InvitationOrigin.SelfJoin)
+        if (invitation.Origin is InvitationOrigin.SelfJoin or InvitationOrigin.Request)
         {
             invitation.Origin = InvitationOrigin.InviteLink;
         }

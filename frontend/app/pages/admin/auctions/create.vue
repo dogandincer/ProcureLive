@@ -10,6 +10,7 @@ const api = useApi();
 const toast = useToast();
 const { t } = useI18n();
 const router = useRouter();
+const { workspaces, selectedWorkspaceId } = useWorkspace();
 
 const {
   master, lines, attachments, activeStep,
@@ -47,6 +48,19 @@ async function loadReference() {
     toast.error(apiErrorMessage(error, t("tender.wizard.refError")));
   }
 }
+
+// İhalenin işyeri: sahip firmanın aktif işyerleri; başlıkta seçili işyeri bu firmadaysa varsayılan odur.
+const ownerWorkspaces = computed(() => workspaces.value.filter((w) => w.isActive && w.firmId === master.ownerCompanyId));
+watch(
+  () => [master.ownerCompanyId, workspaces.value.length],
+  () => {
+    if (master.workspaceId && ownerWorkspaces.value.some((w) => w.id === master.workspaceId)) return;
+    const preferred = ownerWorkspaces.value.find((w) => w.id === selectedWorkspaceId.value)
+      ?? ownerWorkspaces.value.find((w) => w.isDefault) ?? ownerWorkspaces.value[0];
+    master.workspaceId = preferred?.id ?? "";
+  },
+  { immediate: true },
+);
 
 // ---- Vendor search (debounced + race guard) ----
 const vendorTerm = ref("");
@@ -193,6 +207,14 @@ onMounted(async () => {
             <option value="" disabled>{{ $t("tender.wizard.f.selectOwner") }}</option>
             <option v-for="c in ownerCompanies" :key="c.id" :value="c.id">{{ c.name }}</option>
           </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-medium text-slate-600">{{ $t("tender.wizard.f.workspace") }}</label>
+          <select v-model="master.workspaceId" :disabled="!ownerWorkspaces.length" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50">
+            <option value="">{{ ownerWorkspaces.length ? $t("tender.wizard.f.workspaceDefault") : $t("tender.wizard.f.noWorkspace") }}</option>
+            <option v-for="w in ownerWorkspaces" :key="w.id" :value="w.id">{{ w.name }}</option>
+          </select>
+          <p class="mt-1 text-[11px] text-slate-400">{{ $t("tender.wizard.f.workspaceHint") }}</p>
         </div>
         <div>
           <label class="mb-1 block text-xs font-medium text-slate-600">{{ $t("tender.wizard.f.currency") }} *</label>

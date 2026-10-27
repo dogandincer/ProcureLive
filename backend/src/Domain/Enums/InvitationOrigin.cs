@@ -10,5 +10,8 @@ public enum InvitationOrigin
 {
     Direct = 0,
     InviteLink = 1,
-    SelfJoin = 2
+    SelfJoin = 2,
+
+    /// <summary>Katılım talebi sorumlu satınalmacı tarafından kabul edildi (firmanın onaylı carisi).</summary>
+    Request = 3
 }

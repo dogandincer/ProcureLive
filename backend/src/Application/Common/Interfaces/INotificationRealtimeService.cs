@@ -11,4 +11,7 @@ public interface INotificationRealtimeService
     Task NotifyCompanyAsync(Guid companyId, NotificationDto notification, CancellationToken cancellationToken);
 
     Task NotifyInternalUsersAsync(NotificationDto notification, CancellationToken cancellationToken);
+
+    /// <summary>Tek bir iç kullanıcıya (ör. ihalenin sorumlu satınalmacısı) — "user:{id}" grubu.</summary>
+    Task NotifyUserAsync(Guid userId, NotificationDto notification, CancellationToken cancellationToken);
 }

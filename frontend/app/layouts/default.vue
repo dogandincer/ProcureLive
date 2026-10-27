@@ -33,6 +33,7 @@ import type { FirmDto, WorkspaceDto } from "~/types/api";
 const { currentUser, isInternalRole, isSupplierRole, isAdminRole, logout } = useAuth();
 const api = useApi();
 const { connect } = useNotificationHub();
+const lastNotification = useLastNotification();
 const { t, locale } = useI18n();
 const route = useRoute();
 
@@ -203,6 +204,26 @@ async function markRead(notification: NotificationDto) {
   }
 }
 
+// Bildirimin ilgili kaydı (ihale / cari) varsa tıklayınca o sayfaya gider.
+function notificationLink(n: NotificationDto): string | null {
+  if (!n.relatedEntityId) return null;
+  if (n.relatedEntityType === "Auction") {
+    const base = isInternalRole() ? "/admin/auctions" : "/supplier/auctions";
+    return `${base}/${n.relatedEntityId}${n.type === "ParticipationRequest" && !isInternalRole() ? "#participation" : ""}`;
+  }
+  if (n.relatedEntityType === "Company" && isInternalRole()) return `/admin/companies/${n.relatedEntityId}`;
+  return null;
+}
+
+async function openNotification(n: NotificationDto) {
+  await markRead(n);
+  const link = notificationLink(n);
+  if (link) {
+    showNotifications.value = false;
+    await navigateTo(link);
+  }
+}
+
 async function markAllRead() {
   try {
     await api.post("/api/notifications/read-all");
@@ -236,6 +257,8 @@ onMounted(async () => {
   await connect((notification) => {
     notifications.value = [notification, ...notifications.value].slice(0, 10);
     unreadCount.value += 1;
+    // Açık sayfalar (ihale detayı, talep paneli) ilgili kayıt için gelen bildirimle kendini yenileyebilir.
+    lastNotification.value = notification;
   });
 });
 </script>
@@ -361,6 +384,8 @@ onMounted(async () => {
           <div class="relative">
             <button
               class="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100 transition-colors"
+              :aria-label="$t('notifications.title')"
+              :aria-expanded="showNotifications"
               @click="showNotifications = !showNotifications"
             >
               <BellIcon class="h-5 w-5" />
@@ -401,7 +426,7 @@ onMounted(async () => {
                   :key="n.id"
                   class="block w-full border-b border-slate-50 px-4 py-3 text-left text-sm hover:bg-slate-50 transition-colors"
                   :class="{ 'bg-indigo-50/60': !n.isRead }"
-                  @click="markRead(n)"
+                  @click="openNotification(n)"
                 >
                   <div class="font-medium text-slate-800 leading-snug">{{ n.title }}</div>
                   <div class="mt-0.5 line-clamp-2 text-xs text-slate-500">{{ n.body }}</div>

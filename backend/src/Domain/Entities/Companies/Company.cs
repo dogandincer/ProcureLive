@@ -85,4 +85,7 @@ public class Company : AuditableEntity, ISoftDelete
     public ICollection<CompanySector> Sectors { get; set; } = new List<CompanySector>();
 
     public ICollection<CompanyEvaluation> Evaluations { get; set; } = new List<CompanyEvaluation>();
+
+    /// <summary>Birincil işyeri dışında görünür olduğu (onaylı olduğu) işyerleri.</summary>
+    public ICollection<CompanyWorkspace> VisibleWorkspaces { get; set; } = new List<CompanyWorkspace>();
 }

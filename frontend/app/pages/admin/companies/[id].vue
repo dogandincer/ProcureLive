@@ -24,6 +24,20 @@ const showSectorPanel = ref(false);
 const workspaces = ref<WorkspaceDto[]>([]);
 const companyWorkspaceId = ref<string>("");
 const savingWorkspace = ref(false);
+const visibleWorkspaceIds = ref<string[]>([]);
+const savingVisible = ref(false);
+// Başlıktaki firmanın işyerleri + zaten bağlı olanlar (başka firmalardaki bağlar da görünür kalır).
+const { selectedFirmId } = useFirm();
+const visibleOptions = computed(() =>
+  workspaces.value
+    .filter((w) => w.id !== companyWorkspaceId.value)
+    .filter((w) => w.firmId === selectedFirmId.value || (company.value?.visibleWorkspaceIds ?? []).includes(w.id))
+    .map((w) => ({ value: w.id, label: w.firmCode ? `${w.firmCode} · ${w.name}` : w.name })),
+);
+const visibleDirty = computed(() => {
+  const saved = [...(company.value?.visibleWorkspaceIds ?? [])].sort().join();
+  return saved !== [...visibleWorkspaceIds.value].sort().join();
+});
 
 // Evaluation
 const showEvalForm = ref(false);
@@ -84,6 +98,7 @@ async function load() {
     allSectors.value = sectors;
     workspaces.value = ws;
     companyWorkspaceId.value = companyData.workspaceId ?? "";
+    visibleWorkspaceIds.value = [...companyData.visibleWorkspaceIds];
     selectedSectorIds.value = new Set(companyData.sectors.map((s) => s.id));
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("companies.detail.loadError")));
@@ -131,6 +146,19 @@ async function saveWorkspace() {
   }
 }
 
+async function saveVisibleWorkspaces() {
+  savingVisible.value = true;
+  try {
+    await api.put(`/api/companies/${companyId}/visible-workspaces`, { workspaceIds: visibleWorkspaceIds.value });
+    toast.success(t("companies.detail.visibleSaved"));
+    await load();
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("companies.detail.visibleError")));
+  } finally {
+    savingVisible.value = false;
+  }
+}
+
 async function addContact() {
   try {
     await api.post(`/api/companies/${companyId}/contacts`, {
@@ -175,7 +203,7 @@ const showEditForm = ref(false);
 const savingEdit = ref(false);
 const statuses = ["PendingApproval", "Active", "Passive"];
 const editForm = reactive({
-  name: "", taxOffice: "", status: "Active", website: "",
+  code: "", name: "", taxOffice: "", status: "Active", website: "",
   tradeName: "", mersisNo: "", phone: "", email: "", foundationYear: "", employeeCount: "", description: "",
 });
 
@@ -183,7 +211,7 @@ function openEdit() {
   if (!company.value) return;
   const c = company.value;
   Object.assign(editForm, {
-    name: c.name, taxOffice: c.taxOffice, status: c.status, website: c.website ?? "",
+    code: c.code ?? "", name: c.name, taxOffice: c.taxOffice, status: c.status, website: c.website ?? "",
     tradeName: c.tradeName ?? "", mersisNo: c.mersisNo ?? "", phone: c.phone ?? "", email: c.email ?? "",
     foundationYear: c.foundationYear != null ? String(c.foundationYear) : "",
     employeeCount: c.employeeCount != null ? String(c.employeeCount) : "",
@@ -196,6 +224,7 @@ async function saveEdit() {
   savingEdit.value = true;
   try {
     await api.put(`/api/companies/${companyId}`, {
+      code: company.value?.companyType === "Internal" ? null : editForm.code.trim() || null,
       name: editForm.name,
       taxOffice: editForm.taxOffice,
       status: editForm.status,
@@ -243,7 +272,9 @@ onMounted(load);
       <NuxtLink to="/admin/companies" class="text-xs text-indigo-600 hover:underline">← {{ $t("companies.title") }}</NuxtLink>
       <div class="mt-1 flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h1 class="text-xl font-bold text-slate-800">{{ company.name }}</h1>
+          <h1 class="text-xl font-bold text-slate-800">
+            <span v-if="company.code" class="mr-1 font-mono text-base font-semibold text-slate-400">{{ company.code }}</span>{{ company.name }}
+          </h1>
           <p class="text-sm text-slate-500">
             {{ company.taxNumber }} · {{ company.taxOffice }} · {{ company.companyType }} · {{ $t(`enums.companyStatus.${company.status}`) }}
           </p>
@@ -270,11 +301,29 @@ onMounted(load);
           <option v-for="w in workspaces" :key="w.id" :value="w.id">{{ w.name }}</option>
         </select>
       </div>
+      <div v-if="company.companyType !== 'Internal'" class="mt-3 rounded-lg border border-slate-200 bg-white p-3">
+        <ChipMultiSelect
+          v-model="visibleWorkspaceIds"
+          :options="visibleOptions"
+          :label="$t('companies.detail.visibleWorkspaces')"
+          :empty-text="$t('companies.form.noOtherWorkspaces')"
+        />
+        <p class="mt-1 text-[11px] text-slate-400">{{ $t("companies.detail.visibleHint") }}</p>
+        <button
+          v-if="visibleDirty"
+          class="mt-2 rounded-md bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+          :disabled="savingVisible"
+          @click="saveVisibleWorkspaces"
+        >
+          {{ savingVisible ? $t("common.saving") : $t("common.save") }}
+        </button>
+      </div>
     </div>
 
     <!-- Edit form -->
     <AppCard v-if="showEditForm" :title="$t('companies.detail.editTitle')">
       <form class="grid grid-cols-1 gap-3 sm:grid-cols-2" @submit.prevent="saveEdit">
+        <div v-if="company.companyType !== 'Internal'"><label class="mb-1 block text-xs text-slate-500">{{ $t("companies.form.code") }}</label><input v-model="editForm.code" maxlength="30" :placeholder="$t('companies.form.codeAuto')" class="w-full rounded-md border border-slate-300 px-3 py-1.5 font-mono text-sm uppercase" /></div>
         <div><label class="mb-1 block text-xs text-slate-500">{{ $t("companies.form.name") }}</label><input v-model="editForm.name" required class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
         <div><label class="mb-1 block text-xs text-slate-500">{{ $t("companies.form.tradeName") }}</label><input v-model="editForm.tradeName" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
         <div><label class="mb-1 block text-xs text-slate-500">{{ $t("companies.form.taxOffice") }}</label><input v-model="editForm.taxOffice" required class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" /></div>
@@ -298,6 +347,8 @@ onMounted(load);
     </AppCard>
 
     <CompanySettingsCard :company-id="companyId" />
+
+    <CompanyUsersCard v-if="company.companyType !== 'Internal'" :company-id="companyId" />
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <AppCard>

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using ProcureLive.Application.Auth.Commands.Login;
 using ProcureLive.Application.Auth.Commands.RefreshToken;
 using ProcureLive.Application.Auth.Commands.Register;
+using ProcureLive.Application.Auth.Commands.RegisterSupplier;
 using ProcureLive.Application.Auth.Commands.RevokeToken;
 using ProcureLive.Application.Auth.Queries.GetCurrentUser;
 using ProcureLive.Application.Common.Security;
@@ -37,6 +38,20 @@ public sealed class AuthController : ControllerBase
     {
         AuthResultDto result = await _sender.Send(
             new RegisterCommand(request.Email, request.Password, request.FirstName, request.LastName, request.Role, request.CompanyId),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>Davetsiz tedarikçi kaydı: cari onay bekler, hiçbir işyerine bağlı değildir; oturum açık döner.</summary>
+    [HttpPost("register-supplier")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResultDto>> RegisterSupplier(RegisterSupplierRequest request, CancellationToken cancellationToken)
+    {
+        AuthResultDto result = await _sender.Send(
+            new RegisterSupplierCommand(
+                request.CompanyName, request.TaxNumber, request.TaxOffice, request.Phone,
+                request.FirstName, request.LastName, request.Email, request.Password, request.AcceptTerms),
             cancellationToken);
 
         return Ok(result);

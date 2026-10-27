@@ -46,8 +46,8 @@ public sealed class InviteCompaniesCommandHandler : IRequestHandler<InviteCompan
             .ToListAsync(cancellationToken);
         List<Guid> alreadyInvited = existing.Select(i => i.CompanyId).ToList();
 
-        // Vitrinden kendiliğinden katılmış cariyi doğrudan eklemek onu gerçek davetliye çevirir.
-        foreach (AuctionInvitation selfJoined in existing.Where(i => i.Origin == InvitationOrigin.SelfJoin))
+        // Vitrinden kendiliğinden katılmış / talebi kabul edilmiş cariyi doğrudan eklemek onu gerçek davetliye çevirir.
+        foreach (AuctionInvitation selfJoined in existing.Where(i => i.Origin is InvitationOrigin.SelfJoin or InvitationOrigin.Request))
         {
             selfJoined.Origin = InvitationOrigin.Direct;
         }

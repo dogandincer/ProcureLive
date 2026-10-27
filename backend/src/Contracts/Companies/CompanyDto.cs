@@ -10,6 +10,7 @@ public sealed record SectorDto(
 
 public sealed record CompanyDto(
     Guid Id,
+    string? Code,
     string Name,
     string TaxNumber,
     string TaxOffice,
@@ -20,10 +21,12 @@ public sealed record CompanyDto(
     string? WorkspaceName,
     decimal? AverageScore,
     int EvaluationCount,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    IReadOnlyCollection<string> VisibleWorkspaceNames);
 
 public sealed record CompanyDetailDto(
     Guid Id,
+    string? Code,
     string Name,
     string? TradeName,
     string TaxNumber,
@@ -45,7 +48,8 @@ public sealed record CompanyDetailDto(
     IReadOnlyCollection<ContactPersonDto> ContactPersons,
     IReadOnlyCollection<AddressDto> Addresses,
     IReadOnlyCollection<SectorDto> Sectors,
-    IReadOnlyCollection<CompanyEvaluationDto> Evaluations);
+    IReadOnlyCollection<CompanyEvaluationDto> Evaluations,
+    IReadOnlyCollection<Guid> VisibleWorkspaceIds);
 
 public sealed record CompanyEvaluationDto(
     Guid Id,

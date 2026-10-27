@@ -30,7 +30,9 @@
     "accept": "Kabul Et",
     "decline": "Reddet",
     "confirm": "Onayla",
-    "declineReasonPlaceholder": "Red gerekçesi"
+    "declineReasonPlaceholder": "Red gerekçesi",
+    "selectedCount": "{n} seçili",
+    "filter": "Filtrele..."
   },
   "nav": {
     "panel": "Panel",
@@ -110,7 +112,9 @@
     "password": "Şifre",
     "submit": "Giriş Yap",
     "submitting": "Giriş yapılıyor...",
-    "defaultError": "Giriş başarısız. E-posta veya şifre hatalı."
+    "defaultError": "Giriş başarısız. E-posta veya şifre hatalı.",
+    "noAccount": "Davetiniz yok mu?",
+    "registerSupplier": "Tedarikçi olarak kaydolun"
   },
   "toast": {
     "companyStatusUpdated": "Cari durumu güncellendi.",
@@ -256,6 +260,12 @@
       "Pallet": "Palet",
       "Hour": "Saat",
       "Service": "Hizmet"
+    },
+    "participationStatus": {
+      "Pending": "Talep bekliyor",
+      "CompanyApproved": "Cari onaylandı",
+      "Accepted": "Kabul edildi",
+      "Rejected": "Reddedildi"
     }
   },
   "auctions": {
@@ -326,7 +336,8 @@
       "emptyInvites": "Henüz davet yok",
       "origin": {
         "InviteLink": "Davet linkiyle",
-        "SelfJoin": "Vitrinden kendisi katıldı"
+        "SelfJoin": "Vitrinden kendisi katıldı",
+        "Request": "Katılım talebiyle"
       },
       "selectCompany": "Cari seç...",
       "invite": "Davet Et",
@@ -349,7 +360,9 @@
         "ended": "İhale sona erdi",
         "awarded": "Bir kalem için kazanan seçildi",
         "statusChanged": "Durum değişti: {status}"
-      }
+      },
+      "workspace": "İşyeri",
+      "responsible": "Sorumlu satınalmacı"
     },
     "status": {
       "title": "Durum Yönetimi",
@@ -649,7 +662,20 @@
       "foundationYear": "Kuruluş Yılı",
       "employeeCount": "Çalışan Sayısı",
       "website": "Web sitesi (opsiyonel)",
-      "description": "Açıklama (opsiyonel)"
+      "description": "Açıklama (opsiyonel)",
+      "code": "Cari Kodu (boşsa otomatik)",
+      "codeAuto": "Boşsa değişmez",
+      "primaryWorkspace": "Birincil işyeri (başlıktaki seçim)",
+      "sectors": "Sektörler",
+      "noSectors": "Tanımlı sektör yok",
+      "visibleWorkspaces": "Ek görünür işyerleri",
+      "noOtherWorkspaces": "Bu firmada başka işyeri yok",
+      "userSection": "Tedarikçi kullanıcısı (opsiyonel)",
+      "userHint": "E-posta girilirse tedarikçinin giriş hesabı da açılır; kullanıcı adı e-postadır.",
+      "userEmail": "Kullanıcı e-postası",
+      "userPassword": "Şifre (en az 8 karakter)",
+      "userFirstName": "Ad",
+      "userLastName": "Soyad"
     },
     "lookup": {
       "label": "TCKN / VKN ile Sorgula",
@@ -665,7 +691,10 @@
       "name": "Ad",
       "taxNumber": "Vergi No",
       "type": "Tür",
-      "rating": "Puan"
+      "rating": "Puan",
+      "code": "Kod",
+      "workspaces": "İşyerleri",
+      "unassigned": "Bağlı değil (onay bekliyor)"
     },
     "empty": "Henüz cari yok",
     "loadError": "Kayıtlar yüklenemedi.",
@@ -675,12 +704,29 @@
     "deleted": "Cari silindi.",
     "deleteError": "Cari silinemedi.",
     "import": {
-      "name": "Firma Adı",
-      "taxNumber": "Vergi No",
+      "name": "Cari Adı",
+      "taxNumber": "VKN/TCKN",
       "taxOffice": "Vergi Dairesi",
       "type": "Tür",
       "typeHint": "Supplier veya Internal",
-      "website": "Web Sitesi"
+      "website": "Web Sitesi",
+      "code": "Cari Kodu",
+      "codeHint": "(opsiyonel) boşsa CARI-#### üretilir",
+      "sectors": "Sektörler",
+      "listHint": "(opsiyonel) virgülle ayırın",
+      "workspaces": "İşyerleri",
+      "workspacesHint": "(opsiyonel) seçili işyerine ek, virgülle",
+      "email": "E-posta",
+      "phone": "Telefon",
+      "userEmail": "Kullanıcı E-posta",
+      "userEmailHint": "(opsiyonel) giriş hesabı açılır",
+      "userPassword": "Şifre",
+      "userPasswordHint": "Kullanıcı e-postası varsa zorunlu (en az 8)",
+      "userFirstName": "Kullanıcı Adı",
+      "userLastName": "Kullanıcı Soyadı",
+      "unknownSector": "Tanımsız sektör: {name}",
+      "unknownWorkspace": "Bu firmada bulunmayan işyeri: {name}",
+      "defaultLastName": "Yetkili"
     },
     "detail": {
       "loadError": "Cari yüklenemedi.",
@@ -736,7 +782,21 @@
         "postalCode": "Posta Kodu (opsiyonel)",
         "line1": "Adres Satırı 1",
         "line2": "Adres Satırı 2 (opsiyonel)"
-      }
+      },
+      "visibleWorkspaces": "Ek görünür işyerleri",
+      "visibleHint": "Cari bu işyerlerinin ihalelerinde onaylı sayılır; davetsiz katılımda talep gerekmez.",
+      "visibleSaved": "Görünür işyerleri güncellendi.",
+      "visibleError": "Görünür işyerleri güncellenemedi."
+    },
+    "subtitle": "Davetle ya da kendi kaydıyla gelen tedarikçiler. Firma tanımı Firma Tanım ekranındadır.",
+    "users": {
+      "title": "Kullanıcılar",
+      "add": "Kullanıcı ekle",
+      "loadError": "Kullanıcılar yüklenemedi.",
+      "created": "Kullanıcı oluşturuldu.",
+      "createError": "Kullanıcı oluşturulamadı.",
+      "lastLogin": "Son giriş",
+      "empty": "Bu cariye bağlı giriş kullanıcısı yok."
     }
   },
   "users": {
@@ -1135,7 +1195,11 @@
         "attachments": "Ekler (Şartname, Çizim vb.)",
         "dropHint": "Dosyaları buraya sürükleyin veya seçin",
         "chooseFiles": "Dosya Seç",
-        "simNote": "Not: Yükleme simüledir (gerçek depolama bağlı değil)."
+        "simNote": "Not: Yükleme simüledir (gerçek depolama bağlı değil).",
+        "workspace": "İşyeri",
+        "workspaceDefault": "Firmanın varsayılan işyeri",
+        "noWorkspace": "Firmanın işyeri yok",
+        "workspaceHint": "Davetsiz tedarikçinin cari onayı bu işyerine verilir."
       },
       "sniper": {
         "title": "Dinamik Süre Uzatma (Sniper Koruması)",
@@ -1617,5 +1681,75 @@
     "saveError": "Yetkiler kaydedilemedi.",
     "loadError": "Yetkiler yüklenemedi.",
     "discardConfirm": "Kaydedilmemiş değişiklikler var. Vazgeçilsin mi?"
+  },
+  "register": {
+    "title": "Tedarikçi kaydı",
+    "intro": "Kaydınız onay bekleyen cari olarak açılır. Katılmak istediğiniz ihale için katılım talebi ve ön teklif gönderdiğinizde, ihalenin firması cari kaydınızı onaylar.",
+    "companySection": "Firma bilgileri",
+    "companyName": "Firma adı",
+    "taxNumber": "VKN / TCKN",
+    "taxNumberHint": "VKN 10, TCKN 11 haneli",
+    "taxOffice": "Vergi dairesi",
+    "phone": "Telefon (opsiyonel)",
+    "userSection": "Kullanıcı bilgileri",
+    "cta": "Kayıt ol",
+    "haveAccount": "Hesabınız var mı?",
+    "successToast": "Kaydınız oluşturuldu. Hoş geldiniz!",
+    "error": "Kayıt oluşturulamadı."
+  },
+  "participation": {
+    "requestCta": "Katılım talebi",
+    "title": "Katılım talebi ve ön teklif",
+    "intro": "Bu ihaleye katılmak için {owner} firmasının cari onayı gerekiyor. Ön teklifinizi girin; sorumlu satınalmacı önce cari kaydınızı onaylar, sonra teklifinizi inceleyip sizi ihaleye dahil eder.",
+    "sentAt": "Gönderildi: {date}",
+    "rejected": "Talebiniz reddedildi",
+    "sentToast": "Katılım talebiniz gönderildi.",
+    "steps": {
+      "sent": "Talep gönderildi",
+      "companyApproved": "Cari onayı",
+      "accepted": "Ön teklif kabulü"
+    },
+    "waiting": {
+      "Pending": "Cari onayı bekleniyor.",
+      "CompanyApproved": "Cari kaydınız onaylandı; ön teklifiniz değerlendiriliyor."
+    },
+    "form": {
+      "item": "Kalem",
+      "quantity": "Miktar",
+      "unitPrice": "Birim fiyat",
+      "lineNote": "Not",
+      "lineTotal": "Tutar",
+      "total": "Toplam",
+      "note": "Satınalmacıya not (opsiyonel)",
+      "submit": "Talebi gönder",
+      "partialHint": "Kısmi teklif açık: yalnızca teklif vermek istediğiniz kalemlere fiyat girin.",
+      "allHint": "Bu ihalede tüm kalemlere fiyat girmeniz gerekir.",
+      "noLines": "En az bir kalem için fiyat girin.",
+      "allItemsRequired": "Tüm kalemler için fiyat girin.",
+      "error": "Talep gönderilemedi."
+    },
+    "panel": {
+      "title": "Katılım talepleri",
+      "open": "{n} açık",
+      "hint": "Davetsiz tedarikçiler: önce cariyi onaylayın (ihalenin işyerinde onaylı olur), sonra ön teklifi kabul edip ihaleye dahil edin.",
+      "empty": "Katılım talebi yok.",
+      "loadError": "Katılım talepleri yüklenemedi.",
+      "actionError": "İşlem gerçekleştirilemedi.",
+      "companyStatus": "Cari durumu",
+      "approvedInWorkspace": "İhalenin işyerinde onaylı",
+      "notApproved": "Cari onayı yok",
+      "viewCompany": "Cari kartı",
+      "rejectReason": "Red gerekçesi",
+      "approveCompany": "Cariyi onayla",
+      "accept": "Ön teklifi kabul et, ihaleye dahil et",
+      "reject": "Reddet",
+      "rejectPlaceholder": "Gerekçe (opsiyonel, tedarikçiye iletilir)",
+      "done": {
+        "approve-company": "{company} cari olarak onaylandı.",
+        "accept": "{company} ihaleye dahil edildi.",
+        "reject": "{company} talebi reddedildi."
+      }
+    },
+    "bidAfterAccept": "Katılım talebiniz kabul edilince bu kaleme teklif verebilirsiniz."
   }
 }

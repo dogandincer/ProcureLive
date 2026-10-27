@@ -27,8 +27,11 @@ public sealed class GetMyNotificationsQueryHandler : IRequestHandler<GetMyNotifi
 
         IQueryable<Notification> query = _context.Notifications.AsQueryable();
 
+        Guid? userId = _currentUserService.UserId;
+
+        // İç kullanıcı: herkese yayınlananlar + yalnızca kendisine hedeflenenler.
         query = isInternalUser
-            ? query.Where(n => n.CompanyId == null)
+            ? query.Where(n => n.CompanyId == null && (n.UserId == null || n.UserId == userId))
             : query.Where(n => n.CompanyId == companyId);
 
         if (request.UnreadOnly == true)

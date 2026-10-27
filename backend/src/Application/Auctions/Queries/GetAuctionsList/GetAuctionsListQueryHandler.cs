@@ -121,6 +121,7 @@ public sealed class GetAuctionsListQueryHandler : IRequestHandler<GetAuctionsLis
         AuctionAccessLevel level = access.Evaluate(facts);
         bool restricted = level != AuctionAccessLevel.Full;
         string? myStatus = a.Invitations.FirstOrDefault(i => i.CompanyId == access.CompanyId)?.Status.ToString();
+        bool requiresApproval = access.CanJoin(facts) && !access.HasActiveRequest(a.Id) && access.NeedsApproval(facts, a.WorkspaceId);
 
         // Kısıtlı satırda yalnızca vitrin bilgisi kalır: açıklama, rezerv fiyat ve rakip sayısı sunucuda düşürülür.
         return new AuctionDto(
@@ -137,6 +138,8 @@ public sealed class GetAuctionsListQueryHandler : IRequestHandler<GetAuctionsLis
             AccessLevel: level.ToString(),
             IsJoined: access.IsJoined(a.Id),
             IsListedForPlus: a.IsListedForPlus,
-            MyInvitationStatus: myStatus);
+            MyInvitationStatus: myStatus,
+            RequiresApproval: requiresApproval,
+            ParticipationStatus: access.RequestStatus(a.Id)?.ToString());
     }
 }

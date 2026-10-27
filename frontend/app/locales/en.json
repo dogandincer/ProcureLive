@@ -30,7 +30,9 @@
     "accept": "Accept",
     "decline": "Decline",
     "confirm": "Confirm",
-    "declineReasonPlaceholder": "Decline reason"
+    "declineReasonPlaceholder": "Decline reason",
+    "selectedCount": "{n} selected",
+    "filter": "Filter..."
   },
   "nav": {
     "panel": "Dashboard",
@@ -110,7 +112,9 @@
     "password": "Password",
     "submit": "Log In",
     "submitting": "Logging in...",
-    "defaultError": "Login failed. Incorrect email or password."
+    "defaultError": "Login failed. Incorrect email or password.",
+    "noAccount": "No invitation?",
+    "registerSupplier": "Register as a supplier"
   },
   "toast": {
     "companyStatusUpdated": "Company status updated.",
@@ -256,6 +260,12 @@
       "Pallet": "Pallet",
       "Hour": "Hour",
       "Service": "Service"
+    },
+    "participationStatus": {
+      "Pending": "Request pending",
+      "CompanyApproved": "Supplier approved",
+      "Accepted": "Accepted",
+      "Rejected": "Rejected"
     }
   },
   "auctions": {
@@ -326,7 +336,8 @@
       "emptyInvites": "No invitations yet",
       "origin": {
         "InviteLink": "Via invitation link",
-        "SelfJoin": "Joined from the listing"
+        "SelfJoin": "Joined from the listing",
+        "Request": "Via participation request"
       },
       "selectCompany": "Select company...",
       "invite": "Invite",
@@ -349,7 +360,9 @@
         "ended": "Auction ended",
         "awarded": "A winner was selected for an item",
         "statusChanged": "Status changed: {status}"
-      }
+      },
+      "workspace": "Workspace",
+      "responsible": "Responsible buyer"
     },
     "status": {
       "title": "Status Management",
@@ -649,7 +662,20 @@
       "foundationYear": "Founded (year)",
       "employeeCount": "Employees",
       "website": "Website (optional)",
-      "description": "Description (optional)"
+      "description": "Description (optional)",
+      "code": "Company code (auto if empty)",
+      "codeAuto": "Unchanged if empty",
+      "primaryWorkspace": "Primary workspace (header selection)",
+      "sectors": "Sectors",
+      "noSectors": "No sectors defined",
+      "visibleWorkspaces": "Additional visible workspaces",
+      "noOtherWorkspaces": "No other workspaces in this firm",
+      "userSection": "Supplier user (optional)",
+      "userHint": "If an e-mail is entered, the supplier's login account is created too; the username is the e-mail.",
+      "userEmail": "User e-mail",
+      "userPassword": "Password (min. 8 characters)",
+      "userFirstName": "First name",
+      "userLastName": "Last name"
     },
     "lookup": {
       "label": "Look up by National ID / Tax No",
@@ -665,7 +691,10 @@
       "name": "Name",
       "taxNumber": "Tax Number",
       "type": "Type",
-      "rating": "Rating"
+      "rating": "Rating",
+      "code": "Code",
+      "workspaces": "Workspaces",
+      "unassigned": "Not linked (pending approval)"
     },
     "empty": "No companies yet",
     "loadError": "Failed to load records.",
@@ -676,11 +705,28 @@
     "deleteError": "Failed to delete company.",
     "import": {
       "name": "Company Name",
-      "taxNumber": "Tax Number",
+      "taxNumber": "Tax/ID No",
       "taxOffice": "Tax Office",
       "type": "Type",
       "typeHint": "Supplier or Internal",
-      "website": "Website"
+      "website": "Website",
+      "code": "Company Code",
+      "codeHint": "(optional) CARI-#### is generated if empty",
+      "sectors": "Sectors",
+      "listHint": "(optional) comma separated",
+      "workspaces": "Workspaces",
+      "workspacesHint": "(optional) in addition to the selected one, comma separated",
+      "email": "E-mail",
+      "phone": "Phone",
+      "userEmail": "User E-mail",
+      "userEmailHint": "(optional) creates a login account",
+      "userPassword": "Password",
+      "userPasswordHint": "Required with a user e-mail (min. 8)",
+      "userFirstName": "User First Name",
+      "userLastName": "User Last Name",
+      "unknownSector": "Unknown sector: {name}",
+      "unknownWorkspace": "Workspace not in this firm: {name}",
+      "defaultLastName": "Contact"
     },
     "detail": {
       "loadError": "Failed to load company.",
@@ -736,7 +782,21 @@
         "postalCode": "Postal Code (optional)",
         "line1": "Address Line 1",
         "line2": "Address Line 2 (optional)"
-      }
+      },
+      "visibleWorkspaces": "Additional visible workspaces",
+      "visibleHint": "The supplier counts as approved in these workspaces' auctions; no request is needed to join.",
+      "visibleSaved": "Visible workspaces updated.",
+      "visibleError": "Visible workspaces could not be updated."
+    },
+    "subtitle": "Suppliers who came by invitation or registered themselves. Firms are defined on the Firm Definition screen.",
+    "users": {
+      "title": "Users",
+      "add": "Add user",
+      "loadError": "Users could not be loaded.",
+      "created": "User created.",
+      "createError": "User could not be created.",
+      "lastLogin": "Last login",
+      "empty": "No login users for this company."
     }
   },
   "users": {
@@ -1135,7 +1195,11 @@
         "attachments": "Attachments (specs, drawings, etc.)",
         "dropHint": "Drag files here or choose",
         "chooseFiles": "Choose Files",
-        "simNote": "Note: upload is simulated (no real storage connected)."
+        "simNote": "Note: upload is simulated (no real storage connected).",
+        "workspace": "Workspace",
+        "workspaceDefault": "Firm's default workspace",
+        "noWorkspace": "Firm has no workspace",
+        "workspaceHint": "Uninvited suppliers are approved for this workspace."
       },
       "sniper": {
         "title": "Dynamic Extension (Sniper Protection)",
@@ -1617,5 +1681,75 @@
     "saveError": "Permissions could not be saved.",
     "loadError": "Failed to load permissions.",
     "discardConfirm": "There are unsaved changes. Discard them?"
+  },
+  "register": {
+    "title": "Supplier registration",
+    "intro": "Your record is created as a supplier pending approval. When you send a participation request with a preliminary offer for an auction, the auction's firm approves your supplier record.",
+    "companySection": "Company details",
+    "companyName": "Company name",
+    "taxNumber": "Tax / ID number",
+    "taxNumberHint": "Tax number 10 digits, national ID 11 digits",
+    "taxOffice": "Tax office",
+    "phone": "Phone (optional)",
+    "userSection": "User details",
+    "cta": "Register",
+    "haveAccount": "Already have an account?",
+    "successToast": "Your account was created. Welcome!",
+    "error": "Registration failed."
+  },
+  "participation": {
+    "requestCta": "Request to join",
+    "title": "Participation request & preliminary offer",
+    "intro": "Joining this auction requires supplier approval from {owner}. Enter your preliminary offer; the responsible buyer first approves your supplier record, then reviews your offer and adds you to the auction.",
+    "sentAt": "Sent: {date}",
+    "rejected": "Your request was rejected",
+    "sentToast": "Your participation request was sent.",
+    "steps": {
+      "sent": "Request sent",
+      "companyApproved": "Supplier approval",
+      "accepted": "Offer acceptance"
+    },
+    "waiting": {
+      "Pending": "Waiting for supplier approval.",
+      "CompanyApproved": "Your supplier record was approved; your preliminary offer is under review."
+    },
+    "form": {
+      "item": "Item",
+      "quantity": "Quantity",
+      "unitPrice": "Unit price",
+      "lineNote": "Note",
+      "lineTotal": "Amount",
+      "total": "Total",
+      "note": "Note to the buyer (optional)",
+      "submit": "Send request",
+      "partialHint": "Partial bids allowed: enter prices only for the items you want to offer.",
+      "allHint": "This auction requires prices for all items.",
+      "noLines": "Enter a price for at least one item.",
+      "allItemsRequired": "Enter prices for all items.",
+      "error": "The request could not be sent."
+    },
+    "panel": {
+      "title": "Participation requests",
+      "open": "{n} open",
+      "hint": "Uninvited suppliers: first approve the supplier (it becomes approved in the auction's workspace), then accept the preliminary offer to add it to the auction.",
+      "empty": "No participation requests.",
+      "loadError": "Participation requests could not be loaded.",
+      "actionError": "The action could not be completed.",
+      "companyStatus": "Supplier status",
+      "approvedInWorkspace": "Approved in the auction's workspace",
+      "notApproved": "Not approved",
+      "viewCompany": "Company card",
+      "rejectReason": "Rejection reason",
+      "approveCompany": "Approve supplier",
+      "accept": "Accept offer, add to auction",
+      "reject": "Reject",
+      "rejectPlaceholder": "Reason (optional, sent to the supplier)",
+      "done": {
+        "approve-company": "{company} was approved as a supplier.",
+        "accept": "{company} was added to the auction.",
+        "reject": "{company}'s request was rejected."
+      }
+    },
+    "bidAfterAccept": "You can bid on this item once your participation request is accepted."
   }
 }

@@ -26,8 +26,16 @@ const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "ros
 
 const isOpen = (a: AuctionDto) => a.status === "Scheduled" || a.status === "Live";
 const isRestricted = (a: AuctionDto) => a.accessLevel !== "Full";
-// Davetsiz görünen açık ihale (davet eden firmanın diğer ihaleleri / Plus vitrini) → doğrudan katılım.
-const canJoin = (a: AuctionDto) => !isRestricted(a) && !a.isJoined && !a.myInvitationStatus && isOpen(a);
+// Davetsiz görünen açık ihale: onaylı cari doğrudan katılır, değilse katılım talebi + ön teklif (detayda) gönderir.
+const pendingRequest = (a: AuctionDto) => a.participationStatus === "Pending" || a.participationStatus === "CompanyApproved";
+const canJoin = (a: AuctionDto) =>
+  !isRestricted(a) && !a.isJoined && !a.myInvitationStatus && isOpen(a) && !a.requiresApproval && !pendingRequest(a);
+const participationTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "rose"> = {
+  Pending: "amber",
+  CompanyApproved: "indigo",
+  Accepted: "emerald",
+  Rejected: "rose",
+};
 
 async function load() {
   loading.value = true;
@@ -166,6 +174,9 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
                 <span class="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
                   {{ a.myInvitationStatus ? $t(`enums.invitationStatus.${a.myInvitationStatus}`) : a.isJoined ? $t("auctions.supplierList.joined") : "-" }}
                 </span>
+                <AppBadge v-if="a.participationStatus && !a.isJoined" :tone="participationTone[a.participationStatus]" class="ml-1">
+                  {{ $t(`enums.participationStatus.${a.participationStatus}`) }}
+                </AppBadge>
               </td>
               <td class="py-2 text-slate-500">{{ formatDateTime(a.endAt) }}</td>
               <td class="py-2 text-right">
@@ -189,6 +200,13 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
                   >
                     {{ $t("auctions.supplierList.join") }}
                   </button>
+                  <NuxtLink
+                    v-else-if="a.requiresApproval && isOpen(a)"
+                    :to="`/supplier/auctions/${a.id}#participation`"
+                    class="rounded bg-indigo-600 px-2 py-1 text-xs font-semibold text-white hover:bg-indigo-700"
+                  >
+                    {{ $t("participation.requestCta") }}
+                  </NuxtLink>
                   <span v-if="a.myInvitationStatus === 'Declined'" class="text-xs text-slate-400">{{ $t("auctions.supplierList.declined") }}</span>
                   <NuxtLink v-else :to="`/supplier/auctions/${a.id}`" class="ml-2 text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink>
 

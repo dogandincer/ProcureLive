@@ -13,6 +13,7 @@ using ProcureLive.Application.Auctions.Commands.JoinAuction;
 using ProcureLive.Application.Auctions.Commands.PlaceBid;
 using ProcureLive.Application.Auctions.Commands.PublishAuction;
 using ProcureLive.Application.Auctions.Commands.RespondToInvitation;
+using ProcureLive.Application.Auctions.Participation;
 using ProcureLive.Application.Auctions.Queries.GetAuctionById;
 using ProcureLive.Application.Auctions.Queries.GetAuctionsList;
 using ProcureLive.Application.Auctions.Queries.GetAuctionStatus;
@@ -86,7 +87,7 @@ public sealed class AuctionsController : ControllerBase
             new CreateAuctionCommand(
                 request.Title, request.Description, auctionType, request.OwnerCompanyId, request.CurrencyId,
                 request.StartAt, request.EndAt, request.ReservePrice, request.MinDecrementAmount,
-                request.MinDecrementPercentage, request.ExtensionRuleMinutes, request.IsListedForPlus),
+                request.MinDecrementPercentage, request.ExtensionRuleMinutes, request.IsListedForPlus, request.WorkspaceId),
             cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id }, id);
@@ -138,7 +139,7 @@ public sealed class AuctionsController : ControllerBase
                 request.Master.ReservePrice, request.Master.ExtensionTriggerMinutes, request.Master.ExtensionDurationMinutes,
                 request.Master.MaxExtensionMinutes, paymentTerm, deliveryTerm,
                 request.Master.AllowAlternativeProducts, request.Master.AllowPartialBids,
-                lines, request.VendorIds, attachments, request.Master.IsListedForPlus),
+                lines, request.VendorIds, attachments, request.Master.IsListedForPlus, request.Master.WorkspaceId),
             cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id }, id);
@@ -185,6 +186,48 @@ public sealed class AuctionsController : ControllerBase
     public async Task<IActionResult> Join(Guid id, CancellationToken cancellationToken)
     {
         await _sender.Send(new JoinAuctionCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Davetsiz tedarikçinin katılım talebi + kalem bazında ön teklifi.</summary>
+    [HttpPost("{id:guid}/participation-requests")]
+    [Authorize(Policy = Policies.RequireSupplier)]
+    public async Task<ActionResult<Guid>> CreateParticipationRequest(
+        Guid id, CreateParticipationRequestRequest request, CancellationToken cancellationToken)
+    {
+        Guid requestId = await _sender.Send(new CreateParticipationRequestCommand(id, request.Note, request.Lines), cancellationToken);
+        return Ok(requestId);
+    }
+
+    [HttpGet("{id:guid}/participation-requests")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<IReadOnlyList<ParticipationRequestDto>>> GetParticipationRequests(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await _sender.Send(new GetParticipationRequestsQuery(id), cancellationToken));
+    }
+
+    [HttpPost("{id:guid}/participation-requests/{requestId:guid}/approve-company")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> ApproveParticipationCompany(Guid id, Guid requestId, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ApproveParticipationCompanyCommand(id, requestId), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/participation-requests/{requestId:guid}/accept")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> AcceptParticipationRequest(Guid id, Guid requestId, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new AcceptParticipationRequestCommand(id, requestId), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/participation-requests/{requestId:guid}/reject")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> RejectParticipationRequest(
+        Guid id, Guid requestId, RejectParticipationRequestRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new RejectParticipationRequestCommand(id, requestId, request.Reason), cancellationToken);
         return NoContent();
     }
 

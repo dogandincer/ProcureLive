@@ -20,9 +20,10 @@ public sealed class GetUnreadNotificationCountQueryHandler : IRequestHandler<Get
     {
         bool isInternalUser = _currentUserService.IsInRole(Roles.Admin) || _currentUserService.IsInRole(Roles.Buyer);
         Guid? companyId = _currentUserService.CompanyId;
+        Guid? userId = _currentUserService.UserId;
 
         return isInternalUser
-            ? await _context.Notifications.CountAsync(n => n.CompanyId == null && !n.IsRead, cancellationToken)
+            ? await _context.Notifications.CountAsync(n => n.CompanyId == null && (n.UserId == null || n.UserId == userId) && !n.IsRead, cancellationToken)
             : await _context.Notifications.CountAsync(n => n.CompanyId == companyId && !n.IsRead, cancellationToken);
     }
 }

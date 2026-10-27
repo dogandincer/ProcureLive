@@ -15,7 +15,14 @@ public sealed record CreateCompanyRequest(
     string? Email,
     int? FoundationYear,
     int? EmployeeCount,
-    string? Description);
+    string? Description,
+    string? Code = null,
+    IReadOnlyList<Guid>? VisibleWorkspaceIds = null,
+    IReadOnlyList<Guid>? SectorIds = null,
+    string? UserEmail = null,
+    string? UserPassword = null,
+    string? UserFirstName = null,
+    string? UserLastName = null);
 
 public sealed record UpdateCompanyRequest(
     string Name,
@@ -28,9 +35,15 @@ public sealed record UpdateCompanyRequest(
     string? Email,
     int? FoundationYear,
     int? EmployeeCount,
-    string? Description);
+    string? Description,
+    string? Code = null);
 
 public sealed record AssignWorkspaceRequest(Guid? WorkspaceId);
+
+/// <summary>Carinin görünür olduğu işyerleri (birincil işyeri dahil edilmesine gerek yok).</summary>
+public sealed record SetCompanyWorkspacesRequest(IReadOnlyList<Guid> WorkspaceIds);
+
+public sealed record CreateCompanyUserRequest(string Email, string Password, string FirstName, string LastName);
 
 public sealed record AddContactPersonRequest(
     string FirstName,

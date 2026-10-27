@@ -18,7 +18,8 @@ public sealed record UpdateCompanyCommand(
     string? Email = null,
     int? FoundationYear = null,
     int? EmployeeCount = null,
-    string? Description = null) : IRequest, IRequireResourceAuthorization, ICompanyScopedRequest
+    string? Description = null,
+    string? Code = null) : IRequest, IRequireResourceAuthorization, ICompanyScopedRequest
 {
     Guid ICompanyScopedRequest.CompanyId => Id;
 

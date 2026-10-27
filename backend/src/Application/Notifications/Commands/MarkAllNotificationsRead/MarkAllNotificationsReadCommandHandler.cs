@@ -26,9 +26,10 @@ public sealed class MarkAllNotificationsReadCommandHandler : IRequestHandler<Mar
     {
         bool isInternalUser = _currentUserService.IsInRole(Roles.Admin) || _currentUserService.IsInRole(Roles.Buyer);
         Guid? companyId = _currentUserService.CompanyId;
+        Guid? userId = _currentUserService.UserId;
 
         List<Notification> unread = isInternalUser
-            ? await _context.Notifications.Where(n => n.CompanyId == null && !n.IsRead).ToListAsync(cancellationToken)
+            ? await _context.Notifications.Where(n => n.CompanyId == null && (n.UserId == null || n.UserId == userId) && !n.IsRead).ToListAsync(cancellationToken)
             : await _context.Notifications.Where(n => n.CompanyId == companyId && !n.IsRead).ToListAsync(cancellationToken);
 
         DateTime now = _dateTime.UtcNow;

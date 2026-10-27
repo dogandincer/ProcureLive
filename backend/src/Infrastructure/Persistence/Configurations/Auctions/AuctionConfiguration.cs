@@ -26,6 +26,13 @@ public sealed class AuctionConfiguration : IEntityTypeConfiguration<Auction>
             .HasForeignKey(a => a.OwnerCompanyId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasIndex(a => a.WorkspaceId);
+
+        builder.HasOne<ProcureLive.Domain.Entities.Workspaces.Workspace>()
+            .WithMany()
+            .HasForeignKey(a => a.WorkspaceId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasOne(a => a.Currency)
             .WithMany()
             .HasForeignKey(a => a.CurrencyId)

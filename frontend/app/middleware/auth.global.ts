@@ -5,7 +5,8 @@ export default defineNuxtRouteMiddleware((to) => {
 
   const { accessToken, currentUser, isInternalRole, isSupplierRole, isAdminRole, homePathForRole } = useAuth();
 
-  const isLoginRoute = to.path === "/login";
+  // Giriş ve davetsiz tedarikçi kaydı oturumsuz açılır; oturum varken panele yönlenir.
+  const isLoginRoute = to.path === "/login" || to.path === "/register";
   // Davet linki hem oturumsuz (kayıt/giriş) hem oturumlu (sahiplenme) açılabilmeli.
   const isInviteRoute = to.path === "/invite";
 

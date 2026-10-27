@@ -16,4 +16,5 @@ public sealed record CreateAuctionCommand(
     decimal? MinDecrementAmount,
     decimal? MinDecrementPercentage,
     int ExtensionRuleMinutes,
-    bool IsListedForPlus = false) : IRequest<Guid>, IOwnerFirmScopedRequest;
+    bool IsListedForPlus = false,
+    Guid? WorkspaceId = null) : IRequest<Guid>, IOwnerFirmScopedRequest, IWorkspaceTargetRequest;

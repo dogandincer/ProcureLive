@@ -1,5 +1,8 @@
 using MediatR;
+using Microsoft.EntityFrameworkCore;
+using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Security;
 using ProcureLive.Domain.Entities.Companies;
 using ProcureLive.Domain.Enums;
 
@@ -7,21 +10,28 @@ namespace ProcureLive.Application.Companies.Commands.CreateCompany;
 
 public sealed class CreateCompanyCommandHandler : IRequestHandler<CreateCompanyCommand, Guid>
 {
-    private readonly ICompanyRepository _companyRepository;
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IApplicationDbContext _context;
+    private readonly IIdentityService _identityService;
+    private readonly IDataScopeService _scopeService;
 
-    public CreateCompanyCommandHandler(ICompanyRepository companyRepository, IUnitOfWork unitOfWork, IApplicationDbContext context)
+    public CreateCompanyCommandHandler(IApplicationDbContext context, IIdentityService identityService, IDataScopeService scopeService)
     {
-        _companyRepository = companyRepository;
-        _unitOfWork = unitOfWork;
         _context = context;
+        _identityService = identityService;
+        _scopeService = scopeService;
     }
 
     public async Task<Guid> Handle(CreateCompanyCommand request, CancellationToken cancellationToken)
     {
+        string? userEmail = string.IsNullOrWhiteSpace(request.UserEmail) ? null : request.UserEmail.Trim().ToLowerInvariant();
+
+        // Kimlik kaydı ayrı yazıldığından e-posta çakışması cari kaydedilmeden önce yakalanır.
+        if (userEmail is not null && await _identityService.FindByEmailAsync(userEmail, cancellationToken) is not null)
+            throw new ConflictException("Bu e-posta ile zaten bir kullanıcı var.", ErrorCodes.AccountExists);
+
         var company = new Company
         {
+            Code = await CompanyRules.ResolveCodeAsync(_context, request.Code, null, cancellationToken),
             Name = request.Name,
             TaxNumber = request.TaxNumber,
             TaxOffice = request.TaxOffice,
@@ -38,14 +48,33 @@ public sealed class CreateCompanyCommandHandler : IRequestHandler<CreateCompanyC
             Status = CompanyStatus.PendingApproval
         };
 
-        // Internal cari = Firma; firmalarda kod zorunlu olduğundan bu yoldan açılan firmaya da kod üretilir.
-        if (company.CompanyType == CompanyType.Internal)
+        _context.Companies.Add(company);
+
+        if (request.SectorIds is { Count: > 0 })
         {
-            company.Code = await Firms.FirmRules.NextCodeAsync(_context, cancellationToken);
+            List<Guid> sectorIds = await _context.Sectors
+                .Where(s => request.SectorIds.Contains(s.Id)).Select(s => s.Id).ToListAsync(cancellationToken);
+            foreach (Guid sectorId in sectorIds)
+                _context.CompanySectors.Add(new CompanySector { CompanyId = company.Id, SectorId = sectorId });
         }
 
-        await _companyRepository.AddAsync(company, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        if (request.VisibleWorkspaceIds is { Count: > 0 })
+        {
+            DataScope scope = await _scopeService.GetAsync(cancellationToken);
+            await CompanyRules.SetVisibleWorkspacesAsync(_context, company, request.VisibleWorkspaceIds, scope, cancellationToken);
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        if (userEmail is not null)
+        {
+            var result = await _identityService.CreateUserAsync(
+                userEmail, request.UserPassword!, request.UserFirstName!.Trim(), request.UserLastName!.Trim(),
+                Roles.Supplier, company.Id, cancellationToken);
+
+            if (!result.Succeeded)
+                throw new ConflictException("Cari oluşturuldu ancak kullanıcı açılamadı: " + string.Join("; ", result.Errors));
+        }
 
         return company.Id;
     }

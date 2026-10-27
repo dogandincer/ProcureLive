@@ -27,8 +27,19 @@ public sealed class DeleteWorkspaceCommandHandler : IRequestHandler<DeleteWorksp
             throw new NotFoundException(nameof(Workspace), request.Id);
         }
 
+        if (await _context.Workspaces.CountAsync(cancellationToken) <= 1)
+        {
+            throw new ConflictException("En az bir işyeri tanımlı olmalıdır.");
+        }
+
+        if (workspace.IsDefault && await _context.Workspaces.AnyAsync(w => w.FirmId == workspace.FirmId && w.Id != workspace.Id, cancellationToken))
+        {
+            throw new ConflictException("Varsayılan işyeri silinemez; önce firmanın başka bir işyerini varsayılan yapın.");
+        }
+
         bool inUse = await _context.Companies.AnyAsync(c => c.WorkspaceId == request.Id, cancellationToken)
                   || await _context.Products.AnyAsync(p => p.WorkspaceId == request.Id, cancellationToken);
+
         if (inUse)
         {
             throw new ConflictException("Cari veya ürün atanmış olan işyeri silinemez. Önce atamaları başka bir işyerine taşıyın veya kaldırın.");

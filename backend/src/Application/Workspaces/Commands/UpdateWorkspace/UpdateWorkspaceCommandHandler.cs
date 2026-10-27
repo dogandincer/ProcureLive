@@ -27,9 +27,31 @@ public sealed class UpdateWorkspaceCommandHandler : IRequestHandler<UpdateWorksp
             throw new NotFoundException(nameof(Workspace), request.Id);
         }
 
+        if (workspace.IsDefault && !request.IsDefault && workspace.FirmId == request.FirmId)
+        {
+            throw new ConflictException("Varsayılan işyeri kaldırılamaz; önce firmanın başka bir işyerini varsayılan yapın.");
+        }
+
+        Guid? previousFirm = workspace.FirmId;
         workspace.Name = request.Name;
         workspace.Description = request.Description;
         workspace.IsActive = request.IsActive;
+        workspace.FirmId = request.FirmId;
+
+        await WorkspaceRules.ApplyDefaultAsync(_context, workspace, request.IsDefault, cancellationToken);
+
+        // Varsayılan işyeri başka firmaya taşındıysa eski firmada varsayılan boş kalmasın.
+        if (previousFirm is Guid oldFirm && oldFirm != request.FirmId)
+        {
+            List<Workspace> remaining = await _context.Workspaces
+                .Where(w => w.FirmId == oldFirm && w.Id != workspace.Id)
+                .OrderBy(w => w.CreatedAt)
+                .ToListAsync(cancellationToken);
+            if (remaining.Count > 0 && remaining.All(w => !w.IsDefault))
+            {
+                remaining[0].IsDefault = true;
+            }
+        }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }

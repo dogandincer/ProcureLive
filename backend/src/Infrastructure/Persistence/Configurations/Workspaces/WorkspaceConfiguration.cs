@@ -13,6 +13,13 @@ public sealed class WorkspaceConfiguration : IEntityTypeConfiguration<Workspace>
         builder.Property(w => w.Name).HasMaxLength(150).IsRequired();
         builder.Property(w => w.Description).HasMaxLength(500);
 
-        builder.HasIndex(w => w.Name).IsUnique();
+        // İşyeri adı firma içinde benzersizdir (iki firmanın da "Merkez" işyeri olabilir).
+        builder.HasIndex(w => new { w.FirmId, w.Name }).IsUnique();
+
+        builder.HasOne(w => w.Firm)
+            .WithMany()
+            .HasForeignKey(w => w.FirmId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
     }
 }

@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "ProcureLive",
+    "name": "Kuzey e-İhale Yönetimi",
     "tagline": "B2B E-Tedarik ve Anlık İhale Sistemi"
   },
   "common": {
@@ -59,7 +59,11 @@
     "plusGroup": "Plus",
     "plusSearch": "Detaylı Arama",
     "pricing": "Paketler",
-    "companySettings": "Firma Ayarları"
+    "companySettings": "Firma Ayarları",
+    "firms": "Firmalar",
+    "collapse": "Menüyü daralt",
+    "expand": "Menüyü genişlet",
+    "toggleMenu": "Menü"
   },
   "language": {
     "label": "Dil",
@@ -1056,10 +1060,17 @@
     }
   },
   "workspaceGate": {
-    "title": "İşyeri Tanımı Gerekli",
-    "message": "Sistem işyeri bazlı çalışır. Devam etmek için önce en az bir işyeri tanımlamanız gerekir.",
-    "cta": "İşyeri Tanımla",
-    "selectFirst": "Önce sağ üstteki seçiciden bir işyeri seçin. Cari/ürün bir işyerine bağlı olarak oluşturulur."
+    "firm": {
+      "title": "Önce bir firma tanımlayın",
+      "message": "Sistem firma ve işyeri bazlı çalışır. İşyerleri bir firmaya bağlıdır; başlamak için en az bir firma tanımlayın.",
+      "cta": "Firma Tanımla"
+    },
+    "workspace": {
+      "title": "Önce bir işyeri tanımlayın",
+      "message": "Cari, ürün ve ihale işlemleri işyeri bazlıdır. Devam etmek için firmanıza bağlı en az bir işyeri tanımlayın.",
+      "cta": "İşyeri Tanımla"
+    },
+    "askAdmin": "Firma ve işyeri tanımlarını Admin yapar. Lütfen sistem yöneticinize başvurun."
   },
   "tender": {
     "pool": {
@@ -1199,15 +1210,26 @@
       "namePlaceholder": "Örn: Merkez, İstanbul Şubesi, Depo",
       "description": "Açıklama (opsiyonel)",
       "descriptionPlaceholder": "İşyeri hakkında kısa açıklama",
-      "isActive": "Aktif"
+      "isActive": "Aktif",
+      "firm": "Bağlı Olduğu Firma",
+      "firmPicker": "Firma Seç",
+      "firmPlaceholder": "Firma seçmek için tıklayın",
+      "isDefault": "Bu işyerini firmanın varsayılanı olarak ayarla"
     },
     "table": {
       "name": "İşyeri Adı",
       "description": "Açıklama",
       "companies": "Cari Sayısı",
       "products": "Ürün Sayısı",
-      "status": "Durum"
-    }
+      "status": "Durum",
+      "firm": "Firma",
+      "default": "Varsayılan"
+    },
+    "switcherTitle": "İşyeri seçimi",
+    "default": "Varsayılan işyeri",
+    "makeDefault": "Varsayılan yap",
+    "defaultSet": "\"{name}\" varsayılan işyeri yapıldı.",
+    "firmRequired": "Bağlı olduğu firma seçilmelidir."
   },
   "sectors": {
     "title": "Sektörler",
@@ -1471,5 +1493,72 @@
     "saveError": "Ayarlar kaydedilemedi.",
     "loadError": "Ayarlar yüklenemedi.",
     "managePlan": "Paketi yönet"
+  },
+  "lookup": {
+    "open": "Listeden seç",
+    "clear": "Seçimi temizle",
+    "search": "Kod veya ad ile ara...",
+    "code": "Kodu",
+    "name": "Adı",
+    "empty": "Kayıt bulunamadı."
+  },
+  "firms": {
+    "title": "Firma Tanımları",
+    "subtitle": "Firma, işyerlerinin üst ebeveynidir. Varsayılan firmanın logosu ve kısa adı giriş ekranında ve sekmede kullanılır.",
+    "new": "Yeni Firma",
+    "edit": "Firmayı Düzenle",
+    "empty": "Henüz firma tanımlanmamış.",
+    "switcherTitle": "Firma seçimi",
+    "default": "Varsayılan firma",
+    "makeDefault": "Varsayılan yap",
+    "defaultSet": "\"{name}\" varsayılan firma yapıldı.",
+    "defaultSuffix": "e-İhale Yönetim Sistemi",
+    "titlePreview": "Uygulama adı",
+    "titleHint": "Kısa ad doluysa giriş ekranında ve sekmede \"Kısa Ad + ek\" kullanılır; yalnızca varsayılan firmada geçerlidir.",
+    "logoChoose": "Logo seç",
+    "logoRemove": "Logoyu kaldır",
+    "logoHint": "PNG, JPG, WEBP veya ICO · en fazla 2 MB. Giriş ekranında ve tarayıcı sekmesinde kullanılır.",
+    "logoTooLarge": "Logo dosyası en fazla 2 MB olabilir.",
+    "created": "Firma oluşturuldu.",
+    "updated": "Firma güncellendi.",
+    "deleted": "Firma silindi.",
+    "deleteConfirm": "\"{name}\" firmasını silmek istediğinize emin misiniz?",
+    "loadError": "Firmalar yüklenemedi.",
+    "saveError": "Firma kaydedilemedi.",
+    "deleteError": "Firma silinemedi.",
+    "sections": {
+      "identity": "Firma Bilgileri",
+      "contact": "İletişim",
+      "billing": "Fatura Adres Bilgileri",
+      "brand": "Logo ve Uygulama Adı"
+    },
+    "f": {
+      "code": "Firma Kodu",
+      "name": "Firma Adı",
+      "tradeName": "Ünvan",
+      "shortName": "Firma Kısa Adı",
+      "phone": "Telefon-1",
+      "phone2": "Telefon-2",
+      "mobilePhone": "Cep Telefonu",
+      "fax": "Faks",
+      "email": "E-posta-1",
+      "email2": "E-posta-2",
+      "website": "Web Adresi",
+      "taxOffice": "Vergi Dairesi",
+      "taxNumber": "Vergi No / TCKN",
+      "billingCountry": "Ülke",
+      "billingCity": "İl",
+      "billingDistrict": "İlçe",
+      "billingPostalCode": "Posta Kodu",
+      "billingAddressLine": "Adres",
+      "appTitleSuffix": "Uygulama adı eki",
+      "isDefault": "Bu firmayı varsayılan olarak ayarla"
+    },
+    "table": {
+      "firm": "Firma",
+      "contact": "İletişim",
+      "workspaces": "İşyeri",
+      "default": "Varsayılan"
+    }
   }
 }

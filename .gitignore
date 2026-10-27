@@ -10,6 +10,9 @@ frontend/.nuxt/
 frontend/.output/
 frontend/dist/
 
+## Yüklenen dosyalar (firma logoları vb. — çalışma zamanı verisi)
+backend/src/WebApi/wwwroot/uploads/
+
 ## Env / secrets
 .env
 *.local.json

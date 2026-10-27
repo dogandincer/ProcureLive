@@ -1005,6 +1005,14 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AppTitleSuffix")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
                     b.Property<int>("CompanyType")
                         .HasColumnType("integer");
 
@@ -1025,11 +1033,22 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<string>("Email2")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<int?>("EmployeeCount")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Fax")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
                     b.Property<int?>("FoundationYear")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("IsDefaultFirm")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -1045,6 +1064,10 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<string>("MobilePhone")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(250)
@@ -1053,6 +1076,14 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Property<string>("Phone")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Phone2")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("ShortName")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
 
                     b.Property<bool>("ShowContactInfo")
                         .HasColumnType("boolean");
@@ -1089,8 +1120,13 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("\"Code\" IS NOT NULL AND NOT \"IsDeleted\"");
+
                     b.HasIndex("TaxNumber")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"TaxNumber\" <> '' AND NOT \"IsDeleted\"");
 
                     b.HasIndex("WorkspaceId");
 
@@ -2168,7 +2204,13 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<Guid?>("FirmId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDefault")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Name")
@@ -2184,7 +2226,7 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("FirmId", "Name")
                         .IsUnique();
 
                     b.ToTable("Workspaces", (string)null);
@@ -2990,6 +3032,16 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Workspaces.Workspace", b =>
+                {
+                    b.HasOne("ProcureLive.Domain.Entities.Companies.Company", "Firm")
+                        .WithMany()
+                        .HasForeignKey("FirmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Firm");
                 });
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Auctions.Auction", b =>

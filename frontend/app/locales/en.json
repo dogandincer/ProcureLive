@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "ProcureLive",
+    "name": "Kuzey e-İhale Yönetimi",
     "tagline": "B2B E-Procurement and Live Auction System"
   },
   "common": {
@@ -59,7 +59,11 @@
     "plusGroup": "Plus",
     "plusSearch": "Advanced Search",
     "pricing": "Plans",
-    "companySettings": "Company Settings"
+    "companySettings": "Company Settings",
+    "firms": "Firms",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu",
+    "toggleMenu": "Menu"
   },
   "language": {
     "label": "Language",
@@ -1056,10 +1060,17 @@
     }
   },
   "workspaceGate": {
-    "title": "Workspace Required",
-    "message": "The system is workspace-based. You must define at least one workspace before proceeding.",
-    "cta": "Define Workspace",
-    "selectFirst": "Select a workspace from the top-right switcher first. Companies/products are created under a workspace."
+    "firm": {
+      "title": "Define a firm first",
+      "message": "The system works per firm and workspace. Workspaces belong to a firm; define at least one firm to get started.",
+      "cta": "Define Firm"
+    },
+    "workspace": {
+      "title": "Define a workspace first",
+      "message": "Company, product and auction operations are workspace-based. Define at least one workspace under your firm to continue.",
+      "cta": "Define Workspace"
+    },
+    "askAdmin": "Firms and workspaces are defined by an Admin. Please contact your system administrator."
   },
   "tender": {
     "pool": {
@@ -1199,15 +1210,26 @@
       "namePlaceholder": "e.g. HQ, Istanbul Branch, Warehouse",
       "description": "Description (optional)",
       "descriptionPlaceholder": "Brief description of this workspace",
-      "isActive": "Active"
+      "isActive": "Active",
+      "firm": "Parent Firm",
+      "firmPicker": "Select Firm",
+      "firmPlaceholder": "Click to select a firm",
+      "isDefault": "Set as the firm's default workspace"
     },
     "table": {
       "name": "Workspace Name",
       "description": "Description",
       "companies": "Companies",
       "products": "Products",
-      "status": "Status"
-    }
+      "status": "Status",
+      "firm": "Firm",
+      "default": "Default"
+    },
+    "switcherTitle": "Workspace selection",
+    "default": "Default workspace",
+    "makeDefault": "Make default",
+    "defaultSet": "\"{name}\" is now the default workspace.",
+    "firmRequired": "A parent firm must be selected."
   },
   "sectors": {
     "title": "Sectors",
@@ -1471,5 +1493,72 @@
     "saveError": "Settings could not be saved.",
     "loadError": "Failed to load settings.",
     "managePlan": "Manage plan"
+  },
+  "lookup": {
+    "open": "Pick from list",
+    "clear": "Clear selection",
+    "search": "Search by code or name...",
+    "code": "Code",
+    "name": "Name",
+    "empty": "No records found."
+  },
+  "firms": {
+    "title": "Firm Definitions",
+    "subtitle": "A firm is the parent of workspaces. The default firm's logo and short name are used on the sign-in screen and the browser tab.",
+    "new": "New Firm",
+    "edit": "Edit Firm",
+    "empty": "No firms defined yet.",
+    "switcherTitle": "Firm selection",
+    "default": "Default firm",
+    "makeDefault": "Make default",
+    "defaultSet": "\"{name}\" is now the default firm.",
+    "defaultSuffix": "e-İhale Yönetim Sistemi",
+    "titlePreview": "Application name",
+    "titleHint": "If a short name is set, \"Short Name + suffix\" is shown on the sign-in screen and the tab; only the default firm applies.",
+    "logoChoose": "Choose logo",
+    "logoRemove": "Remove logo",
+    "logoHint": "PNG, JPG, WEBP or ICO · max 2 MB. Used on the sign-in screen and the browser tab.",
+    "logoTooLarge": "The logo file can be at most 2 MB.",
+    "created": "Firm created.",
+    "updated": "Firm updated.",
+    "deleted": "Firm deleted.",
+    "deleteConfirm": "Are you sure you want to delete \"{name}\"?",
+    "loadError": "Failed to load firms.",
+    "saveError": "The firm could not be saved.",
+    "deleteError": "The firm could not be deleted.",
+    "sections": {
+      "identity": "Firm Details",
+      "contact": "Contact",
+      "billing": "Billing Address",
+      "brand": "Logo and Application Name"
+    },
+    "f": {
+      "code": "Firm Code",
+      "name": "Firm Name",
+      "tradeName": "Legal Title",
+      "shortName": "Short Name",
+      "phone": "Phone 1",
+      "phone2": "Phone 2",
+      "mobilePhone": "Mobile Phone",
+      "fax": "Fax",
+      "email": "Email 1",
+      "email2": "Email 2",
+      "website": "Website",
+      "taxOffice": "Tax Office",
+      "taxNumber": "Tax No / ID No",
+      "billingCountry": "Country",
+      "billingCity": "City",
+      "billingDistrict": "District",
+      "billingPostalCode": "Postal Code",
+      "billingAddressLine": "Address",
+      "appTitleSuffix": "Application name suffix",
+      "isDefault": "Set this firm as the default"
+    },
+    "table": {
+      "firm": "Firm",
+      "contact": "Contact",
+      "workspaces": "Workspaces",
+      "default": "Default"
+    }
   }
 }

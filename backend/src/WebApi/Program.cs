@@ -170,6 +170,16 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 
+// Yüklenen dosyalar (firma logoları): LocalFileStorage → {ContentRoot}/wwwroot/uploads, /uploads altında sunulur.
+string uploadsPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot", "uploads");
+Directory.CreateDirectory(uploadsPath);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads",
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers["X-Content-Type-Options"] = "nosniff",
+});
+
 app.UseCors(CorsPolicyName);
 
 app.UseAuthentication();
@@ -183,6 +193,7 @@ app.MapHub<NotificationHub>("/hubs/notifications");
 using (IServiceScope scope = app.Services.CreateScope())
 {
     await ProcureLive.Infrastructure.Persistence.Seed.InitialAdminSeeder.SeedAsync(scope.ServiceProvider);
+    await ProcureLive.Infrastructure.Persistence.Seed.FirmBootstrapper.RunAsync(scope.ServiceProvider);
 }
 
 app.Run();

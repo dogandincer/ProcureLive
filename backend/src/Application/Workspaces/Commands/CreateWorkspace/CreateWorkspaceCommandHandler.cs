@@ -21,9 +21,11 @@ public sealed class CreateWorkspaceCommandHandler : IRequestHandler<CreateWorksp
         {
             Name = request.Name,
             Description = request.Description,
+            FirmId = request.FirmId,
             IsActive = true,
         };
 
+        await WorkspaceRules.ApplyDefaultAsync(_context, workspace, request.IsDefault, cancellationToken);
         await _context.Workspaces.AddAsync(workspace, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

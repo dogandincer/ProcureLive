@@ -13,6 +13,8 @@ const showForm = ref(false);
 const submitting = ref(false);
 const loading = ref(true);
 
+const { selectedFirmId } = useFirm();
+
 const form = reactive({
   title: "",
   description: "",
@@ -41,7 +43,7 @@ async function load() {
   loading.value = true;
   try {
     const [auctionPage, companyPage, currencyList] = await Promise.all([
-      api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 50 }),
+      api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 50, firmId: selectedFirmId.value ?? undefined }),
       api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 }),
       api.get<CurrencyDto[]>("/api/currencies"),
     ]);
@@ -89,6 +91,7 @@ async function createAuction() {
 }
 
 onMounted(load);
+watch(selectedFirmId, load);
 </script>
 
 <template>

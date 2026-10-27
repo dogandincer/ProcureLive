@@ -41,12 +41,13 @@ public sealed class CompaniesController : ControllerBase
         [FromQuery] string? status,
         [FromQuery] Guid? sectorId,
         [FromQuery] Guid? workspaceId,
+        [FromQuery] Guid? firmId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
         PagedResult<CompanyDto> result = await _sender.Send(
-            new GetCompaniesListQuery(searchTerm, companyType, status, sectorId, workspaceId, page, pageSize), cancellationToken);
+            new GetCompaniesListQuery(searchTerm, companyType, status, sectorId, workspaceId, page, pageSize, firmId), cancellationToken);
 
         return Ok(result);
     }

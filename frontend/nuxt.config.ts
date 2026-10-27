@@ -36,7 +36,7 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: "ProcureLive",
+      title: "Kuzey e-İhale Yönetimi",
       meta: [{ name: "viewport", content: "width=device-width, initial-scale=1" }],
     },
   },

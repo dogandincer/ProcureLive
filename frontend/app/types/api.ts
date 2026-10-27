@@ -34,6 +34,10 @@ export interface WorkspaceDto {
   isActive: boolean;
   companyCount: number;
   productCount: number;
+  firmId: string | null;
+  firmCode: string | null;
+  firmName: string | null;
+  isDefault: boolean;
 }
 
 export interface SectorDto {
@@ -344,6 +348,50 @@ export interface AuctionDetailDto {
   canJoin: boolean;
   isListedForPlus: boolean;
   itemCount: number;
+}
+
+/** Sarı alan (LookupField) seçim penceresi satırı: ID döner, Kodu/Adı gösterilir. */
+export interface LookupRow {
+  id: string;
+  code: string;
+  name: string;
+  detail?: string | null;
+}
+
+// --- Firma (işyerlerinin üst ebeveyni) ve marka ---
+
+export interface FirmDto {
+  id: string;
+  code: string;
+  name: string;
+  tradeName: string | null;
+  shortName: string | null;
+  phone: string | null;
+  phone2: string | null;
+  mobilePhone: string | null;
+  fax: string | null;
+  email: string | null;
+  email2: string | null;
+  website: string | null;
+  taxOffice: string | null;
+  taxNumber: string | null;
+  billingCountry: string | null;
+  billingCity: string | null;
+  billingDistrict: string | null;
+  billingPostalCode: string | null;
+  billingAddressLine: string | null;
+  logoUrl: string | null;
+  isDefault: boolean;
+  appTitleSuffix: string | null;
+  workspaceCount: number;
+}
+
+export interface BrandingDto {
+  appName: string;
+  shortName: string | null;
+  suffix: string;
+  logoUrl: string | null;
+  isCustom: boolean;
 }
 
 // --- İhale durum yönetimi ---

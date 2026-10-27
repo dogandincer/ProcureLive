@@ -37,12 +37,13 @@ public sealed class ProductsController : ControllerBase
         [FromQuery] Guid? categoryId,
         [FromQuery] bool? isActive,
         [FromQuery] Guid? workspaceId,
+        [FromQuery] Guid? firmId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
         PagedResult<ProductDto> result = await _sender.Send(
-            new GetProductsListQuery(searchTerm, categoryId, isActive, workspaceId, page, pageSize), cancellationToken);
+            new GetProductsListQuery(searchTerm, categoryId, isActive, workspaceId, page, pageSize, firmId), cancellationToken);
 
         return Ok(result);
     }

@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import type { WorkspaceDto } from "~/types/api";
-import { PlusIcon, PencilIcon, TrashIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/vue/24/outline";
+import type { FirmDto, LookupRow, WorkspaceDto } from "~/types/api";
+import { PlusIcon, PencilIcon, TrashIcon, CheckCircleIcon, XCircleIcon, StarIcon } from "@heroicons/vue/24/outline";
+import { StarIcon as StarSolid } from "@heroicons/vue/24/solid";
 
 const api = useApi();
 const toast = useToast();
 const { t } = useI18n();
 const { workspaces, init } = useWorkspace();
+const { selectedFirm } = useFirm();
 
 const loading = ref(true);
 const showForm = ref(false);
@@ -13,7 +15,30 @@ const editingId = ref<string | null>(null);
 const saving = ref(false);
 const deleting = ref<string | null>(null);
 
-const form = reactive({ name: "", description: "", isActive: true });
+const form = reactive({ name: "", description: "", isActive: true, firmId: null as string | null, isDefault: false });
+const firmDisplay = ref<string | null>(null);
+const firmMissing = ref(false);
+
+// Sarı alan: firmalar listelenir, seçimde firmanın ID'si döner; ekranda Kodu · Adı gösterilir.
+async function loadFirmRows(): Promise<LookupRow[]> {
+  const list = await api.get<FirmDto[]>("/api/firms");
+  return list.map((f) => ({ id: f.id, code: f.code, name: f.name, detail: f.shortName }));
+}
+
+function onFirmSelected(row: LookupRow | null) {
+  firmDisplay.value = row ? `${row.code} · ${row.name}` : null;
+  firmMissing.value = false;
+}
+
+async function setDefault(ws: WorkspaceDto) {
+  try {
+    await api.post(`/api/workspaces/${ws.id}/default`);
+    toast.success(t("workspaces.defaultSet", { name: ws.name }));
+    await load();
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("workspaces.saveError")));
+  }
+}
 
 async function load() {
   loading.value = true;
@@ -28,13 +53,19 @@ async function load() {
 
 function openCreate() {
   editingId.value = null;
-  Object.assign(form, { name: "", description: "", isActive: true });
+  // Yeni işyeri başlıkta seçili firmaya önerilir; firma sarı alandan değiştirilebilir.
+  const firm = selectedFirm.value;
+  Object.assign(form, { name: "", description: "", isActive: true, firmId: firm?.id ?? null, isDefault: false });
+  firmDisplay.value = firm ? `${firm.code} · ${firm.name}` : null;
+  firmMissing.value = false;
   showForm.value = true;
 }
 
 function openEdit(ws: WorkspaceDto) {
   editingId.value = ws.id;
-  Object.assign(form, { name: ws.name, description: ws.description ?? "", isActive: ws.isActive });
+  Object.assign(form, { name: ws.name, description: ws.description ?? "", isActive: ws.isActive, firmId: ws.firmId, isDefault: ws.isDefault });
+  firmDisplay.value = ws.firmCode ? `${ws.firmCode} · ${ws.firmName}` : null;
+  firmMissing.value = false;
   showForm.value = true;
 }
 
@@ -44,6 +75,11 @@ function cancelForm() {
 }
 
 async function save() {
+  if (!form.firmId) {
+    firmMissing.value = true;
+    toast.error(t("workspaces.firmRequired"));
+    return;
+  }
   saving.value = true;
   try {
     if (editingId.value) {
@@ -51,10 +87,17 @@ async function save() {
         name: form.name,
         description: form.description || null,
         isActive: form.isActive,
+        firmId: form.firmId,
+        isDefault: form.isDefault,
       });
       toast.success(t("workspaces.updated"));
     } else {
-      await api.post("/api/workspaces", { name: form.name, description: form.description || null });
+      await api.post("/api/workspaces", {
+        name: form.name,
+        description: form.description || null,
+        firmId: form.firmId,
+        isDefault: form.isDefault,
+      });
       toast.success(t("workspaces.created"));
     }
     cancelForm();
@@ -103,6 +146,19 @@ onMounted(load);
     <AppCard v-if="showForm" :title="editingId ? $t('workspaces.editWorkspace') : $t('workspaces.newWorkspace')">
       <form class="grid grid-cols-1 gap-3 sm:grid-cols-2" @submit.prevent="save">
         <div class="sm:col-span-2">
+          <label class="mb-1 block text-xs font-medium text-slate-600">{{ $t("workspaces.form.firm") }} *</label>
+          <LookupField
+            v-model="form.firmId"
+            :load="loadFirmRows"
+            :title="$t('workspaces.form.firmPicker')"
+            :display="firmDisplay"
+            :invalid="firmMissing"
+            :placeholder="$t('workspaces.form.firmPlaceholder')"
+            required
+            @select="onFirmSelected"
+          />
+        </div>
+        <div class="sm:col-span-2">
           <label class="mb-1 block text-xs font-medium text-slate-600">{{ $t("workspaces.form.name") }} *</label>
           <input
             v-model="form.name"
@@ -122,6 +178,10 @@ onMounted(load);
             class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
+        <label class="flex items-center gap-2 text-sm text-slate-600 sm:col-span-2">
+          <input v-model="form.isDefault" type="checkbox" class="rounded" />
+          {{ $t("workspaces.form.isDefault") }}
+        </label>
         <div v-if="editingId" class="flex items-center gap-2">
           <input id="wsIsActive" v-model="form.isActive" type="checkbox" class="rounded" />
           <label for="wsIsActive" class="text-sm text-slate-600">{{ $t("workspaces.form.isActive") }}</label>
@@ -150,9 +210,11 @@ onMounted(load);
         <thead class="border-b border-slate-100 bg-slate-50">
           <tr>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $t("workspaces.table.name") }}</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $t("workspaces.table.firm") }}</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $t("workspaces.table.description") }}</th>
             <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $t("workspaces.table.companies") }}</th>
             <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $t("workspaces.table.products") }}</th>
+            <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $t("workspaces.table.default") }}</th>
             <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $t("workspaces.table.status") }}</th>
             <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $t("common.actions") }}</th>
           </tr>
@@ -160,6 +222,10 @@ onMounted(load);
         <tbody class="divide-y divide-slate-50">
           <tr v-for="ws in workspaces" :key="ws.id" class="hover:bg-slate-50">
             <td class="px-4 py-3 font-medium text-slate-800">{{ ws.name }}</td>
+            <td class="px-4 py-3 text-slate-600">
+              <span v-if="ws.firmCode"><span class="font-mono text-xs text-slate-400">{{ ws.firmCode }}</span> {{ ws.firmName }}</span>
+              <span v-else class="text-rose-500">—</span>
+            </td>
             <td class="px-4 py-3 text-slate-500">{{ ws.description || "—" }}</td>
             <td class="px-4 py-3 text-center">
               <span class="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
@@ -170,6 +236,12 @@ onMounted(load);
               <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
                 {{ ws.productCount }}
               </span>
+            </td>
+            <td class="px-4 py-3 text-center">
+              <StarSolid v-if="ws.isDefault" class="mx-auto h-4 w-4 text-amber-500" :title="$t('workspaces.default')" />
+              <button v-else class="rounded p-1 text-slate-300 hover:text-amber-500" :title="$t('workspaces.makeDefault')" @click="setDefault(ws)">
+                <StarIcon class="h-4 w-4" />
+              </button>
             </td>
             <td class="px-4 py-3 text-center">
               <CheckCircleIcon v-if="ws.isActive" class="mx-auto h-4 w-4 text-emerald-500" />

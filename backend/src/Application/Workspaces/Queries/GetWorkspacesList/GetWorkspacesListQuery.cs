@@ -3,4 +3,5 @@ using ProcureLive.Contracts.Workspaces;
 
 namespace ProcureLive.Application.Workspaces.Queries.GetWorkspacesList;
 
-public sealed record GetWorkspacesListQuery(bool? ActiveOnly) : IRequest<List<WorkspaceDto>>;
+/// <summary>FirmId verilirse yalnızca o firmanın işyerleri (başlıktaki firma seçimi).</summary>
+public sealed record GetWorkspacesListQuery(bool? ActiveOnly, Guid? FirmId = null) : IRequest<List<WorkspaceDto>>;

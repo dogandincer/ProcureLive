@@ -7,6 +7,7 @@ const api = useApi();
 const toast = useToast();
 const { t } = useI18n();
 const { selectedWorkspaceId } = useWorkspace();
+const { selectedFirmId } = useFirm();
 const companies = ref<CompanyDto[]>([]);
 const showForm = ref(false);
 const submitting = ref(false);
@@ -70,7 +71,9 @@ async function load() {
   loading.value = true;
   try {
     const params: Record<string, unknown> = { page: 1, pageSize: 100 };
+    // "Tüm İşyerleri": başlıktaki firmanın işyerleriyle sınırlı.
     if (selectedWorkspaceId.value) params.workspaceId = selectedWorkspaceId.value;
+    else if (selectedFirmId.value) params.firmId = selectedFirmId.value;
     const page = await api.get<PagedResult<CompanyDto>>("/api/companies", params);
     companies.value = page.items;
     for (const c of companies.value) {
@@ -156,7 +159,7 @@ async function deleteCompany(c: CompanyDto) {
   }
 }
 
-watch(selectedWorkspaceId, load);
+watch([selectedWorkspaceId, selectedFirmId], load);
 onMounted(load);
 </script>
 

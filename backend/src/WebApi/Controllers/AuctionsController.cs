@@ -43,11 +43,12 @@ public sealed class AuctionsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PagedResult<AuctionDto>>> GetList(
         [FromQuery] string? status,
+        [FromQuery] Guid? firmId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        PagedResult<AuctionDto> result = await _sender.Send(new GetAuctionsListQuery(status, page, pageSize), cancellationToken);
+        PagedResult<AuctionDto> result = await _sender.Send(new GetAuctionsListQuery(status, page, pageSize, firmId), cancellationToken);
         return Ok(result);
     }
 

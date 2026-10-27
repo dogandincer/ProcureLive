@@ -23,7 +23,11 @@ import {
   MagnifyingGlassIcon,
   SparklesIcon,
   Cog6ToothIcon,
+  BuildingOffice2Icon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
 } from "@heroicons/vue/24/outline";
+import type { FirmDto, WorkspaceDto } from "~/types/api";
 
 const { currentUser, isInternalRole, isSupplierRole, isAdminRole, logout } = useAuth();
 const api = useApi();
@@ -31,23 +35,48 @@ const { connect } = useNotificationHub();
 const { t, locale } = useI18n();
 const route = useRoute();
 
-// Sistem işyeri bazlı: hiç işyeri tanımlı değilse (iç kullanıcı) panel kilitlenir,
-// kullanıcı önce bir işyeri tanımlamaya yönlendirilir.
-const { workspaces } = useWorkspace();
-const workspacesLoaded = ref(false);
-async function loadWorkspaces() {
+// Sistem firma + işyeri bazlı: en az bir firma ve bir işyeri tanımlı olmadan (iç kullanıcı) panel kilitlenir;
+// Admin önce firma, sonra işyeri tanımlamaya yönlendirilir (tanım ekranları yalnızca Admin'e açık).
+const { workspaces, init: initWorkspace, reconcile } = useWorkspace();
+const { firms, selectedFirmId, ensureSelection } = useFirm();
+const contextLoaded = ref(false);
+async function loadContext() {
   try {
-    workspaces.value = await api.get("/api/workspaces");
+    const [firmList, wsList] = await Promise.all([api.get<FirmDto[]>("/api/firms"), api.get<WorkspaceDto[]>("/api/workspaces")]);
+    firms.value = firmList;
+    workspaces.value = wsList;
+    initWorkspace();
+    ensureSelection();
+    reconcile(selectedFirmId.value);
   } catch {
     // sessiz
   } finally {
-    workspacesLoaded.value = true;
+    contextLoaded.value = true;
   }
 }
-const workspaceGate = computed(() =>
-  isInternalRole() && workspacesLoaded.value && workspaces.value.length === 0
-  && !route.path.startsWith("/admin/workspaces"),
-);
+const setupGate = computed<null | "firm" | "workspace">(() => {
+  if (!isInternalRole() || !contextLoaded.value) return null;
+  if (firms.value.length === 0 && !route.path.startsWith("/admin/firms")) return "firm";
+  if (firms.value.length > 0 && workspaces.value.length === 0 && !route.path.startsWith("/admin/workspaces") && !route.path.startsWith("/admin/firms")) return "workspace";
+  return null;
+});
+
+// Marka (varsayılan firmadan) ve masaüstünde daraltılabilir kenar çubuğu (tercih tarayıcıda saklanır).
+const { branding, logoSrc, initials } = useBranding();
+const SIDEBAR_KEY = "pl_sidebar_collapsed";
+const collapsed = ref(false);
+function toggleSidebar() {
+  if (window.matchMedia("(min-width: 768px)").matches) {
+    collapsed.value = !collapsed.value;
+    try {
+      localStorage.setItem(SIDEBAR_KEY, collapsed.value ? "1" : "0");
+    } catch {
+      // tercih saklanamadı
+    }
+  } else {
+    sidebarOpen.value = !sidebarOpen.value;
+  }
+}
 
 const notifications = ref<NotificationDto[]>([]);
 const unreadCount = ref(0);
@@ -59,6 +88,7 @@ interface NavLink {
   to: string;
   labelKey: string;
   icon: Component;
+  adminOnly?: boolean;
 }
 
 interface NavSection {
@@ -71,7 +101,8 @@ const adminSections: NavSection[] = [
   {
     sectionKey: "nav.supplyChainGroup",
     links: [
-      { to: "/admin/workspaces", labelKey: "nav.workspaces", icon: BuildingOfficeIcon },
+      { to: "/admin/firms", labelKey: "nav.firms", icon: BuildingOffice2Icon, adminOnly: true },
+      { to: "/admin/workspaces", labelKey: "nav.workspaces", icon: BuildingOfficeIcon, adminOnly: true },
       { to: "/admin/companies", labelKey: "nav.companies", icon: BuildingOfficeIcon },
       { to: "/admin/supplier-scoreboard", labelKey: "nav.scoreboard", icon: StarIcon },
       { to: "/admin/users", labelKey: "nav.users", icon: UsersIcon },
@@ -123,7 +154,8 @@ const { subscription, isPlus, refresh: refreshSubscription } = useSubscription()
 
 const navSections = computed<NavSection[]>(() => {
   if (!isInternalRole()) return supplierSections;
-  if (!isAdminRole()) return adminSections;
+  // Firma ve İşyeri tanımları yalnızca Admin'e görünür.
+  if (!isAdminRole()) return adminSections.map((s) => ({ ...s, links: s.links.filter((l) => !l.adminOnly) }));
   return [
     ...adminSections,
     {
@@ -190,7 +222,12 @@ watch(unreadOnly, loadNotifications);
 watch(locale, loadNotifications);
 
 onMounted(async () => {
-  if (isInternalRole()) loadWorkspaces();
+  try {
+    collapsed.value = localStorage.getItem(SIDEBAR_KEY) === "1";
+  } catch {
+    collapsed.value = false;
+  }
+  if (isInternalRole()) loadContext();
   if (isSupplierRole()) refreshSubscription();
   await loadNotifications();
 
@@ -212,18 +249,24 @@ onMounted(async () => {
 
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 -translate-x-full flex-col bg-slate-900 transition-transform md:static md:translate-x-0"
-      :class="{ 'translate-x-0': sidebarOpen }"
+      class="fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 -translate-x-full flex-col bg-slate-900 transition-all md:static md:translate-x-0"
+      :class="[sidebarOpen ? 'translate-x-0' : '', collapsed ? 'md:w-16' : 'md:w-64']"
     >
-      <!-- Brand -->
-      <div class="flex items-center gap-2.5 px-5 py-4 border-b border-slate-700/60">
-        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white text-sm font-bold shrink-0">
-          PL
+      <!-- Brand (varsayılan firmanın logosu / adı) -->
+      <div class="flex items-center gap-2.5 border-b border-slate-700/60 py-4" :class="collapsed ? 'px-5 md:justify-center md:px-0' : 'px-5'">
+        <div class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-indigo-600 text-sm font-bold text-white">
+          <img v-if="logoSrc" :src="logoSrc" alt="" class="h-full w-full bg-white object-contain" />
+          <template v-else>{{ initials }}</template>
         </div>
-        <div>
-          <div class="text-sm font-semibold text-white leading-none">{{ $t("app.name") }}</div>
-          <div class="text-[10px] text-slate-400 mt-0.5">{{ $t("app.tagline") }}</div>
+        <div class="min-w-0" :class="{ 'md:hidden': collapsed }">
+          <div class="truncate text-sm font-semibold leading-none text-white" :title="branding.appName">{{ branding.appName }}</div>
+          <div class="mt-0.5 truncate text-[10px] text-slate-400">{{ $t("app.tagline") }}</div>
         </div>
+      </div>
+
+      <div v-if="isInternalRole()" class="flex flex-col gap-2 border-b border-slate-700/60 p-3 md:hidden">
+        <FirmSwitcher block />
+        <WorkspaceSwitcher block />
       </div>
 
       <!-- Nav -->
@@ -232,6 +275,7 @@ onMounted(async () => {
           <div
             v-if="group.sectionKey"
             class="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500"
+            :class="{ 'md:hidden': collapsed }"
           >
             {{ $t(group.sectionKey) }}
           </div>
@@ -241,19 +285,32 @@ onMounted(async () => {
               :key="link.to"
               :to="link.to"
               class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+              :class="{ 'md:justify-center md:px-0': collapsed }"
+              :title="collapsed ? $t(link.labelKey) : undefined"
               active-class="bg-indigo-600 text-white shadow-sm"
               @click="closeSidebarOnNavigate"
             >
               <component :is="link.icon" class="h-4.5 w-4.5 shrink-0 opacity-80 group-[.router-link-active]:opacity-100" style="height:18px;width:18px" />
-              <span class="flex-1">{{ $t(link.labelKey) }}</span>
-              <ChevronRightIcon class="h-3 w-3 shrink-0 opacity-0 group-hover:opacity-40 transition-opacity" />
+              <span class="flex-1" :class="{ 'md:hidden': collapsed }">{{ $t(link.labelKey) }}</span>
+              <ChevronRightIcon class="h-3 w-3 shrink-0 opacity-0 group-hover:opacity-40 transition-opacity" :class="{ 'md:hidden': collapsed }" />
             </NuxtLink>
           </div>
         </div>
       </nav>
 
+      <!-- Daralt / genişlet (masaüstü) -->
+      <button
+        class="hidden items-center gap-2 border-t border-slate-700/60 px-5 py-2 text-xs text-slate-400 hover:bg-slate-800 hover:text-white md:flex"
+        :class="{ 'justify-center px-0': collapsed }"
+        :title="collapsed ? $t('nav.expand') : $t('nav.collapse')"
+        @click="toggleSidebar"
+      >
+        <ChevronDoubleRightIcon v-if="collapsed" class="h-4 w-4" />
+        <template v-else><ChevronDoubleLeftIcon class="h-4 w-4" />{{ $t("nav.collapse") }}</template>
+      </button>
+
       <!-- User info at bottom -->
-      <div class="border-t border-slate-700/60 px-4 py-3">
+      <div class="border-t border-slate-700/60 px-4 py-3" :class="{ 'md:hidden': collapsed }">
         <div class="text-xs text-slate-400 truncate">
           {{ currentUser?.firstName }} {{ currentUser?.lastName }}
         </div>
@@ -277,21 +334,25 @@ onMounted(async () => {
       <!-- Header -->
       <header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-2.5 sm:px-6 shadow-sm">
         <div class="flex min-w-0 flex-1 items-center gap-3">
-          <!-- Mobile hamburger -->
+          <!-- Hamburger: mobilde menüyü açar, masaüstünde kenar çubuğunu daraltır/genişletir -->
           <button
-            class="shrink-0 rounded-md p-1.5 text-slate-500 hover:bg-slate-100 md:hidden"
-            @click="sidebarOpen = true"
+            class="shrink-0 rounded-md p-1.5 text-slate-500 hover:bg-slate-100"
+            :title="$t('nav.toggleMenu')"
+            @click="toggleSidebar"
           >
             <Bars3Icon class="h-5 w-5" />
           </button>
-          <!-- Page breadcrumb area (slot for pages to fill, or just empty) -->
-          <div class="min-w-0 hidden sm:block text-sm text-slate-400 font-medium">
-            {{ $t("app.name") }}
+          <div class="hidden min-w-0 truncate text-sm font-medium text-slate-400 sm:block">
+            {{ branding.appName }}
           </div>
         </div>
 
         <div class="flex shrink-0 items-center gap-1 sm:gap-3">
-          <WorkspaceSwitcher v-if="isInternalRole()" />
+          <!-- Firma/işyeri seçimi: masaüstünde başlıkta, mobilde (yer olmadığı için) açılır menünün içinde -->
+          <div v-if="isInternalRole()" class="hidden items-center gap-3 md:flex">
+            <FirmSwitcher />
+            <WorkspaceSwitcher />
+          </div>
           <LanguageSwitcher />
 
           <!-- Notifications bell -->
@@ -359,15 +420,22 @@ onMounted(async () => {
       </header>
 
       <main class="flex-1 overflow-x-hidden p-4 sm:p-6">
-        <div v-if="workspaceGate" class="flex min-h-[60vh] items-center justify-center">
+        <div v-if="setupGate" class="flex min-h-[60vh] items-center justify-center">
           <div class="max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
             <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50">
-              <BuildingOfficeIcon class="h-6 w-6 text-indigo-600" />
+              <BuildingOffice2Icon v-if="setupGate === 'firm'" class="h-6 w-6 text-indigo-600" />
+              <BuildingOfficeIcon v-else class="h-6 w-6 text-indigo-600" />
             </div>
-            <h2 class="text-lg font-bold text-slate-800">{{ $t("workspaceGate.title") }}</h2>
-            <p class="mt-2 text-sm text-slate-500">{{ $t("workspaceGate.message") }}</p>
-            <NuxtLink to="/admin/workspaces" class="mt-5 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
-              {{ $t("workspaceGate.cta") }}
+            <h2 class="text-lg font-bold text-slate-800">{{ $t(`workspaceGate.${setupGate}.title`) }}</h2>
+            <p class="mt-2 text-sm text-slate-500">
+              {{ isAdminRole() ? $t(`workspaceGate.${setupGate}.message`) : $t("workspaceGate.askAdmin") }}
+            </p>
+            <NuxtLink
+              v-if="isAdminRole()"
+              :to="setupGate === 'firm' ? '/admin/firms' : '/admin/workspaces'"
+              class="mt-5 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
+            >
+              {{ $t(`workspaceGate.${setupGate}.cta`) }}
             </NuxtLink>
           </div>
         </div>

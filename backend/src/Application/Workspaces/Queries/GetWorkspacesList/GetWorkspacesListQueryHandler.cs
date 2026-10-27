@@ -23,15 +23,25 @@ public sealed class GetWorkspacesListQueryHandler : IRequestHandler<GetWorkspace
             query = query.Where(w => w.IsActive);
         }
 
+        if (request.FirmId is Guid firmId)
+        {
+            query = query.Where(w => w.FirmId == firmId);
+        }
+
         return await query
-            .OrderBy(w => w.Name)
+            .OrderByDescending(w => w.IsDefault)
+            .ThenBy(w => w.Name)
             .Select(w => new WorkspaceDto(
                 w.Id,
                 w.Name,
                 w.Description,
                 w.IsActive,
                 _context.Companies.Count(c => c.WorkspaceId == w.Id),
-                _context.Products.Count(p => p.WorkspaceId == w.Id)))
+                _context.Products.Count(p => p.WorkspaceId == w.Id),
+                w.FirmId,
+                w.Firm != null ? w.Firm.Code : null,
+                w.Firm != null ? w.Firm.Name : null,
+                w.IsDefault))
             .ToListAsync(cancellationToken);
     }
 }

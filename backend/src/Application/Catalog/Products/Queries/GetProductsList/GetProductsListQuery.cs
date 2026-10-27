@@ -10,4 +10,5 @@ public sealed record GetProductsListQuery(
     bool? IsActive,
     Guid? WorkspaceId,
     int Page,
-    int PageSize) : IRequest<PagedResult<ProductDto>>;
+    int PageSize,
+    Guid? FirmId = null) : IRequest<PagedResult<ProductDto>>;

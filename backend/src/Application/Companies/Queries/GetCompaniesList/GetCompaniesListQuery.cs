@@ -11,4 +11,5 @@ public sealed record GetCompaniesListQuery(
     Guid? SectorId,
     Guid? WorkspaceId,
     int Page,
-    int PageSize) : IRequest<PagedResult<CompanyDto>>;
+    int PageSize,
+    Guid? FirmId = null) : IRequest<PagedResult<CompanyDto>>;

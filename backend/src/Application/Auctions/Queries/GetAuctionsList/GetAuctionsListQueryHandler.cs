@@ -58,6 +58,12 @@ public sealed class GetAuctionsListQueryHandler : IRequestHandler<GetAuctionsLis
                             || (isPlus && a.IsListedForPlus && a.OwnerCompany.ListTendersForPlus)))));
         }
 
+        // İç kullanıcı: başlıktaki firma = ihale sahibi firma.
+        if (isInternalUser && request.FirmId is Guid firmId)
+        {
+            query = query.Where(a => a.OwnerCompanyId == firmId);
+        }
+
         if (!string.IsNullOrWhiteSpace(request.Status))
         {
             AuctionStatus status;

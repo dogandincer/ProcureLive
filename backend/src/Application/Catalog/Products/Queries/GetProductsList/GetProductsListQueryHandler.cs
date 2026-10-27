@@ -44,6 +44,10 @@ public sealed class GetProductsListQueryHandler : IRequestHandler<GetProductsLis
         {
             query = query.Where(p => p.WorkspaceId == request.WorkspaceId.Value);
         }
+        else if (request.FirmId.HasValue)
+        {
+            query = query.Where(p => p.Workspace != null && p.Workspace.FirmId == request.FirmId.Value);
+        }
 
         int totalCount = await query.CountAsync(cancellationToken);
 

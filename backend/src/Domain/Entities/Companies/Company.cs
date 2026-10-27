@@ -5,9 +5,19 @@ using ProcureLive.Domain.Enums;
 
 namespace ProcureLive.Domain.Entities.Companies;
 
+/// <summary>
+/// Cari kart. CompanyType = Internal olan kayıtlar "Firma"dır (işyerlerinin üst ebeveyni, ihale/RFI/RFQ sahibi);
+/// Supplier olanlar tedarikçi carilerdir. Firma'ya özgü alanlar (kısa ad, varsayılan, başlık eki) yalnızca Internal'da anlamlıdır.
+/// </summary>
 public class Company : AuditableEntity, ISoftDelete
 {
+    /// <summary>Firma / Cari kodu (benzersiz). Firmalarda zorunlu.</summary>
+    public string? Code { get; set; }
+
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>Firma kısa adı — doluysa uygulama başlığında kullanılır ("{Kısa Ad} e-İhale Yönetim Sistemi").</summary>
+    public string? ShortName { get; set; }
 
     /// <summary>Resmi ticari unvan (e.g. "ACME Tedarik Sanayi ve Ticaret A.Ş.").</summary>
     public string? TradeName { get; set; }
@@ -27,7 +37,21 @@ public class Company : AuditableEntity, ISoftDelete
 
     public string? Phone { get; set; }
 
+    public string? Phone2 { get; set; }
+
+    public string? MobilePhone { get; set; }
+
+    public string? Fax { get; set; }
+
     public string? Email { get; set; }
+
+    public string? Email2 { get; set; }
+
+    /// <summary>Varsayılan firma (yalnızca bir tane). Giriş ekranı/sekme markası ve ilk seçim buradan gelir.</summary>
+    public bool IsDefaultFirm { get; set; }
+
+    /// <summary>Uygulama adı eki; boşsa "e-İhale Yönetim Sistemi" kullanılır (yalnızca varsayılan firmada etkili).</summary>
+    public string? AppTitleSuffix { get; set; }
 
     public int? FoundationYear { get; set; }
 

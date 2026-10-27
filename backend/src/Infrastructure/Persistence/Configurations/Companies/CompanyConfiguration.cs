@@ -11,18 +11,27 @@ public sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
     {
         builder.ToTable("Companies");
 
+        builder.Property(c => c.Code).HasMaxLength(30);
         builder.Property(c => c.Name).HasMaxLength(250).IsRequired();
+        builder.Property(c => c.ShortName).HasMaxLength(60);
         builder.Property(c => c.TradeName).HasMaxLength(300);
         builder.Property(c => c.TaxNumber).HasMaxLength(11).IsRequired();
         builder.Property(c => c.TaxOffice).HasMaxLength(150).IsRequired();
         builder.Property(c => c.MersisNo).HasMaxLength(20);
         builder.Property(c => c.Website).HasMaxLength(250);
         builder.Property(c => c.Phone).HasMaxLength(30);
+        builder.Property(c => c.Phone2).HasMaxLength(30);
+        builder.Property(c => c.MobilePhone).HasMaxLength(30);
+        builder.Property(c => c.Fax).HasMaxLength(30);
         builder.Property(c => c.Email).HasMaxLength(200);
+        builder.Property(c => c.Email2).HasMaxLength(200);
         builder.Property(c => c.Description).HasMaxLength(2000);
         builder.Property(c => c.LogoUrl).HasMaxLength(1000);
+        builder.Property(c => c.AppTitleSuffix).HasMaxLength(100);
 
-        builder.HasIndex(c => c.TaxNumber).IsUnique();
+        // Silinmiş kayıtlar ve vergi no'su girilmemiş firmalar benzersizliği bozmaz.
+        builder.HasIndex(c => c.TaxNumber).IsUnique().HasFilter("\"TaxNumber\" <> '' AND NOT \"IsDeleted\"");
+        builder.HasIndex(c => c.Code).IsUnique().HasFilter("\"Code\" IS NOT NULL AND NOT \"IsDeleted\"");
 
         builder.HasMany(c => c.Evaluations)
             .WithOne(e => e.Company)

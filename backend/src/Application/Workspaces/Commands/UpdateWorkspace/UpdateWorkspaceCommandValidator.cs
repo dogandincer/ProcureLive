@@ -1,5 +1,4 @@
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Interfaces;
 
 namespace ProcureLive.Application.Workspaces.Commands.UpdateWorkspace;
@@ -8,13 +7,7 @@ public sealed class UpdateWorkspaceCommandValidator : AbstractValidator<UpdateWo
 {
     public UpdateWorkspaceCommandValidator(IApplicationDbContext context)
     {
-        RuleFor(x => x.Name)
-            .NotEmpty()
-            .MaximumLength(150)
-            .MustAsync(async (cmd, name, ct) =>
-                !await context.Workspaces.AnyAsync(w => w.Name == name && w.Id != cmd.Id, ct))
-            .WithMessage("Bu isimde bir işyeri zaten mevcut.");
-
+        WorkspaceRules.AddFirmAndNameRules(this, context, x => x.Id, x => x.FirmId, x => x.Name);
         RuleFor(x => x.Description).MaximumLength(500);
     }
 }

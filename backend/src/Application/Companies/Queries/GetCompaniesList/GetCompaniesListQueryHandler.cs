@@ -62,6 +62,11 @@ public sealed class GetCompaniesListQueryHandler : IRequestHandler<GetCompaniesL
         {
             query = query.Where(c => c.WorkspaceId == request.WorkspaceId.Value);
         }
+        else if (request.FirmId.HasValue)
+        {
+            // İşyeri seçilmemişse ("Tüm İşyerleri") başlıktaki firmanın işyerleriyle sınırlanır.
+            query = query.Where(c => c.Workspace != null && c.Workspace.FirmId == request.FirmId.Value);
+        }
 
         int totalCount = await query.CountAsync(cancellationToken);
 

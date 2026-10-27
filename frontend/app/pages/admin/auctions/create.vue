@@ -306,6 +306,13 @@ onMounted(async () => {
       <div class="mt-4 space-y-2">
         <label class="flex items-center gap-2 text-sm text-slate-700"><input v-model="master.allowAlternativeProducts" type="checkbox" class="rounded" />{{ $t("tender.wizard.f.allowAlternatives") }}</label>
         <label class="flex items-center gap-2 text-sm text-slate-700"><input v-model="master.allowPartialBids" type="checkbox" class="rounded" />{{ $t("tender.wizard.f.allowPartial") }}</label>
+        <label class="flex items-start gap-2 text-sm text-slate-700">
+          <input v-model="master.isListedForPlus" type="checkbox" class="mt-0.5 rounded" />
+          <span>
+            {{ $t("tender.wizard.f.listedForPlus") }}
+            <span class="block text-xs text-slate-400">{{ $t("tender.wizard.f.listedForPlusHint") }}</span>
+          </span>
+        </label>
       </div>
 
       <!-- Attachments (simulated) -->

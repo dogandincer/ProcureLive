@@ -52,11 +52,11 @@ public sealed class ExceptionHandlingMiddleware
                 break;
             case ForbiddenAccessException forbiddenException:
                 context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                payload = new { title = MessageTranslator.Translate(forbiddenException.Message, language) };
+                payload = new { title = MessageTranslator.Translate(forbiddenException.Message, language), code = forbiddenException.Code };
                 break;
             case ConflictException conflictException:
                 context.Response.StatusCode = (int)HttpStatusCode.Conflict;
-                payload = new { title = MessageTranslator.Translate(conflictException.Message, language) };
+                payload = new { title = MessageTranslator.Translate(conflictException.Message, language), code = conflictException.Code };
                 break;
             default:
                 _logger.LogError(exception, "İşlenmeyen bir hata oluştu.");

@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ProcureLive.Application.Auctions.Status;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Security;
 using ProcureLive.Contracts.Auctions;
@@ -13,11 +14,16 @@ public sealed class GetAuctionsListQueryHandler : IRequestHandler<GetAuctionsLis
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ISupplierAccessService _accessService;
 
-    public GetAuctionsListQueryHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public GetAuctionsListQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        ISupplierAccessService accessService)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _accessService = accessService;
     }
 
     public async Task<PagedResult<AuctionDto>> Handle(GetAuctionsListQuery request, CancellationToken cancellationToken)
@@ -30,17 +36,26 @@ public sealed class GetAuctionsListQueryHandler : IRequestHandler<GetAuctionsLis
             .AsQueryable();
 
         bool isInternalUser = _currentUserService.IsInRole(Roles.Admin) || _currentUserService.IsInRole(Roles.Buyer);
+        SupplierAccessContext? access = null;
 
         if (!isInternalUser)
         {
             Guid companyId = _currentUserService.CompanyId ?? Guid.Empty;
-            query = query.Where(a => a.Invitations.Any(i =>
-                i.CompanyId == companyId
-                && (i.Status == InvitationStatus.Invited
-                    || i.Status == InvitationStatus.Accepted
-                    || i.Status == InvitationStatus.Participating
-                    || i.Status == InvitationStatus.Won
-                    || i.Status == InvitationStatus.Lost)));
+            access = await _accessService.GetContextAsync(companyId, cancellationToken);
+
+            // Görünürlük kuralı SupplierAccessContext.IsVisible ile birebir aynı (SQL'e çevrilebilir hali).
+            List<Guid> directIds = access.InvitedAuctionIds.Union(access.JoinedAuctionIds).ToList();
+            List<Guid> ownerIds = access.InvitingOwnerIds.ToList();
+            List<Guid> declinedIds = access.DeclinedAuctionIds.ToList();
+            bool isPlus = access.IsPlus;
+            AuctionStatus[] open = AuctionStatusMachine.OpenStatuses;
+
+            query = query.Where(a =>
+                !declinedIds.Contains(a.Id)
+                && (directIds.Contains(a.Id)
+                    || (open.Contains(a.Status)
+                        && (ownerIds.Contains(a.OwnerCompanyId)
+                            || (isPlus && a.IsListedForPlus && a.OwnerCompany.ListTendersForPlus)))));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Status))
@@ -65,26 +80,43 @@ public sealed class GetAuctionsListQueryHandler : IRequestHandler<GetAuctionsLis
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        List<AuctionDto> items = auctions.Select(a => new AuctionDto(
-            a.Id,
-            a.Title,
-            a.Description,
-            a.AuctionType.ToString(),
-            a.Status.ToString(),
-            a.OwnerCompanyId,
-            a.OwnerCompany.Name,
-            a.CurrencyId,
-            a.Currency.Code,
-            a.StartAt,
-            a.EndAt,
-            a.ActualStartAt,
-            a.ActualEndAt,
-            a.ReservePrice,
-            a.ExtensionRuleMinutes,
-            a.Items.Count,
-            a.Invitations.Count,
-            a.CreatedAt)).ToList();
+        List<AuctionDto> items = auctions.Select(a => ToDto(a, access)).ToList();
 
         return new PagedResult<AuctionDto>(items, totalCount, page, pageSize);
+    }
+
+    private static AuctionDto ToDto(Auction a, SupplierAccessContext? access)
+    {
+        if (access is null)
+        {
+            return new AuctionDto(
+                a.Id, a.Title, a.Description, a.AuctionType.ToString(), a.Status.ToString(),
+                a.OwnerCompanyId, a.OwnerCompany.Name, a.CurrencyId, a.Currency.Code,
+                a.StartAt, a.EndAt, a.ActualStartAt, a.ActualEndAt, a.ReservePrice, a.ExtensionRuleMinutes,
+                a.Items.Count, a.Invitations.Count, a.CreatedAt,
+                AccessLevel: nameof(AuctionAccessLevel.Full), IsListedForPlus: a.IsListedForPlus);
+        }
+
+        var facts = new AuctionAccessFacts(a.Id, a.Status, a.OwnerCompanyId, a.IsListedForPlus, a.OwnerCompany.ListTendersForPlus);
+        AuctionAccessLevel level = access.Evaluate(facts);
+        bool restricted = level != AuctionAccessLevel.Full;
+        string? myStatus = a.Invitations.FirstOrDefault(i => i.CompanyId == access.CompanyId)?.Status.ToString();
+
+        // Kısıtlı satırda yalnızca vitrin bilgisi kalır: açıklama, rezerv fiyat ve rakip sayısı sunucuda düşürülür.
+        return new AuctionDto(
+            a.Id, a.Title,
+            restricted ? null : a.Description,
+            a.AuctionType.ToString(), a.Status.ToString(),
+            a.OwnerCompanyId, a.OwnerCompany.Name, a.CurrencyId, a.Currency.Code,
+            a.StartAt, a.EndAt, a.ActualStartAt, a.ActualEndAt,
+            restricted ? null : a.ReservePrice,
+            a.ExtensionRuleMinutes,
+            a.Items.Count,
+            restricted ? 0 : a.Invitations.Count,
+            a.CreatedAt,
+            AccessLevel: level.ToString(),
+            IsJoined: access.IsJoined(a.Id),
+            IsListedForPlus: a.IsListedForPlus,
+            MyInvitationStatus: myStatus);
     }
 }

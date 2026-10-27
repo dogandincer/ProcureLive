@@ -17,4 +17,7 @@ public interface IAuctionNotificationService
     Task AuctionEndedAsync(Guid auctionId, CancellationToken cancellationToken);
 
     Task ItemAwardedAsync(Guid auctionId, Guid auctionItemId, Guid winningCompanyId, CancellationToken cancellationToken);
+
+    /// <summary>Elle yapılan durum değişikliği (başlat/duraklat/devam/bitir/iptal...) — açık sayfalar kendini yeniler.</summary>
+    Task AuctionStatusChangedAsync(Guid auctionId, string status, string? reason, CancellationToken cancellationToken);
 }

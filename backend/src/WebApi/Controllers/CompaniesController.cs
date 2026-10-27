@@ -14,6 +14,7 @@ using ProcureLive.Application.Companies.Queries.GetCompaniesList;
 using ProcureLive.Application.Companies.Queries.GetCompanyById;
 using ProcureLive.Application.Companies.Queries.GetSupplierScoreboard;
 using ProcureLive.Application.Companies.Queries.LookupCompany;
+using ProcureLive.Application.Companies.Settings;
 using ProcureLive.Contracts.Common;
 using ProcureLive.Contracts.Companies;
 using ProcureLive.Domain.Enums;
@@ -54,6 +55,45 @@ public sealed class CompaniesController : ControllerBase
     public async Task<ActionResult<CompanyDetailDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
         CompanyDetailDto result = await _sender.Send(new GetCompanyByIdQuery(id), cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>Oturumdaki kullanıcının carisi için gizlilik/listeleme ayarları (KVKK iletişim izni, Plus listeleme).</summary>
+    [HttpGet("me/settings")]
+    public async Task<ActionResult<CompanySettingsDto>> GetMySettings(CancellationToken cancellationToken)
+    {
+        CompanySettingsDto result = await _sender.Send(new GetCompanySettingsQuery(null), cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPut("me/settings")]
+    public async Task<ActionResult<CompanySettingsDto>> UpdateMySettings(
+        UpdateCompanySettingsRequest request, CancellationToken cancellationToken)
+    {
+        CompanySettingsDto result = await _sender.Send(
+            new UpdateCompanySettingsCommand(null, request.LogoUrl, request.ShowContactInfo, request.ListTendersForPlus),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    [HttpGet("{id:guid}/settings")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<CompanySettingsDto>> GetSettings(Guid id, CancellationToken cancellationToken)
+    {
+        CompanySettingsDto result = await _sender.Send(new GetCompanySettingsQuery(id), cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPut("{id:guid}/settings")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<CompanySettingsDto>> UpdateSettings(
+        Guid id, UpdateCompanySettingsRequest request, CancellationToken cancellationToken)
+    {
+        CompanySettingsDto result = await _sender.Send(
+            new UpdateCompanySettingsCommand(id, request.LogoUrl, request.ShowContactInfo, request.ListTendersForPlus),
+            cancellationToken);
+
         return Ok(result);
     }
 

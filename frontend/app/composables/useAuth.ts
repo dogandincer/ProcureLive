@@ -37,6 +37,11 @@ export function useAuth() {
       body: { email, password },
     });
 
+    setSession(result);
+  }
+
+  /** Stores tokens + user from any endpoint that returns an AuthResult (login, invite registration). */
+  function setSession(result: AuthResult): void {
     accessToken.value = result.accessToken;
     refreshToken.value = result.refreshToken;
     currentUser.value = {
@@ -69,10 +74,16 @@ export function useAuth() {
     }
   }
 
-  function logout(): void {
+  /** Drops tokens and per-session state without navigating (the invite page switches accounts in place). */
+  function clearSession(): void {
     accessToken.value = null;
     refreshToken.value = null;
     currentUser.value = null;
+    clearNuxtState(["mySubscription"]);
+  }
+
+  function logout(): void {
+    clearSession();
     navigateTo("/login");
   }
 
@@ -97,6 +108,8 @@ export function useAuth() {
     isSupplierRole,
     isAdminRole,
     login,
+    setSession,
+    clearSession,
     logout,
     fetchMe,
     homePathForRole,

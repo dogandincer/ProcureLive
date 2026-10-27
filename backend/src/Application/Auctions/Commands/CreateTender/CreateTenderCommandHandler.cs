@@ -104,6 +104,7 @@ public sealed class CreateTenderCommandHandler : IRequestHandler<CreateTenderCom
             DeliveryTerm = request.DeliveryTerm,
             AllowAlternativeProducts = request.AllowAlternativeProducts,
             AllowPartialBids = request.AllowPartialBids,
+            IsListedForPlus = request.IsListedForPlus,
         };
 
         foreach (TenderLineInput line in request.Lines)

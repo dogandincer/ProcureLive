@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ProcureLive.Application.Auctions.Status;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Notifications;
@@ -103,7 +104,8 @@ public sealed class AwardAuctionItemCommandHandler : IRequestHandler<AwardAuctio
 
         if (awardedItemCount >= auction.Items.Count)
         {
-            auction.Status = AuctionStatus.Awarded;
+            // Son kalemin kazananı seçilince sistem sonuçlandırır (geçmişte otomatik + işlemi yapan kullanıcı).
+            AuctionStatusMachine.Apply(_context, auction, AuctionStatus.Awarded, now, _currentUserService.UserId, null, automatic: true);
             await _context.SaveChangesAsync(cancellationToken);
         }
 

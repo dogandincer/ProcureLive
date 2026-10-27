@@ -11,4 +11,13 @@ public sealed class ForbiddenAccessException : Exception
         : base(message)
     {
     }
+
+    /// <param name="code">Dil bağımsız, istemcinin tepki verebileceği kod (bkz. <see cref="ErrorCodes"/>).</param>
+    public ForbiddenAccessException(string message, string code)
+        : base(message)
+    {
+        Code = code;
+    }
+
+    public string? Code { get; }
 }

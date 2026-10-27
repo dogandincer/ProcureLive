@@ -34,6 +34,9 @@ public class Auction : AuditableEntity
 
     public DateTime? ActualEndAt { get; set; }
 
+    /// <summary>Duraklatılma anı (Paused iken dolu). Devam ettirilince duraklama süresi EndAt'e eklenir.</summary>
+    public DateTime? PausedAt { get; set; }
+
     /// <summary>Set once the "starting soon" reminder has gone out, so the lifecycle poller doesn't re-send it every tick.</summary>
     public DateTime? StartingReminderSentAt { get; set; }
 
@@ -64,6 +67,9 @@ public class Auction : AuditableEntity
     /// <summary>Tedarikçi kalemlerin yalnızca bir kısmına teklif verebilir mi?</summary>
     public bool AllowPartialBids { get; set; }
 
+    /// <summary>Plus kullanıcıların aramalarında listelenebilir (sahibi firmanın ListTendersForPlus'ı da açık olmalı).</summary>
+    public bool IsListedForPlus { get; set; }
+
     public ICollection<AuctionItem> Items { get; set; } = new List<AuctionItem>();
 
     public ICollection<AuctionInvitation> Invitations { get; set; } = new List<AuctionInvitation>();
@@ -71,4 +77,6 @@ public class Auction : AuditableEntity
     public ICollection<AuctionExtensionLog> ExtensionLogs { get; set; } = new List<AuctionExtensionLog>();
 
     public ICollection<AuctionAttachment> Attachments { get; set; } = new List<AuctionAttachment>();
+
+    public ICollection<AuctionStatusChange> StatusChanges { get; set; } = new List<AuctionStatusChange>();
 }

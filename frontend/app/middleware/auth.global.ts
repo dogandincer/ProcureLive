@@ -5,13 +5,19 @@ export default defineNuxtRouteMiddleware((to) => {
 
   const { accessToken, currentUser, isInternalRole, isSupplierRole, homePathForRole } = useAuth();
 
-  const isPublicRoute = to.path === "/login";
+  const isLoginRoute = to.path === "/login";
+  // Davet linki hem oturumsuz (kayıt/giriş) hem oturumlu (sahiplenme) açılabilmeli.
+  const isInviteRoute = to.path === "/invite";
 
-  if (!accessToken.value && !isPublicRoute) {
+  if (isInviteRoute) {
+    return;
+  }
+
+  if (!accessToken.value && !isLoginRoute) {
     return navigateTo("/login");
   }
 
-  if (accessToken.value && isPublicRoute) {
+  if (accessToken.value && isLoginRoute) {
     return navigateTo(homePathForRole());
   }
 

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ProcureLive.Application.Auctions.Status;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Notifications;
 using ProcureLive.Domain.Entities.Auctions;
@@ -57,10 +58,11 @@ public sealed class AuctionLifecycleHostedService : BackgroundService
             .Where(a => a.Status == AuctionStatus.Scheduled && a.StartAt <= now)
             .ToListAsync(cancellationToken);
 
+        // Otomatik geçişler de durum makinesinden geçer: tarih alanları + "Sistem" kayıtlı durum geçmişi.
+        // Duraklatılmış (Paused) ihaleler burada hiç seçilmez; süreleri devam ettirilene kadar işlemez.
         foreach (Auction auction in toStart)
         {
-            auction.Status = AuctionStatus.Live;
-            auction.ActualStartAt = now;
+            AuctionStatusMachine.Apply(context, auction, AuctionStatus.Live, now, userId: null, reason: null, automatic: true);
         }
 
         List<Auction> toEnd = await context.Auctions
@@ -69,8 +71,7 @@ public sealed class AuctionLifecycleHostedService : BackgroundService
 
         foreach (Auction auction in toEnd)
         {
-            auction.Status = AuctionStatus.Ended;
-            auction.ActualEndAt = now;
+            AuctionStatusMachine.Apply(context, auction, AuctionStatus.Ended, now, userId: null, reason: null, automatic: true);
         }
 
         DateTime reminderThreshold = now.Add(ReminderWindow);

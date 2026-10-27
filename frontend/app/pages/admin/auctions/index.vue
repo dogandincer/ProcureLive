@@ -22,6 +22,7 @@ const form = reactive({
   startAt: "",
   endAt: "",
   extensionRuleMinutes: 2,
+  isListedForPlus: false,
 });
 
 const auctionTypes = ["English", "Dutch", "ReverseSealed", "SealedBid"];
@@ -30,6 +31,7 @@ const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "ros
   Draft: "slate",
   Scheduled: "amber",
   Live: "emerald",
+  Paused: "amber",
   Ended: "slate",
   Awarded: "indigo",
   Cancelled: "rose",
@@ -75,6 +77,7 @@ async function createAuction() {
       minDecrementAmount: null,
       minDecrementPercentage: null,
       extensionRuleMinutes: form.extensionRuleMinutes,
+      isListedForPlus: form.isListedForPlus,
     });
     toast.success(t("auctions.createdToast"));
     await navigateTo(`/admin/auctions/${id}`);
@@ -142,6 +145,13 @@ onMounted(load);
           <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.endAt") }}</label>
           <input v-model="form.endAt" type="datetime-local" required class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
         </div>
+        <label class="flex items-start gap-2 text-sm text-slate-700 sm:col-span-2">
+          <input v-model="form.isListedForPlus" type="checkbox" class="mt-0.5 rounded" />
+          <span>
+            {{ $t("tender.wizard.f.listedForPlus") }}
+            <span class="block text-xs text-slate-400">{{ $t("tender.wizard.f.listedForPlusHint") }}</span>
+          </span>
+        </label>
       </div>
 
       <AppButton type="submit" :loading="submitting">

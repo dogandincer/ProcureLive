@@ -26,7 +26,8 @@ public sealed record TenderMasterRequest(
     string? PaymentTerm,
     string? DeliveryTerm,
     bool AllowAlternativeProducts,
-    bool AllowPartialBids);
+    bool AllowPartialBids,
+    bool IsListedForPlus = false);
 
 public sealed record TenderLineRequest(
     Guid? ProductId,

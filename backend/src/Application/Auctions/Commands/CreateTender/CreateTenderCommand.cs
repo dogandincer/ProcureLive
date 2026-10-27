@@ -26,7 +26,8 @@ public sealed record CreateTenderCommand(
     bool AllowPartialBids,
     IReadOnlyCollection<TenderLineInput> Lines,
     IReadOnlyCollection<Guid> VendorIds,
-    IReadOnlyCollection<TenderAttachmentInput> Attachments) : IRequest<Guid>;
+    IReadOnlyCollection<TenderAttachmentInput> Attachments,
+    bool IsListedForPlus = false) : IRequest<Guid>;
 
 public sealed record TenderLineInput(
     Guid? ProductId,

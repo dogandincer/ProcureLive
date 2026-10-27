@@ -70,6 +70,7 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IAuctionCacheService, AuctionCacheService>();
         services.AddScoped<IEmailSender, LoggingEmailSender>();
+        services.AddScoped<IPaymentGateway, MockPaymentGateway>();
         services.AddScoped<IAuctionModelRecommender, HeuristicAuctionModelRecommender>();
 
         services.AddHttpClient<IExchangeRateProvider, TcmbExchangeRateProvider>(client =>

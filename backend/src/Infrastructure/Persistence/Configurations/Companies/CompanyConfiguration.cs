@@ -20,6 +20,7 @@ public sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
         builder.Property(c => c.Phone).HasMaxLength(30);
         builder.Property(c => c.Email).HasMaxLength(200);
         builder.Property(c => c.Description).HasMaxLength(2000);
+        builder.Property(c => c.LogoUrl).HasMaxLength(1000);
 
         builder.HasIndex(c => c.TaxNumber).IsUnique();
 

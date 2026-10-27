@@ -10,6 +10,7 @@ using ProcureLive.Domain.Entities.Identity;
 using ProcureLive.Domain.Entities.Notifications;
 using ProcureLive.Domain.Entities.Rfi;
 using ProcureLive.Domain.Entities.Rfq;
+using ProcureLive.Domain.Entities.Subscriptions;
 
 namespace ProcureLive.Application.Common.Interfaces;
 
@@ -57,9 +58,15 @@ public interface IApplicationDbContext
 
     DbSet<AuctionExtensionLog> AuctionExtensionLogs { get; }
 
+    DbSet<AuctionStatusChange> AuctionStatusChanges { get; }
+
     DbSet<AuctionAward> AuctionAwards { get; }
 
     DbSet<AuctionAttachment> AuctionAttachments { get; }
+
+    DbSet<InvitationToken> InvitationTokens { get; }
+
+    DbSet<CompanySubscription> CompanySubscriptions { get; }
 
     DbSet<RfiTemplate> RfiTemplates { get; }
 

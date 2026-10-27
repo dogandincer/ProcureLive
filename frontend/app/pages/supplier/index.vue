@@ -36,6 +36,7 @@ const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "ros
   Draft: "slate",
   Scheduled: "amber",
   Live: "emerald",
+  Paused: "amber",
   Ended: "slate",
   Awarded: "indigo",
   Cancelled: "rose",

@@ -4,20 +4,26 @@ using Microsoft.AspNetCore.Mvc;
 using ProcureLive.Application.Auctions.Commands.AddAuctionItem;
 using ProcureLive.Application.Auctions.Commands.AwardAuctionItem;
 using ProcureLive.Application.Auctions.Commands.CancelAuction;
+using ProcureLive.Application.Auctions.Commands.ChangeAuctionStatus;
 using ProcureLive.Application.Auctions.Commands.CreateAuction;
 using ProcureLive.Application.Auctions.Commands.CreateTender;
 using ProcureLive.Application.Auctions.Commands.ExtendAuction;
 using ProcureLive.Application.Auctions.Commands.InviteCompanies;
+using ProcureLive.Application.Auctions.Commands.JoinAuction;
 using ProcureLive.Application.Auctions.Commands.PlaceBid;
 using ProcureLive.Application.Auctions.Commands.PublishAuction;
 using ProcureLive.Application.Auctions.Commands.RespondToInvitation;
 using ProcureLive.Application.Auctions.Queries.GetAuctionById;
 using ProcureLive.Application.Auctions.Queries.GetAuctionsList;
+using ProcureLive.Application.Auctions.Queries.GetAuctionStatus;
 using ProcureLive.Application.Auctions.Queries.GetItemBidsForComparison;
 using ProcureLive.Application.Auctions.Queries.GetMyAuctionHistory;
 using ProcureLive.Application.Common.Security;
+using ProcureLive.Application.Invitations.Commands;
+using ProcureLive.Application.Invitations.Queries;
 using ProcureLive.Contracts.Auctions;
 using ProcureLive.Contracts.Common;
+using ProcureLive.Contracts.Invitations;
 using ProcureLive.Domain.Enums;
 
 namespace ProcureLive.WebApi.Controllers;
@@ -79,7 +85,7 @@ public sealed class AuctionsController : ControllerBase
             new CreateAuctionCommand(
                 request.Title, request.Description, auctionType, request.OwnerCompanyId, request.CurrencyId,
                 request.StartAt, request.EndAt, request.ReservePrice, request.MinDecrementAmount,
-                request.MinDecrementPercentage, request.ExtensionRuleMinutes),
+                request.MinDecrementPercentage, request.ExtensionRuleMinutes, request.IsListedForPlus),
             cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id }, id);
@@ -131,7 +137,7 @@ public sealed class AuctionsController : ControllerBase
                 request.Master.ReservePrice, request.Master.ExtensionTriggerMinutes, request.Master.ExtensionDurationMinutes,
                 request.Master.MaxExtensionMinutes, paymentTerm, deliveryTerm,
                 request.Master.AllowAlternativeProducts, request.Master.AllowPartialBids,
-                lines, request.VendorIds, attachments),
+                lines, request.VendorIds, attachments, request.Master.IsListedForPlus),
             cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id }, id);
@@ -172,6 +178,35 @@ public sealed class AuctionsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>Görünür açık ihaleye doğrudan katılım (kota: Standart üyede en fazla 2 ihale).</summary>
+    [HttpPost("{id:guid}/join")]
+    [Authorize(Policy = Policies.RequireSupplier)]
+    public async Task<IActionResult> Join(Guid id, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new JoinAuctionCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpGet("{id:guid}/invite-links")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<IReadOnlyList<InviteLinkDto>>> GetInviteLinks(Guid id, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<InviteLinkDto> result = await _sender.Send(new GetInviteLinksQuery(id), cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>Bir cari için benzersiz, süreli davet linki üretir (/invite?token=...).</summary>
+    [HttpPost("{id:guid}/invite-links")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<InviteLinkDto>> CreateInviteLink(
+        Guid id, CreateInviteLinkRequest request, CancellationToken cancellationToken)
+    {
+        InviteLinkDto result = await _sender.Send(
+            new CreateInviteLinkCommand(id, request.CompanyId, request.Email, request.ValidDays), cancellationToken);
+
+        return Ok(result);
+    }
+
     [HttpPost("{id:guid}/publish")]
     [Authorize(Policy = Policies.RequireInternalUser)]
     public async Task<IActionResult> Publish(Guid id, CancellationToken cancellationToken)
@@ -185,6 +220,33 @@ public sealed class AuctionsController : ControllerBase
     public async Task<IActionResult> Cancel(Guid id, [FromBody] string reason, CancellationToken cancellationToken)
     {
         await _sender.Send(new CancelAuctionCommand(id, reason), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Durum paneli: mevcut durum, yapılabilecek geçişler ve durum geçmişi.</summary>
+    [HttpGet("{id:guid}/status")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<AuctionStatusPanelDto>> GetStatus(Guid id, CancellationToken cancellationToken)
+    {
+        AuctionStatusPanelDto result = await _sender.Send(new GetAuctionStatusQuery(id), cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Elle durum değişikliği (Planlandı→Canlı, Canlı→Duraklatıldı/Sona Erdi/İptal ...). İzinli geçişler ve
+    /// kurallar AuctionStatusMachine'dedir; yalnızca Admin.
+    /// </summary>
+    [HttpPost("{id:guid}/status")]
+    [Authorize(Policy = Policies.RequireAdmin)]
+    public async Task<IActionResult> ChangeStatus(Guid id, ChangeAuctionStatusRequest request, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse(request.Status, true, out AuctionStatus target) || !Enum.IsDefined(target))
+        {
+            return BadRequest($"Geçersiz durum: {request.Status}");
+        }
+
+        await _sender.Send(
+            new ChangeAuctionStatusCommand(id, target, request.Reason, request.NewStartAt, request.NewEndAt), cancellationToken);
         return NoContent();
     }
 

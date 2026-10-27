@@ -20,6 +20,9 @@ import {
   BellIcon,
   ArrowRightOnRectangleIcon,
   ChevronRightIcon,
+  MagnifyingGlassIcon,
+  SparklesIcon,
+  Cog6ToothIcon,
 } from "@heroicons/vue/24/outline";
 
 const { currentUser, isInternalRole, isSupplierRole, isAdminRole, logout } = useAuth();
@@ -105,7 +108,18 @@ const supplierSections: NavSection[] = [
       { to: "/supplier/rfq", labelKey: "nav.rfqInvites", icon: DocumentTextIcon },
     ],
   },
+  {
+    sectionKey: "nav.plusGroup",
+    links: [
+      { to: "/supplier/search", labelKey: "nav.plusSearch", icon: MagnifyingGlassIcon },
+      { to: "/supplier/pricing", labelKey: "nav.pricing", icon: SparklesIcon },
+      { to: "/supplier/settings", labelKey: "nav.companySettings", icon: Cog6ToothIcon },
+    ],
+  },
 ];
+
+// Tedarikçi plan rozeti (Plus / Standart kota) — fiyat sayfası ve katılım sonrası aynı state yenilenir.
+const { subscription, isPlus, refresh: refreshSubscription } = useSubscription();
 
 const navSections = computed<NavSection[]>(() => {
   if (!isInternalRole()) return supplierSections;
@@ -177,6 +191,7 @@ watch(locale, loadNotifications);
 
 onMounted(async () => {
   if (isInternalRole()) loadWorkspaces();
+  if (isSupplierRole()) refreshSubscription();
   await loadNotifications();
 
   await connect((notification) => {
@@ -243,6 +258,17 @@ onMounted(async () => {
           {{ currentUser?.firstName }} {{ currentUser?.lastName }}
         </div>
         <div class="mt-0.5 text-[10px] text-slate-500">{{ roleDisplay }}</div>
+        <NuxtLink
+          v-if="isSupplierRole() && subscription"
+          to="/supplier/pricing"
+          class="mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+          :class="isPlus ? 'bg-amber-400/20 text-amber-300' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'"
+          @click="closeSidebarOnNavigate"
+        >
+          <SparklesIcon v-if="isPlus" class="h-3 w-3" />
+          <template v-if="isPlus">Plus</template>
+          <template v-else>{{ $t("subscription.badgeStandard", { used: subscription.joinedCount, limit: subscription.quotaLimit }) }}</template>
+        </NuxtLink>
       </div>
     </aside>
 

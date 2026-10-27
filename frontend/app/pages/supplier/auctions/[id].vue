@@ -9,6 +9,8 @@ const toast = useToast();
 const { t } = useI18n();
 const { connectAndJoin, disconnect } = useAuctionHub();
 const { currentUser } = useAuth();
+const { subscription, isPlus, refresh: refreshSubscription } = useSubscription();
+const { formatDateTime } = useDateFormat();
 
 const auction = ref<AuctionDetailDto | null>(null);
 const loading = ref(true);
@@ -21,12 +23,18 @@ const declineReason = ref("");
 const showDecline = ref(false);
 const flashItem = ref<string | null>(null);
 const accessDenied = ref(false);
+const joining = ref(false);
 
 const myInvitation = computed(() =>
   auction.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId) ?? null,
 );
 
 const canBid = computed(() => myInvitation.value && ["Accepted", "Participating"].includes(myInvitation.value.status));
+
+// Kısıtlı görünüm: sunucu kalem/fiyat/ek/şart verisini hiç göndermedi; sayfa yalnızca vitrin + bulanık iskelet gösterir.
+const restricted = computed(() => !!auction.value && auction.value.accessLevel !== "Full");
+const restrictedLevel = computed(() => (auction.value?.accessLevel === "NoAccess" ? "NoAccess" : "QuotaExceeded"));
+const showJoin = computed(() => !!auction.value && auction.value.canJoin && !myInvitation.value);
 
 const timeLeftLabel = computed(() => {
   if (!auction.value) return "";
@@ -58,13 +66,35 @@ async function load() {
   }
 }
 
+async function handleQuotaError(error: any): Promise<boolean> {
+  if (apiErrorCode(error) !== "QuotaExceeded") return false;
+  toast.error(t("subscription.quotaReachedToast"));
+  // Sunucu artık bu ihaleyi kısıtlı döndürecek; canlı bağlantıyı da kapat.
+  disconnect();
+  await Promise.all([load(), refreshSubscription()]);
+  return true;
+}
+
 async function accept() {
   try {
     await api.post(`/api/auctions/${auctionId}/invitations/respond`, { accept: true, declineReason: null });
     toast.success(t("auctions.live.acceptedToast"));
-    await load();
+    await Promise.all([load(), refreshSubscription()]);
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, t("auctions.live.actionError")));
+    if (!(await handleQuotaError(error))) toast.error(apiErrorMessage(error, t("auctions.live.actionError")));
+  }
+}
+
+async function join() {
+  joining.value = true;
+  try {
+    await api.post(`/api/auctions/${auctionId}/join`);
+    toast.success(t("auctions.live.joinedToast"));
+    await Promise.all([load(), refreshSubscription()]);
+  } catch (error: any) {
+    if (!(await handleQuotaError(error))) toast.error(apiErrorMessage(error, t("auctions.live.actionError")));
+  } finally {
+    joining.value = false;
   }
 }
 
@@ -116,12 +146,15 @@ function pushFeed(text: string) {
 let ticker: ReturnType<typeof setInterval> | null = null;
 
 onMounted(async () => {
-  await load();
+  await Promise.all([load(), refreshSubscription()]);
   if (accessDenied.value || !auction.value) return;
 
   ticker = setInterval(() => {
     now.value = Date.now();
   }, 1000);
+
+  // Restricted view: no live group (the hub would refuse it anyway — same access rule server-side).
+  if (restricted.value) return;
 
   // Connect regardless of invitation status: even before accepting, the supplier should see the
   // countdown/start/end/extension events live. Bidding itself stays gated separately (canBid + backend).
@@ -140,8 +173,22 @@ onMounted(async () => {
     if (auction.value) auction.value.endAt = payload.newEndAt;
   });
 
+  conn.on("AuctionStarted", () => {
+    pushFeed(t("auctions.live.feed.started"));
+    load();
+  });
+
   conn.on("AuctionEnded", () => {
     pushFeed(t("auctions.live.feed.ended"));
+    load();
+  });
+
+  // Admin elle durum değiştirdi (başlat / duraklat / devam / bitir / yeniden aç / iptal) — sayfa yenilenmeden yansır.
+  conn.on("AuctionStatusChanged", (payload: { status: string; reason: string | null }) => {
+    const status = t(`enums.auctionStatus.${payload.status}`);
+    pushFeed(payload.reason
+      ? t("auctions.live.feed.statusChangedReason", { status, reason: payload.reason })
+      : t("auctions.live.feed.statusChanged", { status }));
     load();
   });
 
@@ -163,7 +210,48 @@ onBeforeUnmount(() => {
     <p class="text-sm font-medium text-slate-600">{{ $t("auctions.live.accessDenied") }}</p>
   </div>
 
-  <LoadingSpinner v-else-if="loading" />
+  <LoadingSpinner v-else-if="loading && !auction" />
+
+  <!-- Kısıtlı görünüm (kota dolu / yetkisiz): yalnızca sunucunun bıraktığı vitrin bilgisi + bulanık iskelet -->
+  <div v-else-if="auction && restricted" class="space-y-6">
+    <div v-if="restrictedLevel === 'QuotaExceeded'" class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl font-bold text-slate-800">{{ auction.title }}</h1>
+          <AppBadge tone="amber">{{ $t("restricted.QuotaExceeded.short") }}</AppBadge>
+        </div>
+        <p class="mt-1 text-sm text-slate-500">
+          {{ auction.ownerCompanyName }}
+          <span v-if="auction.referenceCode" class="font-mono text-xs text-slate-400">· {{ auction.referenceCode }}</span>
+        </p>
+      </div>
+      <div class="grid grid-cols-3 gap-4 text-right text-xs text-slate-500">
+        <div>
+          <div>{{ $t("auctions.live.status") }}</div>
+          <div class="mt-0.5 text-sm font-semibold text-slate-700">{{ $t(`enums.auctionStatus.${auction.status}`) }}</div>
+        </div>
+        <div>
+          <div>{{ $t("restricted.itemCount") }}</div>
+          <div class="mt-0.5 text-sm font-semibold text-slate-700">{{ auction.itemCount }}</div>
+        </div>
+        <div>
+          <div>{{ $t("auctions.supplierList.table.endsAt") }}</div>
+          <div class="mt-0.5 text-sm font-semibold text-slate-700">{{ formatDateTime(auction.endAt) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <RestrictedOverlay :level="restrictedLevel" :rows="Math.min(Math.max(auction.itemCount, 3), 5)">
+      <template #extra>
+        <p v-if="restrictedLevel === 'QuotaExceeded' && subscription && !isPlus" class="mt-3 text-xs text-slate-400">
+          {{ $t("subscription.quotaUsage", { used: subscription.joinedCount, limit: subscription.quotaLimit }) }}
+        </p>
+        <NuxtLink to="/supplier/auctions" class="mt-3 block text-xs font-medium text-indigo-600 hover:underline">
+          ← {{ $t("restricted.backToList") }}
+        </NuxtLink>
+      </template>
+    </RestrictedOverlay>
+  </div>
 
   <div v-else-if="auction" class="space-y-6">
     <div class="flex items-start justify-between">
@@ -179,7 +267,14 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
+    <!-- Duraklatıldı: süre işlemez, teklif alınmaz; geri sayım yerine durum gösterilir -->
+    <div v-if="auction.status === 'Paused'" class="rounded-xl border border-amber-300 bg-amber-50 p-5 text-center">
+      <div class="text-xs uppercase tracking-wide text-amber-600">{{ $t("auctions.live.timeLeft") }}</div>
+      <div class="mt-1 text-2xl font-bold text-amber-700">{{ $t("auctions.live.pausedTime") }}</div>
+      <div class="mt-1 text-sm text-amber-700">{{ $t("auctions.live.pausedBanner") }}</div>
+    </div>
     <div
+      v-else
       class="rounded-xl border p-5 text-center"
       :class="isUrgent && auction.status === 'Live' ? 'border-rose-300 bg-rose-50' : 'border-slate-200 bg-white'"
     >
@@ -206,6 +301,17 @@ onBeforeUnmount(() => {
 
     <div v-else-if="myInvitation?.status === 'Declined'" class="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
       {{ $t("auctions.live.declinedBanner") }}
+    </div>
+
+    <!-- Davetsiz ama görünür açık ihale (davet eden firmanın diğer ihalesi / Plus vitrini) -->
+    <div v-else-if="showJoin" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-indigo-200 bg-indigo-50 p-5">
+      <div>
+        <p class="text-sm font-medium text-indigo-800">{{ $t("auctions.live.joinBanner") }}</p>
+        <p v-if="subscription && !isPlus" class="mt-0.5 text-xs text-indigo-600">
+          {{ $t("subscription.quotaRemaining", { n: subscription.remainingJoins }) }}
+        </p>
+      </div>
+      <AppButton :loading="joining" @click="join">{{ $t("auctions.live.joinCta") }}</AppButton>
     </div>
 
     <div class="space-y-4">

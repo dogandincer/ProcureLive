@@ -19,6 +19,8 @@ public class AuctionInvitation : AuditableEntity
 
     public InvitationStatus Status { get; set; } = InvitationStatus.Invited;
 
+    public InvitationOrigin Origin { get; set; } = InvitationOrigin.Direct;
+
     public DateTime InvitedAt { get; set; }
 
     public DateTime? RespondedAt { get; set; }

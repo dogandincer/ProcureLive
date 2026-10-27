@@ -12,6 +12,7 @@ using ProcureLive.Domain.Entities.Identity;
 using ProcureLive.Domain.Entities.Notifications;
 using ProcureLive.Domain.Entities.Rfi;
 using ProcureLive.Domain.Entities.Rfq;
+using ProcureLive.Domain.Entities.Subscriptions;
 using ProcureLive.Infrastructure.Identity;
 using ProcureLive.Infrastructure.Persistence.Interceptors;
 
@@ -68,9 +69,15 @@ public class ApplicationDbContext
 
     public DbSet<AuctionExtensionLog> AuctionExtensionLogs => Set<AuctionExtensionLog>();
 
+    public DbSet<AuctionStatusChange> AuctionStatusChanges => Set<AuctionStatusChange>();
+
     public DbSet<AuctionAward> AuctionAwards => Set<AuctionAward>();
 
     public DbSet<AuctionAttachment> AuctionAttachments => Set<AuctionAttachment>();
+
+    public DbSet<InvitationToken> InvitationTokens => Set<InvitationToken>();
+
+    public DbSet<CompanySubscription> CompanySubscriptions => Set<CompanySubscription>();
 
     public DbSet<RfiTemplate> RfiTemplates => Set<RfiTemplate>();
 

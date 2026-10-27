@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Security;
 using ProcureLive.Contracts.Auctions;
 using ProcureLive.Domain.Entities.Auctions;
 using ProcureLive.Domain.Enums;
@@ -11,10 +12,17 @@ namespace ProcureLive.Application.Auctions.Queries.GetAuctionById;
 public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQuery, AuctionDetailDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly ISupplierAccessService _accessService;
 
-    public GetAuctionByIdQueryHandler(IApplicationDbContext context)
+    public GetAuctionByIdQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        ISupplierAccessService accessService)
     {
         _context = context;
+        _currentUserService = currentUserService;
+        _accessService = accessService;
     }
 
     public async Task<AuctionDetailDto> Handle(GetAuctionByIdQuery request, CancellationToken cancellationToken)
@@ -30,6 +38,34 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
         if (auction is null)
         {
             throw new NotFoundException(nameof(Auction), request.Id);
+        }
+
+        bool isInternalUser = _currentUserService.IsInRole(Roles.Admin) || _currentUserService.IsInRole(Roles.Buyer);
+        Guid? viewerCompanyId = _currentUserService.CompanyId;
+        AuctionAccessLevel level = AuctionAccessLevel.Full;
+        bool isJoined = false;
+        bool canJoin = false;
+
+        if (!isInternalUser)
+        {
+            if (viewerCompanyId is not Guid companyId)
+            {
+                return Restricted(auction, AuctionAccessLevel.NoAccess);
+            }
+
+            SupplierAccessContext access = await _accessService.GetContextAsync(companyId, cancellationToken);
+            var facts = new AuctionAccessFacts(
+                auction.Id, auction.Status, auction.OwnerCompanyId, auction.IsListedForPlus, auction.OwnerCompany.ListTendersForPlus);
+
+            level = access.Evaluate(facts);
+            if (level != AuctionAccessLevel.Full)
+            {
+                // Teklifler hiç sorgulanmaz; kalem/fiyat/davetli/ek verisi istemciye ulaşmaz.
+                return Restricted(auction, level);
+            }
+
+            isJoined = access.IsJoined(auction.Id);
+            canJoin = access.CanJoin(facts);
         }
 
         // Tüm kalemlerin teklifleri tek sorguda (kalem başına sorgu/N+1 yerine), bellekte gruplanır.
@@ -61,9 +97,11 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
             })
             .ToList();
 
+        // Tedarikçi rakip firmaların kimliğini görmez: yalnızca kendi davet kaydı döner.
         List<AuctionInvitationDto> invitationDtos = auction.Invitations
+            .Where(i => isInternalUser || i.CompanyId == viewerCompanyId)
             .Select(i => new AuctionInvitationDto(
-                i.Id, i.CompanyId, i.Company.Name, i.Status.ToString(), i.InvitedAt, i.RespondedAt))
+                i.Id, i.CompanyId, i.Company.Name, i.Status.ToString(), i.InvitedAt, i.RespondedAt, i.Origin.ToString()))
             .ToList();
 
         List<AuctionAttachmentDto> attachmentDtos = auction.Attachments
@@ -97,6 +135,55 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
             auction.AllowPartialBids,
             itemDtos,
             invitationDtos,
-            attachmentDtos);
+            attachmentDtos,
+            AccessLevel: level.ToString(),
+            IsJoined: isJoined,
+            CanJoin: canJoin,
+            IsListedForPlus: auction.IsListedForPlus,
+            ItemCount: auction.Items.Count);
+    }
+
+    /// <summary>
+    /// Kısıtlı görünüm. QuotaExceeded: vitrin bilgisi (başlık, tip, sahip, tarihler, kalem sayısı) kalır.
+    /// NoAccess: içerik hiç dönmez — yalnızca kimlik ve durum. Kalemler, fiyatlar, davetliler, ekler,
+    /// şartlar ve açıklama her iki durumda da sunucuda düşürülür.
+    /// </summary>
+    private static AuctionDetailDto Restricted(Auction a, AuctionAccessLevel level)
+    {
+        bool teaser = level == AuctionAccessLevel.QuotaExceeded;
+
+        return new AuctionDetailDto(
+            a.Id,
+            teaser ? a.Title : string.Empty,
+            teaser ? a.ReferenceCode : null,
+            null,
+            a.AuctionType.ToString(),
+            a.Status.ToString(),
+            teaser ? a.OwnerCompanyId : Guid.Empty,
+            teaser ? a.OwnerCompany.Name : string.Empty,
+            teaser ? a.CurrencyId : Guid.Empty,
+            teaser ? a.Currency.Code : string.Empty,
+            teaser ? a.StartAt : default,
+            teaser ? a.EndAt : default,
+            null,
+            null,
+            null,
+            null,
+            null,
+            0,
+            null,
+            null,
+            null,
+            null,
+            false,
+            false,
+            Array.Empty<AuctionItemDto>(),
+            Array.Empty<AuctionInvitationDto>(),
+            Array.Empty<AuctionAttachmentDto>(),
+            AccessLevel: level.ToString(),
+            IsJoined: false,
+            CanJoin: false,
+            IsListedForPlus: false,
+            ItemCount: teaser ? a.Items.Count : 0);
     }
 }

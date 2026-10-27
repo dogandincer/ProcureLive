@@ -35,6 +35,15 @@ public class Company : AuditableEntity, ISoftDelete
 
     public string? Description { get; set; }
 
+    /// <summary>Logo görsel adresi (URL-tabanlı, ürün görselleri gibi).</summary>
+    public string? LogoUrl { get; set; }
+
+    /// <summary>KVKK: false ise e-posta/telefon diğer firmalara maskeli gösterilir (varsayılan kapalı).</summary>
+    public bool ShowContactInfo { get; set; }
+
+    /// <summary>Firmanın açtığı ihaleler Plus aramalarında listelenebilir mi (ihale bazında ayrıca işaretlenmeli).</summary>
+    public bool ListTendersForPlus { get; set; }
+
     public Guid? WorkspaceId { get; set; }
 
     public Workspace? Workspace { get; set; }

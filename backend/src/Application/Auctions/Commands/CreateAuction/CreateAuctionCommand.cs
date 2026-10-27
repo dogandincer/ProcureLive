@@ -14,4 +14,5 @@ public sealed record CreateAuctionCommand(
     decimal? ReservePrice,
     decimal? MinDecrementAmount,
     decimal? MinDecrementPercentage,
-    int ExtensionRuleMinutes) : IRequest<Guid>;
+    int ExtensionRuleMinutes,
+    bool IsListedForPlus = false) : IRequest<Guid>;

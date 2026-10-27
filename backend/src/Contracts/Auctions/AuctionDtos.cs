@@ -18,7 +18,11 @@ public sealed record AuctionDto(
     int ExtensionRuleMinutes,
     int ItemCount,
     int InvitationCount,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    string AccessLevel = "Full",
+    bool IsJoined = false,
+    bool IsListedForPlus = false,
+    string? MyInvitationStatus = null);
 
 public sealed record AuctionDetailDto(
     Guid Id,
@@ -47,7 +51,12 @@ public sealed record AuctionDetailDto(
     bool AllowPartialBids,
     IReadOnlyCollection<AuctionItemDto> Items,
     IReadOnlyCollection<AuctionInvitationDto> Invitations,
-    IReadOnlyCollection<AuctionAttachmentDto> Attachments);
+    IReadOnlyCollection<AuctionAttachmentDto> Attachments,
+    string AccessLevel = "Full",
+    bool IsJoined = false,
+    bool CanJoin = false,
+    bool IsListedForPlus = false,
+    int ItemCount = 0);
 
 public sealed record AuctionItemDto(
     Guid Id,
@@ -75,7 +84,8 @@ public sealed record AuctionInvitationDto(
     string CompanyName,
     string Status,
     DateTime InvitedAt,
-    DateTime? RespondedAt);
+    DateTime? RespondedAt,
+    string Origin = "Direct");
 
 public sealed record BidDto(
     Guid Id,
@@ -109,7 +119,8 @@ public sealed record CreateAuctionRequest(
     decimal? ReservePrice,
     decimal? MinDecrementAmount,
     decimal? MinDecrementPercentage,
-    int ExtensionRuleMinutes);
+    int ExtensionRuleMinutes,
+    bool IsListedForPlus = false);
 
 public sealed record AddAuctionItemRequest(
     Guid? ProductId,

@@ -268,7 +268,15 @@ export interface AuctionDto {
   itemCount: number;
   invitationCount: number;
   createdAt: string;
+  /** Sunucunun verdiği erişim seviyesi; kısıtlı satırlarda hassas alanlar zaten null/0 gelir. */
+  accessLevel: AccessLevel;
+  isJoined: boolean;
+  isListedForPlus: boolean;
+  myInvitationStatus: string | null;
 }
+
+/** Full: tam erişim · QuotaExceeded: Standart kota doldu (vitrin bilgisi) · NoAccess: içerik yok. */
+export type AccessLevel = "Full" | "QuotaExceeded" | "NoAccess";
 
 export interface AuctionItemDto {
   id: string;
@@ -299,6 +307,8 @@ export interface AuctionInvitationDto {
   status: string;
   invitedAt: string;
   respondedAt: string | null;
+  /** Direct: doğrudan davet · InviteLink: davet linki · SelfJoin: vitrinden kendisi katıldı */
+  origin: "Direct" | "InviteLink" | "SelfJoin";
 }
 
 export interface AuctionDetailDto {
@@ -329,6 +339,183 @@ export interface AuctionDetailDto {
   items: AuctionItemDto[];
   invitations: AuctionInvitationDto[];
   attachments: AuctionAttachmentDto[];
+  accessLevel: AccessLevel;
+  isJoined: boolean;
+  canJoin: boolean;
+  isListedForPlus: boolean;
+  itemCount: number;
+}
+
+// --- İhale durum yönetimi ---
+
+export interface StatusTransitionOptionDto {
+  to: string;
+  requiresReason: boolean;
+  requiresEndAt: boolean;
+  allowsEndAt: boolean;
+  allowsStartAt: boolean;
+}
+
+export interface AuctionStatusChangeDto {
+  id: string;
+  fromStatus: string;
+  toStatus: string;
+  reason: string | null;
+  changedByUserId: string | null;
+  changedByName: string | null;
+  isAutomatic: boolean;
+  changedAt: string;
+}
+
+export interface AuctionStatusPanelDto {
+  auctionId: string;
+  status: string;
+  startAt: string;
+  endAt: string;
+  actualStartAt: string | null;
+  actualEndAt: string | null;
+  pausedAt: string | null;
+  hasAwards: boolean;
+  transitions: StatusTransitionOptionDto[];
+  history: AuctionStatusChangeDto[];
+}
+
+// --- Davet linki (onboarding) ---
+
+export interface InviteLinkDto {
+  id: string;
+  token: string;
+  path: string;
+  companyId: string;
+  companyName: string;
+  email: string | null;
+  expiresAt: string;
+  usedAt: string | null;
+  isExpired: boolean;
+  createdAt: string;
+}
+
+export interface InviteInfoDto {
+  isValid: boolean;
+  invalidReason: string | null;
+  auctionId: string | null;
+  auctionTitle: string | null;
+  referenceCode: string | null;
+  ownerCompanyName: string | null;
+  companyId: string | null;
+  companyName: string | null;
+  email: string | null;
+  expiresAt: string | null;
+  auctionEndAt: string | null;
+  registrationUsed: boolean;
+}
+
+export interface ClaimInviteResultDto {
+  auctionId: string;
+}
+
+// --- Abonelik / kota ---
+
+export type SeatBand = "Seats5To10" | "Seats10To20" | "Seats20Plus";
+
+export interface SeatBandPriceDto {
+  band: SeatBand;
+  minUsers: number;
+  maxUsers: number | null;
+  priceUsd: number;
+}
+
+export interface SubscriptionPlansDto {
+  bands: SeatBandPriceDto[];
+  durationMonths: number;
+  standardJoinLimit: number;
+}
+
+export interface MySubscriptionDto {
+  companyId: string;
+  companyName: string;
+  plan: "Standard" | "Plus";
+  isPlus: boolean;
+  seatBand: SeatBand | null;
+  priceUsd: number | null;
+  expiresAt: string | null;
+  joinedCount: number;
+  quotaLimit: number;
+  remainingJoins: number | null;
+  userCount: number;
+}
+
+export interface PurchaseResultDto {
+  succeeded: boolean;
+  paymentReference: string | null;
+  failureReason: string | null;
+  seatBand: SeatBand | null;
+  priceUsd: number | null;
+  expiresAt: string | null;
+}
+
+// --- Plus arama ---
+
+export interface CompanySearchItemDto {
+  id: string;
+  name: string;
+  tradeName: string | null;
+  logoUrl: string | null;
+  companyType: string;
+  shortAddress: string | null;
+  sectors: string[];
+  averageScore: number | null;
+  /** KVKK: izin yoksa sunucu maskeli döner (te**@***.com), website hiç gelmez. */
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  contactMasked: boolean;
+  openTenderCount: number;
+}
+
+export interface TenderSearchItemDto {
+  id: string;
+  title: string;
+  referenceCode: string | null;
+  auctionType: string;
+  status: string;
+  ownerCompanyId: string;
+  ownerCompanyName: string;
+  ownerLogoUrl: string | null;
+  startAt: string;
+  endAt: string;
+  itemCount: number;
+  participantCount: number;
+  isJoined: boolean;
+}
+
+export interface ProductSearchItemDto {
+  id: string;
+  sku: string;
+  name: string;
+  categoryName: string;
+  unitOfMeasure: string;
+  thumbnailUrl: string | null;
+  openTenderCount: number;
+}
+
+export interface SearchResultDto {
+  companies: CompanySearchItemDto[];
+  tenders: TenderSearchItemDto[];
+  products: ProductSearchItemDto[];
+}
+
+// --- Firma ayarları ---
+
+export interface CompanySettingsDto {
+  companyId: string;
+  companyName: string;
+  companyType: string;
+  logoUrl: string | null;
+  showContactInfo: boolean;
+  listTendersForPlus: boolean;
+  isPlus: boolean;
+  plusExpiresAt: string | null;
 }
 
 export interface BidDto {

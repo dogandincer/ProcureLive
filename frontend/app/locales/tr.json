@@ -20,6 +20,7 @@
     "yes": "Evet",
     "no": "Hayır",
     "back": "Geri",
+    "next": "İleri",
     "search": "Ara",
     "actions": "İşlemler",
     "optional": "opsiyonel",
@@ -54,7 +55,11 @@
     "auditLog": "Denetim Kaydı",
     "sectors": "Sektörler",
     "workspaces": "İşyerleri",
-    "monitoring": "İzleme Paneli"
+    "monitoring": "İzleme Paneli",
+    "plusGroup": "Plus",
+    "plusSearch": "Detaylı Arama",
+    "pricing": "Paketler",
+    "companySettings": "Firma Ayarları"
   },
   "language": {
     "label": "Dil",
@@ -281,6 +286,7 @@
         "draft": "Taslak: Kalem & Cari Davet Edin",
         "scheduled": "Yayınlandı: Başlangıç Bekleniyor",
         "live": "Canlı: Teklifler Toplanıyor",
+        "paused": "Duraklatıldı: Teklif Alımı Durdu",
         "ended": "Sona Erdi: Teklif Değerlendirme"
       },
       "type": "Tür",
@@ -313,6 +319,10 @@
       "add": "Ekle",
       "invitedCompanies": "Davetli Cariler",
       "emptyInvites": "Henüz davet yok",
+      "origin": {
+        "InviteLink": "Davet linkiyle",
+        "SelfJoin": "Vitrinden kendisi katıldı"
+      },
       "selectCompany": "Cari seç...",
       "invite": "Davet Et",
       "liveLog": "Canlı Akış",
@@ -332,7 +342,74 @@
         "extended": "Süre uzatıldı: {reason}",
         "started": "İhale canlıya geçti",
         "ended": "İhale sona erdi",
-        "awarded": "Bir kalem için kazanan seçildi"
+        "awarded": "Bir kalem için kazanan seçildi",
+        "statusChanged": "Durum değişti: {status}"
+      }
+    },
+    "status": {
+      "title": "Durum Yönetimi",
+      "description": "Geçişler kurallıdır; otomatik olanlar dahil her değişiklik kayıt altına alınır.",
+      "plannedStart": "Planlanan başlangıç",
+      "actualStart": "Gerçek başlangıç",
+      "end": "Bitiş",
+      "actualEnd": "Gerçek bitiş",
+      "pausedSince": "Duraklatıldığı an",
+      "cancelledBanner": "Bu ihale iptal edildi; durumu artık değiştirilemez.",
+      "awardedBanner": "İhale sonuçlandı; durumu artık değiştirilemez.",
+      "adminOnly": "Durum değişikliklerini yalnızca Admin yapabilir.",
+      "noActions": "Bu durumdan yapılabilecek bir geçiş yok.",
+      "extend": "Süreyi Uzat",
+      "minutes": "dk",
+      "extendedToast": "Bitiş {minutes} dk uzatıldı.",
+      "history": "Durum geçmişi",
+      "historyEmpty": "Henüz durum değişikliği kaydı yok.",
+      "showAll": "Tümünü göster ({n})",
+      "showLess": "Daha az göster",
+      "system": "Sistem (otomatik)",
+      "loadError": "Durum bilgisi yüklenemedi.",
+      "saveError": "Durum değiştirilemedi.",
+      "actions": {
+        "publish": "Yayınla",
+        "startNow": "Şimdi Başlat",
+        "resume": "Devam Ettir",
+        "reopen": "Yeniden Aç",
+        "pause": "Duraklat",
+        "endNow": "Şimdi Bitir",
+        "unpublish": "Taslağa Al",
+        "cancel": "İptal Et"
+      },
+      "effect": {
+        "publish": "İhale planlanır ve başlangıç saatinde otomatik olarak canlıya geçer.",
+        "startNow": "İhale planlanan saati beklemeden hemen canlıya geçer; davetli tedarikçilere bildirim gider.",
+        "resume": "Teklif alımı kaldığı yerden devam eder. Duraklamada geçen süre bitiş zamanına eklenir.",
+        "reopen": "Sona ermiş ihale, yeni bitiş zamanına kadar tekrar teklife açılır.",
+        "pause": "Teklif alımı geçici olarak durur ve süre işlemez. Tedarikçilere gerekçeyle bildirim gider.",
+        "endNow": "İhale hemen kapanır ve teklif değerlendirme aşamasına geçer.",
+        "unpublish": "İhale yayından kaldırılıp taslağa döner; düzenlenip yeniden yayınlanabilir.",
+        "cancel": "İhale kalıcı olarak iptal edilir ve bu işlem geri alınamaz. Tedarikçilere gerekçeyle bildirim gider."
+      },
+      "dialog": {
+        "reason": "Gerekçe (isteğe bağlı)",
+        "reasonRequired": "Gerekçe (zorunlu)",
+        "reasonPlaceholder": "Durum geçmişine ve tedarikçi bildirimine yazılır",
+        "startAt": "Başlangıç",
+        "endAt": "Bitiş",
+        "endHintResume": "Varsayılan: kalan süre korunur (duraklamada geçen süre eklenir)."
+      },
+      "toast": {
+        "publish": "İhale yayınlandı.",
+        "startNow": "İhale başlatıldı.",
+        "resume": "İhale devam ediyor.",
+        "reopen": "İhale yeniden açıldı.",
+        "pause": "İhale duraklatıldı.",
+        "endNow": "İhale sonlandırıldı.",
+        "unpublish": "İhale taslağa alındı.",
+        "cancel": "İhale iptal edildi."
+      },
+      "auto": {
+        "Live": "Planlanan başlangıç saati geldi",
+        "Ended": "Planlanan bitiş saati geldi",
+        "Awarded": "Tüm kalemler için kazanan seçildi"
       }
     },
     "evaluation": {
@@ -370,6 +447,11 @@
       "actionError": "İşlem gerçekleştirilemedi.",
       "acceptedToast": "Davet kabul edildi.",
       "declinedToast": "Davet reddedildi.",
+      "joinedToast": "İhaleye katıldınız. Artık teklif verebilirsiniz.",
+      "joinBanner": "Bu ihale katılımınıza açık. Katılarak teklif verebilirsiniz.",
+      "joinCta": "İhaleye Katıl",
+      "pausedTime": "Duraklatıldı",
+      "pausedBanner": "İhale geçici olarak durduruldu; süre işlemiyor ve teklif alınmıyor.",
       "bidError": "Teklif verilemedi.",
       "feed": {
         "bidSubmitted": "Teklifiniz gönderildi: {amount} {currency}",
@@ -378,6 +460,9 @@
         "bidPlaced": "{who} {amount} teklif verdi",
         "extended": "⏱️ Süre uzatıldı: {reason}",
         "ended": "🏁 İhale sona erdi",
+        "started": "▶️ İhale başladı",
+        "statusChanged": "ℹ️ İhale durumu: {status}",
+        "statusChangedReason": "ℹ️ İhale durumu: {status} — {reason}",
         "wonItem": "🎉 Bir kalemi kazandınız!",
         "itemAwarded": "Bir kalem için kazanan belirlendi."
       }
@@ -395,7 +480,11 @@
       "loadError": "Kayıtlar yüklenemedi.",
       "actionError": "İşlem gerçekleştirilemedi.",
       "acceptedToast": "Davet kabul edildi.",
-      "declinedToast": "Davet reddedildi."
+      "declinedToast": "Davet reddedildi.",
+      "joinedToast": "İhaleye katıldınız.",
+      "join": "Katıl",
+      "joined": "Katıldınız",
+      "discoverPlus": "Plus ile yeni ihaleler keşfedin"
     },
     "history": {
       "title": "İhale Geçmişim",
@@ -1018,6 +1107,8 @@
         "none": "Belirtilmedi",
         "allowAlternatives": "Tedarikçi muadil (alternatif) ürün teklif edebilir",
         "allowPartial": "Tedarikçi kalemlerin bir kısmına teklif verebilir",
+        "listedForPlus": "Bu ihale Plus kullanıcıların aramalarında listelenebilsin",
+        "listedForPlusHint": "İşaretlenmezse ihale yalnızca davet linki veya doğrudan ekleme ile görülebilir. Firmanın ayarlarında Plus listeleme de açık olmalıdır.",
         "attachments": "Ekler (Şartname, Çizim vb.)",
         "dropHint": "Dosyaları buraya sürükleyin veya seçin",
         "chooseFiles": "Dosya Seç",
@@ -1144,5 +1235,241 @@
       "companies": "Cari Sayısı",
       "status": "Durum"
     }
+  },
+  "restricted": {
+    "upgradeCta": "Plus'a Geç",
+    "itemCount": "Kalem",
+    "backToList": "İhale listesine dön",
+    "QuotaExceeded": {
+      "title": "İhale hakkınız doldu",
+      "body": "Standart üyelikte en fazla 2 ihaleye katılabilirsiniz. Bu ihalenin kalemlerini, şartlarını ve eklerini görmek ve teklif vermek için Plus'a geçin.",
+      "short": "Kota dolu"
+    },
+    "NoAccess": {
+      "title": "Bu ihaleye erişiminiz yok",
+      "body": "Bu ihale size açık değil ya da daveti reddettiniz. Plus üyeler, listelemeye açık tüm ihaleleri keşfedebilir.",
+      "short": "Erişim yok"
+    },
+    "PlusRequired": {
+      "title": "Detaylı arama Plus üyelere özel",
+      "body": "Şirket, ihale ve ürün bazlı arama; ihale türü ve katılımcı sayısına göre filtreleme için Plus'a geçin."
+    }
+  },
+  "subscription": {
+    "quotaReachedToast": "İhale hakkınız doldu. Daha fazla ihaleye katılmak için Plus'a geçin.",
+    "plusActive": "Plus üyesiniz",
+    "plusUnlimited": "Sınırsız ihaleye katılım ve detaylı arama aktif.",
+    "standardTitle": "Standart üyelik",
+    "quotaFullTitle": "İhale hakkınız doldu",
+    "quotaFullBody": "yeni ihalelere katılmak için Plus'a geçin",
+    "quotaUsage": "{used}/{limit} ihale hakkı kullanıldı",
+    "quotaRemaining": "Kalan hak: {n}",
+    "badgeStandard": "Standart · {used}/{limit}"
+  },
+  "invite": {
+    "welcomeTitle": "ProcureLive'a hoş geldiniz",
+    "welcomeBody": "{owner} sizi bir ihaleye davet etti. Devam etmek için giriş yapın ya da firmanız adına hesap oluşturun.",
+    "tender": "Davet edildiğiniz ihale",
+    "invitedCompany": "Davet edilen firma",
+    "tenderEnds": "İhale bitişi",
+    "linkExpires": "Link geçerliliği",
+    "lockedTo": "Davet e-postası",
+    "claimedToast": "Davet hesabınıza eklendi.",
+    "genericError": "İşlem gerçekleştirilemedi.",
+    "goToPanel": "Panelime git",
+    "goToLogin": "Giriş ekranına git",
+    "loginCta": "Giriş yap ve davete devam et",
+    "registrationUsed": "Bu linkle daha önce hesap oluşturulmuş; lütfen giriş yapın.",
+    "tabs": {
+      "register": "Yeni hesap oluştur",
+      "login": "Hesabım var"
+    },
+    "claim": {
+      "title": "Merhaba {name}",
+      "body": "Bu davet firmanıza ait. Daveti hesabınıza ekleyip ihale detayına geçebilirsiniz.",
+      "cta": "Daveti kabul et ve ihaleye git"
+    },
+    "mismatch": {
+      "title": "Bu davet başka bir firmaya ait",
+      "body": "{email} hesabıyla giriş yaptınız; davet {company} firmasına gönderildi. Davet edilen firmanın hesabıyla giriş yapın veya yeni hesap oluşturun.",
+      "switch": "Farklı hesapla devam et"
+    },
+    "register": {
+      "firstName": "Ad",
+      "lastName": "Soyad",
+      "passwordConfirm": "Şifre (tekrar)",
+      "companyNote": "Hesabınız {company} firmasına bağlı tedarikçi kullanıcısı olarak oluşturulur.",
+      "kvkk": "KVKK Aydınlatma Metni'ni okudum; kişisel verilerimin ihale süreçleri kapsamında işlenmesini kabul ediyorum.",
+      "cta": "Hesap oluştur ve ihaleye git",
+      "passwordMismatch": "Şifreler eşleşmiyor.",
+      "kvkkRequired": "Devam etmek için aydınlatma metnini onaylamalısınız.",
+      "successToast": "Hesabınız oluşturuldu. Hoş geldiniz!"
+    },
+    "invalid": {
+      "InviteInvalid": {
+        "title": "Davet linki geçersiz",
+        "body": "Bu link hatalı ya da iptal edilmiş olabilir. Davet eden firmadan yeni bir link isteyin."
+      },
+      "InviteExpired": {
+        "title": "Davet linkinin süresi dolmuş",
+        "body": "Davet linkleri güvenlik için süreli oluşturulur. Davet eden firmadan yeni bir link isteyin."
+      },
+      "AuctionClosed": {
+        "title": "İhale katılıma kapandı",
+        "body": "Bu ihale sona erdi veya iptal edildi; artık katılım alınmıyor."
+      }
+    }
+  },
+  "inviteLinks": {
+    "title": "Davet Linkleri",
+    "description": "Cariye özel, süreli ve benzersiz davet linki",
+    "emailPlaceholder": "E-postaya kilitle (opsiyonel)",
+    "validDays": "Geçerlilik (gün)",
+    "create": "Link Oluştur",
+    "closed": "Kapanmış ihaleler için yeni link oluşturulamaz.",
+    "copy": "Linki kopyala",
+    "copiedToast": "Davet linki panoya kopyalandı.",
+    "expires": "Son geçerlilik: {date}",
+    "loadError": "Davet linkleri yüklenemedi.",
+    "createError": "Davet linki oluşturulamadı.",
+    "state": {
+      "active": "Aktif",
+      "expired": "Süresi doldu",
+      "registered": "Kayıt yapıldı"
+    }
+  },
+  "pricing": {
+    "title": "Plus ile sınırsız ihale",
+    "subtitle": "Standart üyelikte en fazla 2 ihaleye katılabilirsiniz. Plus ile kotasız katılın, listelemeye açık tüm ihaleleri keşfedin ve detaylı arama yapın.",
+    "loadError": "Paketler yüklenemedi.",
+    "currentPlan": "Mevcut planınız",
+    "standard": "Standart",
+    "validUntil": "{date} tarihine kadar geçerli",
+    "usersInCompany": "Firmanızda {n} kullanıcı",
+    "compare": {
+      "feature": "Özellik"
+    },
+    "features": {
+      "visibility": {
+        "label": "Görebileceğiniz ihaleler",
+        "standard": "Davet edildikleriniz ve davet eden firmanın açık ihaleleri",
+        "plus": "Ek olarak Plus listelemeye açık tüm ihaleler"
+      },
+      "quota": {
+        "label": "İhale katılımı",
+        "standard": "En fazla {n} ihale",
+        "plus": "Sınırsız ihaleye katılım"
+      },
+      "search": {
+        "label": "Detaylı arama",
+        "plus": "Şirket, ihale ve ürün bazlı arama"
+      },
+      "filters": {
+        "label": "Filtreleme ve sıralama",
+        "plus": "İhale türü ve katılımcı sayısına göre"
+      },
+      "restricted": {
+        "label": "Kota dışı ihaleler",
+        "standard": "Bulanık / kısıtlı görünüm",
+        "plus": "Tam erişim"
+      }
+    },
+    "bands": {
+      "Seats5To10": "5-10 Kullanıcı",
+      "Seats10To20": "10-20 Kullanıcı",
+      "Seats20Plus": "20+ Kullanıcı"
+    },
+    "bandRange": "{min}-{max} Kullanıcı",
+    "bandOpen": "{min}+ Kullanıcı",
+    "perYear": "{months} ay",
+    "recommended": "Firmanıza uygun",
+    "seats": "{n} kullanıcıya kadar",
+    "currentBadge": "Mevcut paketiniz",
+    "tooSmall": "Kullanıcı sayınız için küçük",
+    "switchCta": "Bu pakete geç",
+    "buyCta": "Satın al",
+    "demoNote": "Demo ortamı: ödeme altyapısı simüle edilir, gerçek tahsilat yapılmaz.",
+    "checkout": {
+      "title": "Güvenli Ödeme (Demo)",
+      "demoWarning": "Bu bir demo ödemedir; gerçek kart bilgisi girmeyin. Sunucuya yalnızca kart sahibi ve kartın son 4 hanesi gönderilir.",
+      "holder": "Kart üzerindeki isim",
+      "number": "Kart numarası",
+      "testCards": "Test: 4242 4242 4242 4242 → başarılı · 0002 ile biten kart → reddedilir",
+      "expiry": "Son kullanma",
+      "total": "Ödenecek tutar (12 ay)",
+      "processing": "Ödeme işleniyor...",
+      "pay": "{amount} öde",
+      "declined": "Ödeme reddedildi: {reason}",
+      "error": "Ödeme tamamlanamadı."
+    },
+    "success": {
+      "title": "Satın Alım Başarılı",
+      "body": "Plus üyeliğiniz aktif. Artık sınırsız ihaleye katılabilir ve detaylı arama yapabilirsiniz.",
+      "plan": "Paket",
+      "amount": "Tutar",
+      "validUntil": "Geçerlilik",
+      "reference": "İşlem referansı",
+      "toSearch": "Detaylı aramaya git",
+      "toAuctions": "İhalelerime dön"
+    }
+  },
+  "search": {
+    "title": "Detaylı Arama",
+    "subtitle": "Şirket, ihale veya ürün bazlı arayın; ihaleleri türüne ve katılımcı sayısına göre filtreleyin.",
+    "placeholder": "Şirket adı, sektör, şehir, ihale başlığı, referans kodu veya ürün...",
+    "loadError": "Arama yapılamadı.",
+    "empty": "Sonuç bulunamadı.",
+    "tabs": {
+      "all": "Tümü",
+      "companies": "Şirketler",
+      "tenders": "İhaleler",
+      "products": "Ürünler"
+    },
+    "filters": {
+      "auctionType": "İhale türü",
+      "allTypes": "Tüm türler",
+      "participants": "Katılımcı sayısı",
+      "min": "en az",
+      "max": "en çok",
+      "sort": "Sıralama",
+      "product": "Ürün",
+      "owner": "Firma"
+    },
+    "sorts": {
+      "endingSoon": "Bitişi en yakın",
+      "newest": "En yeni",
+      "participantsDesc": "Katılımcı (çoktan aza)",
+      "participantsAsc": "Katılımcı (azdan çoğa)"
+    },
+    "companyType": {
+      "Internal": "Alıcı",
+      "Supplier": "Tedarikçi"
+    },
+    "maskedNote": "İletişim bilgileri gizli (KVKK)",
+    "maskedTooltip": "Firma iletişim bilgilerinin paylaşılmasına izin vermedi; bilgiler sunucuda maskelenir.",
+    "openTenders": "{n} açık ihale",
+    "itemCount": "Kalem sayısı",
+    "participantCount": "Katılımcı sayısı",
+    "endsAt": "Bitiş"
+  },
+  "companySettings": {
+    "title": "Firma Ayarları",
+    "adminTitle": "Gizlilik ve Listeleme",
+    "brandTitle": "Logo",
+    "brandDescription": "Arama sonuçlarında ve ihale listelerinde görünür",
+    "logoUrl": "Logo adresi (URL)",
+    "noLogo": "Logo yok",
+    "logoBroken": "Görsel yüklenemedi; adresi kontrol edin.",
+    "privacyTitle": "Gizlilik ve Listeleme",
+    "privacyDescription": "KVKK kapsamında iletişim paylaşımı ve Plus vitrin tercihleri",
+    "showContactInfo": "İletişim bilgilerim açık görünsün",
+    "showContactInfoHint": "Kapalıyken Plus aramalarında e-posta ve telefonunuz sunucu tarafında maskelenir, web siteniz gösterilmez. Varsayılan: kapalı.",
+    "preview": "Diğer firmalar şöyle görür",
+    "listTendersForPlus": "Şirketimin ihaleleri (Plus) listelemeye açık olsun",
+    "listTendersForPlusHint": "Açıkken, Plus aramada listelenmesine izin verilen ihaleleriniz Plus üyelere görünür. Kapalıyken ihaleleriniz yalnızca davetle görülür.",
+    "savedToast": "Ayarlar kaydedildi.",
+    "saveError": "Ayarlar kaydedilemedi.",
+    "loadError": "Ayarlar yüklenemedi.",
+    "managePlan": "Paketi yönet"
   }
 }

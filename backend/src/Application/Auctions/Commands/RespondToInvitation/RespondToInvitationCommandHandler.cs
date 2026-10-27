@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Notifications;
+using ProcureLive.Application.Common.Security;
 using ProcureLive.Domain.Entities.Auctions;
 using ProcureLive.Domain.Entities.Notifications;
 using ProcureLive.Domain.Enums;
@@ -15,17 +16,20 @@ public sealed class RespondToInvitationCommandHandler : IRequestHandler<RespondT
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTime _dateTime;
     private readonly INotificationRealtimeService _notificationRealtimeService;
+    private readonly ISupplierAccessService _accessService;
 
     public RespondToInvitationCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
         IDateTime dateTime,
-        INotificationRealtimeService notificationRealtimeService)
+        INotificationRealtimeService notificationRealtimeService,
+        ISupplierAccessService accessService)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTime = dateTime;
         _notificationRealtimeService = notificationRealtimeService;
+        _accessService = accessService;
     }
 
     public async Task Handle(RespondToInvitationCommand request, CancellationToken cancellationToken)
@@ -55,6 +59,17 @@ public sealed class RespondToInvitationCommandHandler : IRequestHandler<RespondT
         if (auction is null)
         {
             throw new NotFoundException(nameof(Auction), request.AuctionId);
+        }
+
+        if (request.Accept)
+        {
+            SupplierAccessContext access = await _accessService.GetContextAsync(companyId.Value, cancellationToken);
+            if (access.QuotaReached)
+            {
+                throw new ConflictException(
+                    $"Standart üyelikte en fazla {SupplierAccessContext.StandardJoinLimit} ihaleye katılabilirsiniz. Daha fazlası için Plus'a geçin.",
+                    ErrorCodes.QuotaExceeded);
+            }
         }
 
         DateTime now = _dateTime.UtcNow;

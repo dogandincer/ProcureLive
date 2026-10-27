@@ -41,10 +41,16 @@ public sealed class InviteCompaniesCommandHandler : IRequestHandler<InviteCompan
             throw new ConflictException("Yalnızca taslak veya planlanmış ihalelere davet gönderilebilir.");
         }
 
-        List<Guid> alreadyInvited = await _context.AuctionInvitations
+        List<AuctionInvitation> existing = await _context.AuctionInvitations
             .Where(i => i.AuctionId == request.AuctionId && request.CompanyIds.Contains(i.CompanyId))
-            .Select(i => i.CompanyId)
             .ToListAsync(cancellationToken);
+        List<Guid> alreadyInvited = existing.Select(i => i.CompanyId).ToList();
+
+        // Vitrinden kendiliğinden katılmış cariyi doğrudan eklemek onu gerçek davetliye çevirir.
+        foreach (AuctionInvitation selfJoined in existing.Where(i => i.Origin == InvitationOrigin.SelfJoin))
+        {
+            selfJoined.Origin = InvitationOrigin.Direct;
+        }
 
         DateTime now = _dateTime.UtcNow;
         Guid invitedByUserId = _currentUserService.UserId ?? Guid.Empty;

@@ -119,13 +119,103 @@ public static class MessageTranslator
         ["RFQ Sonuçlandı"] = "RFQ Awarded",
         ["Yeni Hızlı Teklif Talebi (RFQ) Daveti"] = "New RFQ Invitation",
         ["İhale Yakında Başlıyor"] = "Auction Starting Soon",
+        ["İhaleye Katılım"] = "Auction Participation",
+        ["Plus Abonelik"] = "Plus Subscription",
+
+        // Davet linki / abonelik / arama / firma ayarları
+        ["Davet linki geçersiz."] = "The invitation link is invalid.",
+        ["Davet linkinin süresi dolmuş."] = "The invitation link has expired.",
+        ["Bu ihale artık katılıma kapalı."] = "This auction is no longer open for participation.",
+        ["Davet linki yalnızca tedarikçi carilere oluşturulabilir."] = "Invitation links can only be created for supplier companies.",
+        ["Bu davet linkiyle zaten hesap oluşturulmuş. Lütfen giriş yapın."] =
+            "An account has already been created with this invitation link. Please sign in.",
+        ["Bu davet farklı bir e-posta adresi için oluşturulmuş."] = "This invitation was created for a different email address.",
+        ["Bu e-posta ile zaten bir hesap var. Lütfen giriş yapın."] = "An account with this email already exists. Please sign in.",
+        ["Bu davet başka bir cariye ait. Davet edilen firmanın hesabıyla giriş yapın."] =
+            "This invitation belongs to another company. Sign in with an account of the invited company.",
+        ["Geçerli bir e-posta adresi girin."] = "Enter a valid email address.",
+        ["Şifre en az 8 karakter olmalıdır."] = "Password must be at least 8 characters.",
+        ["Bu ihaleye zaten katıldınız."] = "You have already joined this auction.",
+        ["Yalnızca planlanmış veya canlı ihalelere katılabilirsiniz."] = "You can only join scheduled or live auctions.",
+        ["Kart üzerindeki isim zorunludur."] = "The cardholder name is required.",
+        ["Kartın son 4 hanesi 4 rakamdan oluşmalıdır."] = "The card's last 4 digits must be 4 numbers.",
+        ["Bu paket zaten aktif."] = "This plan is already active.",
+        ["Detaylı arama yalnızca Plus üyelere açıktır."] = "Advanced search is available to Plus members only.",
+        ["Logo adresi en fazla 1000 karakter olabilir."] = "The logo URL can be at most 1000 characters.",
+        ["Geçerli bir logo adresi girin (http/https)."] = "Enter a valid logo URL (http/https).",
+
+        // İhale durum yönetimi (AuctionStatusService / ChangeAuctionStatus)
+        ["Bu durum değişikliği için gerekçe zorunludur."] = "A reason is required for this status change.",
+        ["Gerekçe en fazla 500 karakter olabilir."] = "The reason can be at most 500 characters.",
+        ["Bitiş zamanı en az 1 dakika ileride olmalıdır."] = "The end time must be at least 1 minute in the future.",
+        ["İhaleyi yeniden açmak için yeni bir bitiş zamanı girin."] = "Enter a new end time to reopen the auction.",
+        ["Kazanan seçilmiş kalemleri olan ihale yeniden açılamaz."] = "An auction with awarded items cannot be reopened.",
+        ["Kazanan seçilmiş kalemleri olan ihale iptal edilemez."] = "An auction with awarded items cannot be cancelled.",
+        ["İhale Başladı"] = "Auction Started",
+        ["İhale Devam Ediyor"] = "Auction Resumed",
+        ["İhale Yeniden Açıldı"] = "Auction Reopened",
+        ["İhale Duraklatıldı"] = "Auction Paused",
+        ["İhale Sona Erdi"] = "Auction Ended",
+        ["İhale İptal Edildi"] = "Auction Cancelled",
+        ["İhale Yayından Kaldırıldı"] = "Auction Unpublished",
     };
+
+    private static readonly Dictionary<string, string> StatusNames = new()
+    {
+        ["Taslak"] = "Draft",
+        ["Planlandı"] = "Scheduled",
+        ["Canlı"] = "Live",
+        ["Duraklatıldı"] = "Paused",
+        ["Sona Erdi"] = "Ended",
+        ["İptal Edildi"] = "Cancelled",
+        ["Sonuçlandı"] = "Awarded",
+    };
+
+    private static string StatusName(string turkish) => StatusNames.TryGetValue(turkish, out string? en) ? en : turkish;
+
+    private static string WithReason(string text, Group reason) => reason.Success ? $"{text} Reason: {reason.Value}" : text;
 
     private static readonly (Regex Pattern, MatchEvaluator Render)[] TemplateRules =
     [
         // NotFoundException("Entity", key) -> auto-generated message
         (new Regex(@"^Entity ""([^""]+)"" \(([^)]+)\) bulunamadı\.$"),
             m => $"Entity \"{m.Groups[1].Value}\" ({m.Groups[2].Value}) not found."),
+
+        // JoinAuction / RespondToInvitation - Standart üyelik kotası
+        (new Regex(@"^Standart üyelikte en fazla (\d+) ihaleye katılabilirsiniz\. Daha fazlası için Plus'a geçin\.$"),
+            m => $"Standard members can join at most {m.Groups[1].Value} auctions. Upgrade to Plus for more."),
+
+        // PurchaseSubscriptionCommandHandler - paket kullanıcı sayısını karşılamıyor
+        (new Regex(@"^Firmanızda (\d+) kullanıcı var; bu paket en fazla (\d+) kullanıcı içindir\. Daha geniş bir paket seçin\.$"),
+            m => $"Your company has {m.Groups[1].Value} users; this plan covers up to {m.Groups[2].Value} users. Choose a larger plan."),
+
+        // JoinAuctionCommandHandler - iç kullanıcılara bildirim
+        (new Regex(@"^""([^""]+)"" ""([^""]+)"" ihalesine katıldı\.$"),
+            m => $"\"{m.Groups[1].Value}\" joined the auction \"{m.Groups[2].Value}\"."),
+
+        // PurchaseSubscriptionCommandHandler - iç kullanıcılara bildirim
+        (new Regex(@"^""([^""]+)"" Plus üyeliğe geçti\.$"),
+            m => $"\"{m.Groups[1].Value}\" upgraded to Plus."),
+
+        // AuctionStatusService - izin verilmeyen geçiş
+        (new Regex(@"^""([^""]+)"" durumundan ""([^""]+)"" durumuna geçiş yapılamaz\.$"),
+            m => $"The status cannot be changed from \"{StatusName(m.Groups[1].Value)}\" to \"{StatusName(m.Groups[2].Value)}\"."),
+
+        // AuctionStatusService - tedarikçi bildirimleri
+        (new Regex(@"^""([^""]+)"" ihalesi başladı\.$"),
+            m => $"Auction \"{m.Groups[1].Value}\" has started."),
+        (new Regex(@"^""([^""]+)"" ihalesi kaldığı yerden devam ediyor\.$"),
+            m => $"Auction \"{m.Groups[1].Value}\" has resumed."),
+        (new Regex(@"^""([^""]+)"" ihalesi yeniden teklife açıldı\.$"),
+            m => $"Auction \"{m.Groups[1].Value}\" has been reopened for bidding."),
+        (new Regex(@"^""([^""]+)"" ihalesi geçici olarak durduruldu\.(?: Gerekçe: (.+))?$"),
+            m => WithReason($"Auction \"{m.Groups[1].Value}\" has been paused.", m.Groups[2])),
+        (new Regex(@"^""([^""]+)"" ihalesi sona erdi\.$"),
+            m => $"Auction \"{m.Groups[1].Value}\" has ended."),
+        (new Regex(@"^""([^""]+)"" ihalesi iptal edildi\.(?: Gerekçe: (.+))?$"),
+            m => WithReason($"Auction \"{m.Groups[1].Value}\" has been cancelled.", m.Groups[2])),
+        (new Regex(@"^""([^""]+)"" ihalesi yayından kaldırıldı\.$"),
+            m => $"Auction \"{m.Groups[1].Value}\" has been unpublished."),
 
         // PlaceBidCommandHandler
         (new Regex(@"^Teklifiniz mevcut en iyi tekliften daha (yüksek|düşük) olmalıdır\.$"),

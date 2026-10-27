@@ -42,4 +42,10 @@ public sealed class SignalRAuctionNotificationService : IAuctionNotificationServ
         return _hubContext.Clients.Group(AuctionHub.GroupName(auctionId))
             .SendAsync("ItemAwarded", new { auctionId, auctionItemId, winningCompanyId }, cancellationToken);
     }
+
+    public Task AuctionStatusChangedAsync(Guid auctionId, string status, string? reason, CancellationToken cancellationToken)
+    {
+        return _hubContext.Clients.Group(AuctionHub.GroupName(auctionId))
+            .SendAsync("AuctionStatusChanged", new { auctionId, status, reason }, cancellationToken);
+    }
 }

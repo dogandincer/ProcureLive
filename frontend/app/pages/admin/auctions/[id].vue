@@ -40,7 +40,6 @@ const liveLog = ref<string[]>([]);
 const comparisons = reactive<Record<string, BidComparisonDto[]>>({});
 const inviteCompanyId = ref("");
 const newItem = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece", targetPrice: null as number | null });
-const extendMinutes = ref(5);
 
 // Track which item's award map (itemId -> bidId) to show awarded state inline
 const awardedBidPerItem = reactive<Record<string, string>>({});
@@ -57,6 +56,7 @@ const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "ros
   Draft: "slate",
   Scheduled: "amber",
   Live: "emerald",
+  Paused: "amber",
   Ended: "slate",
   Awarded: "indigo",
   Cancelled: "rose",
@@ -71,6 +71,8 @@ const workflowStep = computed(() => {
       return { step: 2, label: t("auctions.detail.workflow.scheduled") };
     case "Live":
       return { step: 3, label: t("auctions.detail.workflow.live") };
+    case "Paused":
+      return { step: 3, label: t("auctions.detail.workflow.paused") };
     case "Ended":
       return { step: 4, label: t("auctions.detail.workflow.ended") };
     default:
@@ -155,35 +157,6 @@ async function invite() {
   });
 }
 
-async function publish() {
-  await runAction(async () => {
-    await api.post(`/api/auctions/${auctionId}/publish`);
-    toast.success(t("auctions.detail.publishedToast"));
-    await load();
-  });
-}
-
-async function cancelAuction() {
-  await runAction(async () => {
-    await api.post(`/api/auctions/${auctionId}/cancel`, t("auctions.detail.cancelReason"));
-    toast.success(t("auctions.detail.cancelledToast"));
-    await load();
-  });
-}
-
-async function extend() {
-  if (!auction.value) return;
-  await runAction(async () => {
-    const newEndAt = new Date(new Date(auction.value!.endAt).getTime() + extendMinutes.value * 60_000).toISOString();
-    await api.post(`/api/auctions/${auctionId}/extend`, {
-      newEndAt,
-      reason: t("auctions.detail.extendReason", { minutes: extendMinutes.value }),
-    });
-    toast.success(t("auctions.detail.extendedToast", { minutes: extendMinutes.value }));
-    await load();
-  });
-}
-
 async function loadComparison(itemId: string) {
   await runAction(async () => {
     comparisons[itemId] = await api.get<BidComparisonDto[]>(`/api/auctions/${auctionId}/items/${itemId}/bids/compare`);
@@ -239,6 +212,12 @@ onMounted(async () => {
     liveLog.value = [t("auctions.detail.log.awarded"), ...liveLog.value].slice(0, 20);
     load();
   });
+
+  // Başka bir admin (veya başka sekme) durumu değiştirdiğinde sayfa ve durum paneli kendini yeniler.
+  conn.on("AuctionStatusChanged", (payload: { status: string }) => {
+    liveLog.value = [t("auctions.detail.log.statusChanged", { status: t(`enums.auctionStatus.${payload.status}`) }), ...liveLog.value].slice(0, 20);
+    load();
+  });
 });
 
 onBeforeUnmount(() => {
@@ -248,7 +227,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <LoadingSpinner v-if="loading" />
+  <!-- Spinner only on first load: live refreshes (bids, extensions) must not remount the page/panels. -->
+  <LoadingSpinner v-if="loading && !auction" />
 
   <div v-else-if="auction" class="space-y-6">
     <!-- Page header with breadcrumb -->
@@ -289,8 +269,8 @@ onBeforeUnmount(() => {
           <ClockIcon class="h-3.5 w-3.5" />
           {{ $t("auctions.detail.timeLeft") }}
         </div>
-        <div class="mt-1 font-mono font-semibold" :class="auction.status === 'Live' ? 'text-emerald-600' : 'text-slate-500'">
-          {{ auction.status === "Live" ? timeLeftLabel : formatDateTime(auction.endAt) }}
+        <div class="mt-1 font-mono font-semibold" :class="auction.status === 'Live' ? 'text-emerald-600' : auction.status === 'Paused' ? 'text-amber-600' : 'text-slate-500'">
+          {{ auction.status === "Live" ? timeLeftLabel : auction.status === "Paused" ? $t("enums.auctionStatus.Paused") : formatDateTime(auction.endAt) }}
         </div>
       </div>
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -302,24 +282,8 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <!-- Admin controls -->
-    <div v-if="isAdminRole() && !['Ended', 'Awarded', 'Cancelled'].includes(auction.status)" class="flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-      <span class="text-sm font-medium text-amber-800 mr-1">{{ $t("auctions.detail.adminControl") }}</span>
-      <AppButton v-if="auction.status === 'Draft'" @click="publish">
-        {{ $t("auctions.detail.publish") }}
-      </AppButton>
-      <template v-if="auction.status === 'Live'">
-        <div class="flex items-center gap-2">
-          <input v-model.number="extendMinutes" type="number" min="1" class="w-20 rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
-          <AppButton variant="secondary" @click="extend">
-            {{ $t("auctions.detail.extendNow") }}
-          </AppButton>
-        </div>
-      </template>
-      <AppButton variant="danger" @click="cancelAuction">
-        {{ $t("auctions.detail.cancelAuction") }}
-      </AppButton>
-    </div>
+    <!-- Durum yönetimi: yayınla / başlat / duraklat / devam / bitir / yeniden aç / iptal + süre uzatma + geçmiş -->
+    <AuctionStatusPanel :auction-id="auctionId" :status="auction.status" :can-manage="isAdminRole()" @changed="load" />
 
     <!-- ============================================================ -->
     <!-- EVALUATION MODE: Ended / Awarded                            -->
@@ -462,7 +426,10 @@ onBeforeUnmount(() => {
                 :key="inv.id"
                 class="flex items-center justify-between px-5 py-2.5"
               >
-                <span class="text-sm text-slate-700">{{ inv.companyName }}</span>
+                <span class="min-w-0 text-sm text-slate-700">
+                  <span class="block truncate">{{ inv.companyName }}</span>
+                  <span v-if="inv.origin !== 'Direct'" class="block text-[11px] text-slate-400">{{ $t(`auctions.detail.origin.${inv.origin}`) }}</span>
+                </span>
                 <AppBadge tone="slate">{{ $t(`enums.invitationStatus.${inv.status}`) }}</AppBadge>
               </li>
             </ul>
@@ -482,6 +449,8 @@ onBeforeUnmount(() => {
               </AppButton>
             </div>
           </AppCard>
+
+          <InviteLinksPanel :auction-id="auctionId" :companies="companies" :status="auction.status" @created="load" />
 
           <AppCard :title="$t('auctions.detail.liveLog')">
             <ul v-if="liveLog.length > 0" class="space-y-1">

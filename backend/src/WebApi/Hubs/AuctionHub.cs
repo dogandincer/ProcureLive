@@ -19,16 +19,18 @@ namespace ProcureLive.WebApi.Hubs;
 public sealed class AuctionHub : Hub
 {
     private readonly IApplicationDbContext _context;
+    private readonly ISupplierAccessService _accessService;
 
-    public AuctionHub(IApplicationDbContext context)
+    public AuctionHub(IApplicationDbContext context, ISupplierAccessService accessService)
     {
         _context = context;
+        _accessService = accessService;
     }
 
     /// <summary>
-    /// Mirrors GetAuctionById's read-access rule (AuctionAccessHandler): Admin/Buyer always join;
-    /// a Supplier only joins if invited (any status but Declined) — otherwise they could eavesdrop
-    /// on another company's live bid broadcasts, which the REST API already refuses to reveal.
+    /// Mirrors GetAuctionById's read-access rule (SupplierAccessContext.Evaluate): Admin/Buyer always join;
+    /// a Supplier only joins with Full access (visible, not declined, within the Standard quota) — otherwise
+    /// they could eavesdrop on live bid broadcasts the REST API only returns as a restricted view.
     /// </summary>
     public async Task JoinAuctionGroup(Guid auctionId)
     {
@@ -46,10 +48,25 @@ public sealed class AuctionHub : Hub
             Guid companyId = Guid.Empty;
             bool parsed = companyIdClaim is not null && Guid.TryParse(companyIdClaim, out companyId);
 
-            bool isInvited = parsed && await _context.AuctionInvitations.AnyAsync(i =>
-                i.AuctionId == auctionId && i.CompanyId == companyId && i.Status != InvitationStatus.Declined);
+            if (!parsed)
+            {
+                return;
+            }
 
-            if (!isInvited)
+            var auction = await _context.Auctions
+                .Where(a => a.Id == auctionId)
+                .Select(a => new { a.Id, a.Status, a.OwnerCompanyId, a.IsListedForPlus, OwnerLists = a.OwnerCompany.ListTendersForPlus })
+                .FirstOrDefaultAsync(Context.ConnectionAborted);
+
+            if (auction is null)
+            {
+                return;
+            }
+
+            // Kısıtlı (kota dolu / yetkisiz) görüntüleyen canlı teklif yayınını dinleyemez — REST ile aynı kural.
+            SupplierAccessContext access = await _accessService.GetContextAsync(companyId, Context.ConnectionAborted);
+            var facts = new AuctionAccessFacts(auction.Id, auction.Status, auction.OwnerCompanyId, auction.IsListedForPlus, auction.OwnerLists);
+            if (access.Evaluate(facts) != AuctionAccessLevel.Full)
             {
                 return;
             }

@@ -22,6 +22,10 @@ public static class DependencyInjection
 
         services.AddAutoMapper(assembly);
 
+        services.AddScoped<Common.Interfaces.ISubscriptionService, Subscriptions.SubscriptionService>();
+        services.AddScoped<Common.Interfaces.ISupplierAccessService, Common.Security.SupplierAccessService>();
+        services.AddScoped<Auctions.Status.AuctionStatusService>();
+
         return services;
     }
 }

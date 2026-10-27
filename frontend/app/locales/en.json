@@ -20,6 +20,7 @@
     "yes": "Yes",
     "no": "No",
     "back": "Back",
+    "next": "Next",
     "search": "Search",
     "actions": "Actions",
     "optional": "optional",
@@ -54,7 +55,11 @@
     "auditLog": "Audit Log",
     "sectors": "Sectors",
     "workspaces": "Workspaces",
-    "monitoring": "Monitoring"
+    "monitoring": "Monitoring",
+    "plusGroup": "Plus",
+    "plusSearch": "Advanced Search",
+    "pricing": "Plans",
+    "companySettings": "Company Settings"
   },
   "language": {
     "label": "Language",
@@ -281,6 +286,7 @@
         "draft": "Draft: Add Items & Invite Companies",
         "scheduled": "Published: Waiting to Start",
         "live": "Live: Collecting Bids",
+        "paused": "Paused: Bidding Halted",
         "ended": "Ended: Bid Evaluation"
       },
       "type": "Type",
@@ -313,6 +319,10 @@
       "add": "Add",
       "invitedCompanies": "Invited Companies",
       "emptyInvites": "No invitations yet",
+      "origin": {
+        "InviteLink": "Via invitation link",
+        "SelfJoin": "Joined from the listing"
+      },
       "selectCompany": "Select company...",
       "invite": "Invite",
       "liveLog": "Live Feed",
@@ -332,7 +342,74 @@
         "extended": "Time extended: {reason}",
         "started": "Auction went live",
         "ended": "Auction ended",
-        "awarded": "A winner was selected for an item"
+        "awarded": "A winner was selected for an item",
+        "statusChanged": "Status changed: {status}"
+      }
+    },
+    "status": {
+      "title": "Status Management",
+      "description": "Transitions follow rules; every change, including automatic ones, is recorded.",
+      "plannedStart": "Planned start",
+      "actualStart": "Actual start",
+      "end": "End",
+      "actualEnd": "Actual end",
+      "pausedSince": "Paused at",
+      "cancelledBanner": "This auction was cancelled; its status can no longer change.",
+      "awardedBanner": "The auction is awarded; its status can no longer change.",
+      "adminOnly": "Only Admins can change the status.",
+      "noActions": "No transitions are available from this status.",
+      "extend": "Extend Time",
+      "minutes": "min",
+      "extendedToast": "End time extended by {minutes} min.",
+      "history": "Status history",
+      "historyEmpty": "No status changes recorded yet.",
+      "showAll": "Show all ({n})",
+      "showLess": "Show less",
+      "system": "System (automatic)",
+      "loadError": "Failed to load the status.",
+      "saveError": "The status could not be changed.",
+      "actions": {
+        "publish": "Publish",
+        "startNow": "Start Now",
+        "resume": "Resume",
+        "reopen": "Reopen",
+        "pause": "Pause",
+        "endNow": "End Now",
+        "unpublish": "Move to Draft",
+        "cancel": "Cancel Auction"
+      },
+      "effect": {
+        "publish": "The auction is scheduled and goes live automatically at its start time.",
+        "startNow": "The auction goes live immediately instead of waiting for its planned start; invited suppliers are notified.",
+        "resume": "Bidding continues where it left off. The paused duration is added to the end time.",
+        "reopen": "The ended auction opens for bidding again until the new end time.",
+        "pause": "Bidding stops temporarily and the clock is frozen. Suppliers are notified with the reason.",
+        "endNow": "The auction closes immediately and moves to bid evaluation.",
+        "unpublish": "The auction is unpublished and returns to draft; it can be edited and published again.",
+        "cancel": "The auction is cancelled permanently and this cannot be undone. Suppliers are notified with the reason."
+      },
+      "dialog": {
+        "reason": "Reason (optional)",
+        "reasonRequired": "Reason (required)",
+        "reasonPlaceholder": "Written to the status history and the supplier notification",
+        "startAt": "Start",
+        "endAt": "End",
+        "endHintResume": "Default: the remaining time is kept (the paused duration is added)."
+      },
+      "toast": {
+        "publish": "Auction published.",
+        "startNow": "Auction started.",
+        "resume": "Auction resumed.",
+        "reopen": "Auction reopened.",
+        "pause": "Auction paused.",
+        "endNow": "Auction ended.",
+        "unpublish": "Auction moved to draft.",
+        "cancel": "Auction cancelled."
+      },
+      "auto": {
+        "Live": "Planned start time reached",
+        "Ended": "Planned end time reached",
+        "Awarded": "Winners selected for all items"
       }
     },
     "evaluation": {
@@ -370,6 +447,11 @@
       "actionError": "The action could not be completed.",
       "acceptedToast": "Invitation accepted.",
       "declinedToast": "Invitation declined.",
+      "joinedToast": "You joined the auction. You can now place bids.",
+      "joinBanner": "This auction is open to you. Join it to place bids.",
+      "joinCta": "Join Auction",
+      "pausedTime": "Paused",
+      "pausedBanner": "The auction is temporarily paused; the clock is frozen and no bids are accepted.",
       "bidError": "Bid could not be placed.",
       "feed": {
         "bidSubmitted": "Your bid was submitted: {amount} {currency}",
@@ -378,6 +460,9 @@
         "bidPlaced": "{who} bid {amount}",
         "extended": "⏱️ Time extended: {reason}",
         "ended": "🏁 Auction ended",
+        "started": "▶️ Auction started",
+        "statusChanged": "ℹ️ Auction status: {status}",
+        "statusChangedReason": "ℹ️ Auction status: {status} — {reason}",
         "wonItem": "🎉 You won an item!",
         "itemAwarded": "A winner was selected for an item."
       }
@@ -395,7 +480,11 @@
       "loadError": "Failed to load records.",
       "actionError": "The action could not be completed.",
       "acceptedToast": "Invitation accepted.",
-      "declinedToast": "Invitation declined."
+      "declinedToast": "Invitation declined.",
+      "joinedToast": "You joined the auction.",
+      "join": "Join",
+      "joined": "Joined",
+      "discoverPlus": "Discover new auctions with Plus"
     },
     "history": {
       "title": "My Auction History",
@@ -1018,6 +1107,8 @@
         "none": "Not set",
         "allowAlternatives": "Suppliers may bid alternative (equivalent) products",
         "allowPartial": "Suppliers may bid on a subset of lines",
+        "listedForPlus": "List this auction in Plus members' searches",
+        "listedForPlusHint": "If unchecked, the auction is only visible via an invitation link or direct invitation. Plus listing must also be enabled in the owner company's settings.",
         "attachments": "Attachments (specs, drawings, etc.)",
         "dropHint": "Drag files here or choose",
         "chooseFiles": "Choose Files",
@@ -1144,5 +1235,241 @@
       "companies": "Companies",
       "status": "Status"
     }
+  },
+  "restricted": {
+    "upgradeCta": "Upgrade to Plus",
+    "itemCount": "Items",
+    "backToList": "Back to auctions",
+    "QuotaExceeded": {
+      "title": "You've used your auction quota",
+      "body": "Standard members can join at most 2 auctions. Upgrade to Plus to see this auction's items, terms and attachments and to place bids.",
+      "short": "Quota full"
+    },
+    "NoAccess": {
+      "title": "You don't have access to this auction",
+      "body": "This auction isn't open to you, or you declined the invitation. Plus members can discover every auction listed for Plus.",
+      "short": "No access"
+    },
+    "PlusRequired": {
+      "title": "Advanced search is for Plus members",
+      "body": "Upgrade to Plus to search by company, auction and product, and to filter by auction type and number of participants."
+    }
+  },
+  "subscription": {
+    "quotaReachedToast": "You've used your auction quota. Upgrade to Plus to join more auctions.",
+    "plusActive": "You're a Plus member",
+    "plusUnlimited": "Unlimited auction participation and advanced search are active.",
+    "standardTitle": "Standard membership",
+    "quotaFullTitle": "You've used your auction quota",
+    "quotaFullBody": "upgrade to Plus to join new auctions",
+    "quotaUsage": "{used}/{limit} auction slots used",
+    "quotaRemaining": "Remaining: {n}",
+    "badgeStandard": "Standard · {used}/{limit}"
+  },
+  "invite": {
+    "welcomeTitle": "Welcome to ProcureLive",
+    "welcomeBody": "{owner} has invited you to an auction. Sign in, or create an account on behalf of your company, to continue.",
+    "tender": "The auction you're invited to",
+    "invitedCompany": "Invited company",
+    "tenderEnds": "Auction ends",
+    "linkExpires": "Link valid until",
+    "lockedTo": "Invitation email",
+    "claimedToast": "The invitation was added to your account.",
+    "genericError": "The action could not be completed.",
+    "goToPanel": "Go to my dashboard",
+    "goToLogin": "Go to sign in",
+    "loginCta": "Sign in and continue",
+    "registrationUsed": "An account was already created with this link; please sign in.",
+    "tabs": {
+      "register": "Create an account",
+      "login": "I have an account"
+    },
+    "claim": {
+      "title": "Hello {name}",
+      "body": "This invitation belongs to your company. Add it to your account and go to the auction.",
+      "cta": "Accept invitation and open auction"
+    },
+    "mismatch": {
+      "title": "This invitation belongs to another company",
+      "body": "You're signed in as {email}; the invitation was sent to {company}. Sign in with an account of the invited company or create a new one.",
+      "switch": "Continue with another account"
+    },
+    "register": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "passwordConfirm": "Confirm password",
+      "companyNote": "Your account will be created as a supplier user of {company}.",
+      "kvkk": "I have read the KVKK privacy notice and consent to the processing of my personal data for tender processes.",
+      "cta": "Create account and open auction",
+      "passwordMismatch": "Passwords don't match.",
+      "kvkkRequired": "You must accept the privacy notice to continue.",
+      "successToast": "Your account was created. Welcome!"
+    },
+    "invalid": {
+      "InviteInvalid": {
+        "title": "Invalid invitation link",
+        "body": "This link is incorrect or has been revoked. Ask the inviting company for a new link."
+      },
+      "InviteExpired": {
+        "title": "The invitation link has expired",
+        "body": "Invitation links are time-limited for security. Ask the inviting company for a new link."
+      },
+      "AuctionClosed": {
+        "title": "The auction is closed",
+        "body": "This auction has ended or was cancelled and no longer accepts participants."
+      }
+    }
+  },
+  "inviteLinks": {
+    "title": "Invitation Links",
+    "description": "Unique, time-limited link for a specific company",
+    "emailPlaceholder": "Lock to email (optional)",
+    "validDays": "Valid for (days)",
+    "create": "Create Link",
+    "closed": "New links can't be created for closed auctions.",
+    "copy": "Copy link",
+    "copiedToast": "Invitation link copied to clipboard.",
+    "expires": "Valid until: {date}",
+    "loadError": "Failed to load invitation links.",
+    "createError": "The invitation link could not be created.",
+    "state": {
+      "active": "Active",
+      "expired": "Expired",
+      "registered": "Registered"
+    }
+  },
+  "pricing": {
+    "title": "Unlimited auctions with Plus",
+    "subtitle": "Standard members can join at most 2 auctions. With Plus you join without limits, discover every auction listed for Plus and use advanced search.",
+    "loadError": "Failed to load plans.",
+    "currentPlan": "Your current plan",
+    "standard": "Standard",
+    "validUntil": "valid until {date}",
+    "usersInCompany": "{n} users in your company",
+    "compare": {
+      "feature": "Feature"
+    },
+    "features": {
+      "visibility": {
+        "label": "Auctions you can see",
+        "standard": "Ones you're invited to and the inviting company's open auctions",
+        "plus": "Plus every auction listed for Plus"
+      },
+      "quota": {
+        "label": "Auction participation",
+        "standard": "Up to {n} auctions",
+        "plus": "Unlimited auction participation"
+      },
+      "search": {
+        "label": "Advanced search",
+        "plus": "Search by company, auction and product"
+      },
+      "filters": {
+        "label": "Filtering and sorting",
+        "plus": "By auction type and number of participants"
+      },
+      "restricted": {
+        "label": "Auctions beyond the quota",
+        "standard": "Blurred / limited view",
+        "plus": "Full access"
+      }
+    },
+    "bands": {
+      "Seats5To10": "5-10 Users",
+      "Seats10To20": "10-20 Users",
+      "Seats20Plus": "20+ Users"
+    },
+    "bandRange": "{min}-{max} Users",
+    "bandOpen": "{min}+ Users",
+    "perYear": "{months} months",
+    "recommended": "Fits your company",
+    "seats": "Up to {n} users",
+    "currentBadge": "Your current plan",
+    "tooSmall": "Too small for your user count",
+    "switchCta": "Switch to this plan",
+    "buyCta": "Buy",
+    "demoNote": "Demo environment: payments are simulated, no real charge is made.",
+    "checkout": {
+      "title": "Secure Checkout (Demo)",
+      "demoWarning": "This is a demo payment; don't enter real card details. Only the cardholder name and the card's last 4 digits are sent to the server.",
+      "holder": "Cardholder name",
+      "number": "Card number",
+      "testCards": "Test: 4242 4242 4242 4242 → succeeds · a card ending in 0002 → declined",
+      "expiry": "Expiry",
+      "total": "Amount due (12 months)",
+      "processing": "Processing payment...",
+      "pay": "Pay {amount}",
+      "declined": "Payment declined: {reason}",
+      "error": "The payment could not be completed."
+    },
+    "success": {
+      "title": "Purchase Successful",
+      "body": "Your Plus membership is active. You can now join unlimited auctions and use advanced search.",
+      "plan": "Plan",
+      "amount": "Amount",
+      "validUntil": "Valid until",
+      "reference": "Transaction reference",
+      "toSearch": "Go to advanced search",
+      "toAuctions": "Back to my auctions"
+    }
+  },
+  "search": {
+    "title": "Advanced Search",
+    "subtitle": "Search by company, auction or product; filter auctions by type and number of participants.",
+    "placeholder": "Company name, sector, city, auction title, reference code or product...",
+    "loadError": "Search failed.",
+    "empty": "No results found.",
+    "tabs": {
+      "all": "All",
+      "companies": "Companies",
+      "tenders": "Auctions",
+      "products": "Products"
+    },
+    "filters": {
+      "auctionType": "Auction type",
+      "allTypes": "All types",
+      "participants": "Participants",
+      "min": "min",
+      "max": "max",
+      "sort": "Sort by",
+      "product": "Product",
+      "owner": "Company"
+    },
+    "sorts": {
+      "endingSoon": "Ending soonest",
+      "newest": "Newest",
+      "participantsDesc": "Participants (most first)",
+      "participantsAsc": "Participants (fewest first)"
+    },
+    "companyType": {
+      "Internal": "Buyer",
+      "Supplier": "Supplier"
+    },
+    "maskedNote": "Contact details hidden (KVKK)",
+    "maskedTooltip": "The company hasn't allowed sharing its contact details; they are masked on the server.",
+    "openTenders": "{n} open auctions",
+    "itemCount": "Items",
+    "participantCount": "Participants",
+    "endsAt": "Ends"
+  },
+  "companySettings": {
+    "title": "Company Settings",
+    "adminTitle": "Privacy and Listing",
+    "brandTitle": "Logo",
+    "brandDescription": "Shown in search results and auction lists",
+    "logoUrl": "Logo URL",
+    "noLogo": "No logo",
+    "logoBroken": "The image could not be loaded; check the URL.",
+    "privacyTitle": "Privacy and Listing",
+    "privacyDescription": "KVKK contact sharing and Plus showcase preferences",
+    "showContactInfo": "Show my contact details",
+    "showContactInfoHint": "When off, your email and phone are masked on the server in Plus searches and your website isn't shown. Default: off.",
+    "preview": "Other companies see",
+    "listTendersForPlus": "List my company's auctions for Plus",
+    "listTendersForPlusHint": "When on, your auctions that allow Plus listing are visible to Plus members. When off, your auctions are visible by invitation only.",
+    "savedToast": "Settings saved.",
+    "saveError": "Settings could not be saved.",
+    "loadError": "Failed to load settings.",
+    "managePlan": "Manage plan"
   }
 }

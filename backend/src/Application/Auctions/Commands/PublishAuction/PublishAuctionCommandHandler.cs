@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ProcureLive.Application.Auctions.Status;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Domain.Entities.Auctions;
@@ -12,11 +13,13 @@ public sealed class PublishAuctionCommandHandler : IRequestHandler<PublishAuctio
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTime _dateTime;
+    private readonly ICurrentUserService _currentUserService;
 
-    public PublishAuctionCommandHandler(IApplicationDbContext context, IDateTime dateTime)
+    public PublishAuctionCommandHandler(IApplicationDbContext context, IDateTime dateTime, ICurrentUserService currentUserService)
     {
         _context = context;
         _dateTime = dateTime;
+        _currentUserService = currentUserService;
     }
 
     public async Task Handle(PublishAuctionCommand request, CancellationToken cancellationToken)
@@ -46,12 +49,14 @@ public sealed class PublishAuctionCommandHandler : IRequestHandler<PublishAuctio
             throw new ConflictException("İhale yayınlanmadan önce en az bir Cari davet edilmelidir.");
         }
 
-        if (auction.StartAt <= _dateTime.UtcNow)
+        DateTime now = _dateTime.UtcNow;
+
+        if (auction.StartAt <= now)
         {
             throw new ConflictException("Başlangıç tarihi gelecekte olmalıdır.");
         }
 
-        auction.Status = AuctionStatus.Scheduled;
+        AuctionStatusMachine.Apply(_context, auction, AuctionStatus.Scheduled, now, _currentUserService.UserId, null, automatic: false);
         await _context.SaveChangesAsync(cancellationToken);
     }
 }

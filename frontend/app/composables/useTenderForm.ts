@@ -33,6 +33,8 @@ export interface TenderMaster {
   deliveryTerm: DeliveryTermCode | "";
   allowAlternativeProducts: boolean;
   allowPartialBids: boolean;
+  /** Plus aramalarında listelenebilir; kapalıysa yalnızca davet linki / doğrudan ekleme ile görülür. */
+  isListedForPlus: boolean;
 }
 
 export interface TenderLineDraft {
@@ -93,6 +95,7 @@ function emptyMaster(): TenderMaster {
     deliveryTerm: "",
     allowAlternativeProducts: false,
     allowPartialBids: false,
+    isListedForPlus: false,
   };
 }
 
@@ -279,6 +282,7 @@ export function useTenderForm() {
         deliveryTerm: master.deliveryTerm || null,
         allowAlternativeProducts: master.allowAlternativeProducts,
         allowPartialBids: master.allowPartialBids,
+        isListedForPlus: master.isListedForPlus,
       },
       lines: lines.value.map((l) => ({
         productId: l.productId,

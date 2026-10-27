@@ -12,6 +12,14 @@ export function apiErrorMessage(error: any, fallback: string): string {
   return data?.title ?? data?.detail ?? fallback;
 }
 
+/**
+ * Machine-readable error code ("QuotaExceeded", "PlusRequired", "InviteExpired" ...). Titles are translated per
+ * language, so UI behaviour (show upgrade CTA, switch to login) must branch on this, never on the message text.
+ */
+export function apiErrorCode(error: any): string | null {
+  return error?.data?.code ?? null;
+}
+
 export function useApi() {
   const config = useRuntimeConfig();
   const { accessToken, logout } = useAuth();

@@ -29,7 +29,8 @@ public sealed class CreateAuctionCommandHandler : IRequestHandler<CreateAuctionC
             ReservePrice = request.ReservePrice,
             MinDecrementAmount = request.MinDecrementAmount,
             MinDecrementPercentage = request.MinDecrementPercentage,
-            ExtensionRuleMinutes = request.ExtensionRuleMinutes
+            ExtensionRuleMinutes = request.ExtensionRuleMinutes,
+            IsListedForPlus = request.IsListedForPlus
         };
 
         _context.Auctions.Add(auction);

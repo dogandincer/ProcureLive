@@ -102,20 +102,31 @@ function saveSpec() {
   editingSpecTempId.value = null;
 }
 
-// ---- Attachments (simulated upload — A seçeneği) ----
-function handleFiles(fileList: FileList | null | undefined) {
+// ---- Ekler: sunucuya gerçek yükleme (tür/boyut/içerik sunucuda doğrulanır) ----
+const { upload } = useFileUpload();
+async function handleFiles(fileList: FileList | null | undefined) {
   if (!fileList) return;
   for (const f of Array.from(fileList)) {
-    attachments.value.push({
+    const draft = reactive({
       tempId: crypto.randomUUID(),
       fileName: f.name,
-      url: `https://cdn.procurelive.sim/${Date.now()}-${encodeURIComponent(f.name)}`,
+      url: "",
       contentType: f.type || "application/octet-stream",
       sizeBytes: f.size,
-      status: "done",
+      status: "uploading" as const,
     });
+    attachments.value.push(draft as any);
+    try {
+      const saved = await upload(f, "auction-attachment");
+      const a = attachments.value.find((x) => x.tempId === draft.tempId);
+      if (a) Object.assign(a, { url: saved.url, fileName: saved.fileName, contentType: saved.contentType, sizeBytes: saved.sizeBytes, status: "done" });
+    } catch (error: any) {
+      attachments.value = attachments.value.filter((x) => x.tempId !== draft.tempId);
+      toast.error(`${f.name}: ${apiErrorMessage(error, t("upload.error"))}`);
+    }
   }
 }
+const uploadingAttachments = computed(() => attachments.value.some((a) => a.status === "uploading"));
 function removeAttachment(tempId: string) {
   attachments.value = attachments.value.filter((a) => a.tempId !== tempId);
 }
@@ -352,11 +363,12 @@ onMounted(async () => {
             {{ $t("tender.wizard.f.chooseFiles") }}
             <input type="file" multiple class="hidden" @change="handleFiles(($event.target as HTMLInputElement).files)" />
           </label>
-          <p class="mt-1 text-[10px] text-amber-600">{{ $t("tender.wizard.f.simNote") }}</p>
+          <p class="mt-1 text-[10px] text-slate-400">{{ $t("upload.limits") }}</p>
         </div>
         <ul v-if="attachments.length" class="mt-2 space-y-1">
           <li v-for="a in attachments" :key="a.tempId" class="flex items-center justify-between rounded-md border border-slate-100 px-2.5 py-1.5 text-xs">
-            <span class="truncate text-slate-600">{{ a.fileName }} <span class="text-slate-400">({{ Math.round(a.sizeBytes / 1024) }} KB)</span></span>
+            <span class="truncate text-slate-600">{{ a.fileName }} <span class="text-slate-400">({{ Math.round(a.sizeBytes / 1024) }} KB)</span>
+              <span v-if="a.status === 'uploading'" class="ml-1 text-indigo-600">{{ $t("upload.uploading") }}</span></span>
             <button type="button" class="rounded p-0.5 text-slate-400 hover:text-red-600" @click="removeAttachment(a.tempId)"><TrashIcon class="h-3.5 w-3.5" /></button>
           </li>
         </ul>
@@ -375,7 +387,7 @@ onMounted(async () => {
       </dl>
       <p v-if="!isValid" class="mt-3 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700">{{ $t("tender.wizard.fixErrors") }}</p>
       <button
-        type="button" :disabled="!isValid || submitting"
+        type="button" :disabled="!isValid || submitting || uploadingAttachments"
         class="mt-4 flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
         @click="submit"
       >

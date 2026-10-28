@@ -12,6 +12,7 @@ import {
   XMarkIcon,
 } from "@heroicons/vue/24/outline";
 import { LockClosedIcon, StarIcon } from "@heroicons/vue/24/solid";
+const assetUrl = useAssetUrl();
 
 type Tab = "all" | "companies" | "tenders" | "products";
 
@@ -292,7 +293,7 @@ onMounted(async () => {
         <h2 v-if="tab === 'all'" class="text-sm font-semibold uppercase tracking-wide text-slate-500">{{ $t("search.tabs.products") }}</h2>
         <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <div v-for="p in result.products" :key="p.id" class="flex items-center gap-3 rounded-xl border border-slate-200 bg-surface p-4">
-            <img v-if="p.thumbnailUrl" :src="p.thumbnailUrl" :alt="p.name" class="h-14 w-14 shrink-0 rounded-lg border border-slate-100 object-cover" />
+            <img v-if="p.thumbnailUrl" :src="assetUrl(p.thumbnailUrl) ?? p.thumbnailUrl" :alt="p.name" class="h-14 w-14 shrink-0 rounded-lg border border-slate-100 object-cover" />
             <div v-else class="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-slate-100"><CubeIcon class="h-6 w-6 text-slate-400" /></div>
             <div class="min-w-0 flex-1">
               <div class="truncate font-medium text-slate-800">{{ p.name }}</div>

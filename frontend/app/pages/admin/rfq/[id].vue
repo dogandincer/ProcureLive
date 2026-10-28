@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { RfqAiRecommendationDto, RfqComparisonRowDto, RfqProcessDetailDto, RfqQuoteDto } from "~/types/api";
-import { SparklesIcon } from "@heroicons/vue/24/outline";
+import { ArrowDownTrayIcon, SparklesIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import type { ExcelColumn } from "~/composables/useExcelImport";
 
 const route = useRoute();
@@ -153,6 +153,60 @@ async function publish() {
   });
 }
 
+
+// ---- İptal, davet geri alma, dışa aktarma ----
+const showCancel = ref(false);
+const cancelReason = ref("");
+const pendingRevoke = ref<{ id: string; companyName: string } | null>(null);
+const busyEdit = ref(false);
+const { exportRows } = useExcelExport();
+const cancellable = computed(() => !!process.value && ['Draft', 'Sent', 'InProgress', 'Closed'].includes(process.value.status));
+const revocable = computed(() => !!process.value && ["Draft", "Sent", "InProgress"].includes(process.value.status));
+
+async function confirmCancel() {
+  busyEdit.value = true;
+  await runAction(async () => {
+    await api.post(`/api/rfq/processes/${processId}/cancel`, { reason: cancelReason.value.trim() || null });
+    toast.success(t("rfx.edit.cancelled"));
+    showCancel.value = false;
+    await load();
+  });
+  busyEdit.value = false;
+}
+
+async function confirmRevoke() {
+  const inv = pendingRevoke.value;
+  if (!inv) return;
+  busyEdit.value = true;
+  await runAction(async () => {
+    await api.delete(`/api/rfq/processes/${processId}/invitations/${inv.id}`);
+    toast.success(t("auctions.edit.invitationRevoked"));
+    await load();
+  });
+  pendingRevoke.value = null;
+  busyEdit.value = false;
+}
+
+async function deleteLine(lineId: string) {
+  await runAction(async () => {
+    await api.delete(`/api/rfq/processes/${processId}/line-items/${lineId}`);
+    toast.success(t("auctions.edit.itemDeleted"));
+    await load();
+  });
+}
+
+function exportMatrix() {
+  if (!process.value) return;
+  exportRows(`${process.value.title}-karsilastirma`, t("rfq.detail.comparisonMatrix"), [
+    { header: t("auctions.export.item"), value: (r: RfqComparisonRowDto) => r.lineItemDescription, width: 40 },
+    { header: t("auctions.export.company"), value: (r) => r.companyName, width: 34 },
+    { header: t("auctions.export.unitPrice"), value: (r) => r.unitPrice },
+    { header: t("auctions.export.currency"), value: (r) => r.currencyCode },
+    { header: t("auctions.export.normalized"), value: (r) => r.normalizedUnitPriceInBaseCurrency },
+    { header: t("rfq.detail.matrixTable.leadTime"), value: (r) => r.leadTimeDays },
+  ], matrix.value);
+}
+
 async function close() {
   await runAction(async () => {
     await api.post(`/api/rfq/processes/${processId}/close`);
@@ -194,8 +248,11 @@ onMounted(async () => {
         <AppButton v-if="process.status === 'Sent'" @click="publish">
           {{ $t("rfq.detail.publishStep4") }}
         </AppButton>
-        <AppButton v-if="!['Closed', 'Awarded'].includes(process.status)" variant="secondary" @click="close">
+        <AppButton v-if="!['Closed', 'Awarded', 'Cancelled'].includes(process.status)" variant="secondary" @click="close">
           {{ $t("rfq.detail.closeProcess") }}
+        </AppButton>
+        <AppButton v-if="cancellable" variant="danger" data-testid="cancel-process" @click="showCancel = true; cancelReason = ''">
+          {{ $t("rfx.edit.cancel") }}
         </AppButton>
       </div>
     </div>
@@ -213,7 +270,17 @@ onMounted(async () => {
           />
         </div>
         <ul v-if="process.lineItems.length > 0" class="mt-3 space-y-1 text-sm text-slate-600">
-          <li v-for="li in process.lineItems" :key="li.id">{{ li.description }} — {{ li.quantity }} {{ unitLabel(li.unitOfMeasure) }}</li>
+          <li v-for="li in process.lineItems" :key="li.id" class="flex items-center justify-between gap-2">
+            <span>{{ li.description }} — {{ li.quantity }} {{ unitLabel(li.unitOfMeasure) }}</span>
+            <button
+              v-if="['Draft', 'Sent'].includes(process.status)"
+              type="button"
+              class="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+              :aria-label="$t('rfx.edit.deleteLine', { item: li.description })"
+              data-testid="delete-line"
+              @click="deleteLine(li.id)"
+            ><TrashIcon class="h-4 w-4" /></button>
+          </li>
         </ul>
         <EmptyState v-else class="mt-3">{{ $t("rfq.detail.emptyItems") }}</EmptyState>
 
@@ -233,7 +300,16 @@ onMounted(async () => {
         <ul v-if="process.invitations.length > 0" class="mt-3 space-y-2 text-sm">
           <li v-for="inv in process.invitations" :key="inv.id" class="flex items-center justify-between">
             <span>{{ inv.companyName }}</span>
-            <span class="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ $t(`enums.invitationStatus.${inv.status}`) }}</span>
+            <span class="flex items-center gap-2">
+              <span class="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ $t(`enums.invitationStatus.${inv.status}`) }}</span>
+              <button
+              v-if="inv.status === 'Invited' && revocable"
+              type="button"
+              class="text-xs font-medium text-rose-600 hover:underline"
+              data-testid="revoke-invitation"
+              @click="pendingRevoke = { id: inv.id, companyName: inv.companyName }"
+            >{{ $t("auctions.edit.revoke") }}</button>
+            </span>
           </li>
         </ul>
         <EmptyState v-else class="mt-3">{{ $t("rfq.detail.emptyInvites") }}</EmptyState>
@@ -256,6 +332,9 @@ onMounted(async () => {
     <AppCard>
       <h3 class="text-sm font-semibold text-slate-700">
         {{ $t("rfq.detail.comparisonMatrix") }} <span class="text-xs font-normal text-slate-400">{{ $t("rfq.detail.comparisonMatrixHint") }}</span>
+        <button v-if="matrix.length" type="button" class="float-right inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:underline" data-testid="export-matrix" @click="exportMatrix">
+          <ArrowDownTrayIcon class="h-4 w-4" />{{ $t("auctions.export.button") }}
+        </button>
       </h3>
       <div v-for="(rows, description) in groupedMatrix" :key="description" class="mt-4 overflow-x-auto">
         <div class="text-xs font-semibold uppercase text-slate-500">{{ description }}</div>
@@ -393,5 +472,12 @@ onMounted(async () => {
         {{ $t("rfq.detail.closeBeforeAward") }}
       </p>
     </AppCard>
+    <ConfirmDialog :open="showCancel" :title="$t('rfx.edit.cancelTitle')" :confirm-label="$t('rfx.edit.cancel')" tone="danger" :loading="busyEdit" @confirm="confirmCancel" @cancel="showCancel = false">
+      <p>{{ $t("rfx.edit.cancelBody") }}</p>
+      <textarea v-model="cancelReason" rows="2" maxlength="500" :aria-label="$t('rfx.edit.reason')" :placeholder="$t('rfx.edit.reason')" class="mt-2 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" data-testid="cancel-reason" />
+    </ConfirmDialog>
+    <ConfirmDialog :open="!!pendingRevoke" :title="$t('auctions.edit.revokeTitle')" :confirm-label="$t('auctions.edit.revoke')" tone="danger" :loading="busyEdit" @confirm="confirmRevoke" @cancel="pendingRevoke = null">
+      {{ $t("auctions.edit.revokeBody", { company: pendingRevoke?.companyName ?? "" }) }}
+    </ConfirmDialog>
   </div>
 </template>

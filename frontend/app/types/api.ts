@@ -918,3 +918,10 @@ export interface AuctionModelRecommendationDto {
   rationale: string;
   featuresUsed: Record<string, unknown>;
 }
+
+export interface UploadedFileDto {
+  url: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+}

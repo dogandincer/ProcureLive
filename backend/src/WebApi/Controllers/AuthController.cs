@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProcureLive.Application.Auth.Commands;
 using ProcureLive.Application.Auth.Commands.Login;
 using ProcureLive.Application.Auth.Commands.RefreshToken;
 using ProcureLive.Application.Auth.Commands.Register;
@@ -71,6 +72,31 @@ public sealed class AuthController : ControllerBase
     public async Task<IActionResult> RevokeToken(RevokeTokenRequest request, CancellationToken cancellationToken)
     {
         await _sender.Send(new RevokeTokenCommand(request.RefreshToken), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Şifre sıfırlama bağlantısı (e-posta simülasyonu). Hesap var/yok her durumda 204 döner.</summary>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ForgotPasswordCommand(request.Email), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ResetPasswordCommand(request.Email, request.Token, request.NewPassword), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ChangePasswordCommand(request.CurrentPassword, request.NewPassword), cancellationToken);
         return NoContent();
     }
 

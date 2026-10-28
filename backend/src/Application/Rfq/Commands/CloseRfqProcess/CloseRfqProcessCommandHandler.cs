@@ -25,7 +25,7 @@ public sealed class CloseRfqProcessCommandHandler : IRequestHandler<CloseRfqProc
             throw new NotFoundException(nameof(RfqProcess), request.RfqProcessId);
         }
 
-        if (process.Status is ProcessStatus.Closed or ProcessStatus.Awarded)
+        if (process.Status is ProcessStatus.Closed or ProcessStatus.Awarded or ProcessStatus.Cancelled)
         {
             throw new ConflictException("Bu RFQ süreci zaten kapatılmış.");
         }

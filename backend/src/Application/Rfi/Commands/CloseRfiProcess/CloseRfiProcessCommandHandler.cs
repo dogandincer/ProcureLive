@@ -25,7 +25,7 @@ public sealed class CloseRfiProcessCommandHandler : IRequestHandler<CloseRfiProc
             throw new NotFoundException(nameof(RfiProcess), request.RfiProcessId);
         }
 
-        if (process.Status is ProcessStatus.Closed or ProcessStatus.Evaluated)
+        if (process.Status is ProcessStatus.Closed or ProcessStatus.Evaluated or ProcessStatus.Cancelled)
         {
             throw new ConflictException("Bu RFI süreci zaten kapatılmış.");
         }

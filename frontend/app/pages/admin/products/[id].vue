@@ -17,6 +17,12 @@ const router = useRouter();
 const productId = route.params.id as string;
 const api = useApi();
 const show3d = ref(false);
+const assetUrl = useAssetUrl();
+// Yüklenen görsel doğrudan ürüne eklenir (URL ile ekleme de sürer).
+async function onImageUploaded(f: { url: string }) {
+  imageForm.url = f.url;
+  await addImage();
+}
 const accessState = ref<"forbidden" | "notFound" | null>(null);
 const toast = useToast();
 const { t } = useI18n();
@@ -297,6 +303,10 @@ onMounted(load);
         </div>
 
         <form v-if="showImageForm" class="mt-3 space-y-2" @submit.prevent="addImage">
+          <div class="flex flex-wrap items-center gap-2">
+            <FileUploadButton purpose="product-image" accept="image/png,image/jpeg,image/webp" :label="$t('products.detail.uploadImage')" @uploaded="onImageUploaded" />
+            <span class="text-xs text-slate-400">{{ $t("products.detail.orUrl") }}</span>
+          </div>
           <input
             v-model="imageForm.url"
             type="url"
@@ -321,7 +331,7 @@ onMounted(load);
             :key="img.id"
             class="group relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
           >
-            <img :src="img.url" :alt="product.name" class="h-full w-full object-cover" loading="lazy" />
+            <img :src="assetUrl(img.url) ?? img.url" :alt="product.name" class="h-full w-full object-cover" loading="lazy" />
             <StarIcon v-if="img.isPrimary" class="absolute left-1 top-1 h-4 w-4 fill-amber-400 text-amber-400" />
             <button
               class="absolute right-1 top-1 rounded-full bg-surface/80 p-1 text-slate-400 opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"

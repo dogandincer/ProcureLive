@@ -159,6 +159,52 @@ public sealed class IdentityService : IIdentityService
         }
     }
 
+    public async Task<string?> GeneratePasswordResetTokenAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        ApplicationUser? user = await _userManager.FindByIdAsync(userId.ToString());
+        return user is null ? null : await _userManager.GeneratePasswordResetTokenAsync(user);
+    }
+
+    public async Task<IdentityOperationResult> ResetPasswordAsync(Guid userId, string token, string newPassword, CancellationToken cancellationToken)
+    {
+        ApplicationUser? user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null) return IdentityOperationResult.Failure(["InvalidToken"]);
+
+        IdentityResult result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+        if (!result.Succeeded) return IdentityOperationResult.Failure(TranslateErrors(result));
+
+        // Hatalı şifre kilidi sıfırlamayla açılır; yönetici pasife aldıysa (kilit kaydı yok) pasif kalır.
+        if (user.LockedOutAt is not null)
+        {
+            user.LockedOutAt = null;
+            user.IsActive = true;
+        }
+        user.AccessFailedCount = 0;
+        await _userManager.UpdateAsync(user);
+        return IdentityOperationResult.Success(user.Id);
+    }
+
+    public async Task<IdentityOperationResult> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken)
+    {
+        ApplicationUser? user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null) return IdentityOperationResult.Failure(["PasswordMismatch"]);
+        IdentityResult result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        return result.Succeeded ? IdentityOperationResult.Success(user.Id) : IdentityOperationResult.Failure(TranslateErrors(result));
+    }
+
+    /// <summary>Identity hata kodları kullanıcıya Türkçe kural olarak döner (çeviri katmanı İngilizceye çevirir).</summary>
+    private static string[] TranslateErrors(IdentityResult result) => result.Errors.Select(e => e.Code switch
+    {
+        "InvalidToken" => "InvalidToken",
+        "PasswordMismatch" => "PasswordMismatch",
+        "PasswordTooShort" => "Şifre en az 8 karakter olmalıdır.",
+        "PasswordRequiresDigit" => "Şifre en az bir rakam içermelidir.",
+        "PasswordRequiresLower" => "Şifre en az bir küçük harf içermelidir.",
+        "PasswordRequiresUpper" => "Şifre en az bir büyük harf içermelidir.",
+        "PasswordRequiresNonAlphanumeric" => "Şifre en az bir özel karakter içermelidir.",
+        _ => e.Description,
+    }).Distinct().ToArray();
+
     public async Task<bool> SetActiveAsync(Guid userId, bool isActive, CancellationToken cancellationToken)
     {
         ApplicationUser? user = await _userManager.FindByIdAsync(userId.ToString());

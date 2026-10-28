@@ -8,5 +8,6 @@ public enum ProcessStatus
     InProgress = 2,
     Closed = 3,
     Evaluated = 4,
-    Awarded = 5
+    Awarded = 5,
+    Cancelled = 6
 }

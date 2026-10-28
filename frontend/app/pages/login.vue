@@ -58,7 +58,10 @@ async function submit() {
         </div>
 
         <div>
-          <label for="login-password" class="mb-1 block text-sm font-medium text-slate-700">{{ $t("login.password") }}</label>
+          <div class="mb-1 flex items-baseline justify-between">
+            <label for="login-password" class="block text-sm font-medium text-slate-700">{{ $t("login.password") }}</label>
+            <NuxtLink to="/forgot-password" class="text-xs font-medium text-indigo-600 hover:underline">{{ $t("passwordReset.forgotLink") }}</NuxtLink>
+          </div>
           <input
             id="login-password"
             v-model="password"

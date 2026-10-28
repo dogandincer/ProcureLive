@@ -10,7 +10,7 @@ const { t } = useI18n();
 const { connectAndJoin, disconnect } = useAuctionHub();
 const { currentUser } = useAuth();
 const { subscription, isPlus, refresh: refreshSubscription } = useSubscription();
-const { formatDateTime, formatDuration, formatMoney } = useDateFormat();
+const { formatDate, formatDateTime, formatDuration, formatMoney } = useDateFormat();
 
 const auction = ref<AuctionDetailDto | null>(null);
 const loading = ref(true);
@@ -399,7 +399,7 @@ onBeforeUnmount(() => {
             <div class="font-semibold text-slate-800">{{ item.description }}</div>
             <div class="text-xs text-slate-500">{{ item.quantity.toLocaleString() }} {{ $t(`enums.unitOfMeasure.${item.unitOfMeasure}`) }} · {{ item.bidCount }} {{ $t("auctions.live.bidCount") }}</div>
             <div v-if="item.requestedDeliveryDate || item.specification" class="mt-1 space-y-0.5 text-xs text-slate-500">
-              <div v-if="item.requestedDeliveryDate">{{ $t("auctions.terms.requestedDelivery") }}: {{ formatDateTime(item.requestedDeliveryDate) }}</div>
+              <div v-if="item.requestedDeliveryDate">{{ $t("auctions.terms.requestedDelivery") }}: {{ formatDate(item.requestedDeliveryDate) }}</div>
               <div v-if="item.specification" class="whitespace-pre-line">{{ $t("auctions.terms.specification") }}: {{ item.specification }}</div>
             </div>
           </div>

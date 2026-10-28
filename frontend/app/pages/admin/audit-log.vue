@@ -56,6 +56,33 @@ function applyFilter() {
   load();
 }
 
+// Geçerli süzgeçle en fazla 5.000 kayıt Excel'e aktarılır (sayfa sayfa çekilir).
+const { exportRows } = useExcelExport();
+const exporting = ref(false);
+async function exportLogs() {
+  exporting.value = true;
+  try {
+    const all: AuditLogDto[] = [];
+    for (let p = 1; p <= 25; p++) {
+      const r = await api.get<PagedResult<AuditLogDto>>("/api/audit-logs", { entityName: entityNameFilter.value || undefined, page: p, pageSize: 200 });
+      all.push(...r.items);
+      if (all.length >= r.totalCount || r.items.length === 0) break;
+    }
+    exportRows("denetim-kayitlari", t("auditLog.title"), [
+      { header: t("auditLog.export.time"), value: (l: AuditLogDto) => formatDateTime(l.changedAt), width: 18 },
+      { header: t("auditLog.export.user"), value: (l) => l.changedByUserName ?? "", width: 26 },
+      { header: t("auditLog.export.action"), value: (l) => l.action },
+      { header: t("auditLog.export.entity"), value: (l) => l.entityName, width: 22 },
+      { header: t("auditLog.export.entityId"), value: (l) => l.entityId, width: 38 },
+      { header: t("auditLog.export.columns"), value: (l) => l.affectedColumns ?? "", width: 40 },
+    ], all);
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("auditLog.loadError")));
+  } finally {
+    exporting.value = false;
+  }
+}
+
 watch(page, load);
 onMounted(load);
 </script>
@@ -68,10 +95,12 @@ onMounted(load);
         <input
           v-model="entityNameFilter"
           :placeholder="$t('auditLog.filterPlaceholder')"
+          :aria-label="$t('auditLog.filterPlaceholder')"
           class="w-64 rounded-md border border-slate-300 px-3 py-1.5 text-sm"
           @keyup.enter="applyFilter"
         />
         <AppButton @click="applyFilter">{{ $t("auditLog.filter") }}</AppButton>
+        <AppButton variant="secondary" :loading="exporting" data-testid="export-audit" @click="exportLogs">{{ $t("auctions.export.button") }}</AppButton>
       </div>
     </div>
 

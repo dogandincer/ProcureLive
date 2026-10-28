@@ -355,4 +355,54 @@ public sealed class AuctionsController : ControllerBase
         await _sender.Send(new AwardAuctionItemCommand(id, itemId, request.WinningBidId, request.Notes), cancellationToken);
         return NoContent();
     }
+
+    // ---------------------------------------------------------------- Taslak düzenleme, ekler, davet geri alma
+
+    [HttpPut("{id:guid}")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> UpdateDraft(Guid id, UpdateAuctionDraftRequest r, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ProcureLive.Application.Auctions.Draft.UpdateAuctionDraftCommand(id, r.Title, r.Description, r.StartAt, r.EndAt,
+            r.PaymentTerm, r.DeliveryTerm, r.ReservePrice, r.AllowPartialBids, r.AllowAlternativeProducts, r.IsListedForPlus,
+            r.ExtensionRuleMinutes, r.ExtensionDurationMinutes, r.MaxExtensionMinutes), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPut("{id:guid}/items/{itemId:guid}")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> UpdateItem(Guid id, Guid itemId, UpdateAuctionItemRequest r, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ProcureLive.Application.Auctions.Draft.UpdateAuctionItemCommand(id, itemId, r.Description, r.Quantity, r.UnitOfMeasure,
+            r.TargetPrice, r.RequestedDeliveryDate, r.Specification), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}/items/{itemId:guid}")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> DeleteItem(Guid id, Guid itemId, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ProcureLive.Application.Auctions.Draft.DeleteAuctionItemCommand(id, itemId), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/attachments")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<Guid>> AddAttachment(Guid id, AddAuctionAttachmentRequest r, CancellationToken cancellationToken) =>
+        Ok(await _sender.Send(new ProcureLive.Application.Auctions.Draft.AddAuctionAttachmentCommand(id, r.FileName, r.Url, r.ContentType, r.SizeBytes), cancellationToken));
+
+    [HttpDelete("{id:guid}/attachments/{attachmentId:guid}")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> DeleteAttachment(Guid id, Guid attachmentId, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ProcureLive.Application.Auctions.Draft.DeleteAuctionAttachmentCommand(id, attachmentId), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}/invitations/{invitationId:guid}")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> RevokeInvitation(Guid id, Guid invitationId, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ProcureLive.Application.Auctions.Draft.RevokeAuctionInvitationCommand(id, invitationId), cancellationToken);
+        return NoContent();
+    }
 }

@@ -18,7 +18,7 @@ internal static class ProcessWorkspaceRules
     public const string ClosedMessage = "Kapanmış sürecin işyeri değiştirilemez.";
 
     public static bool IsFinal(ProcessStatus status) =>
-        status is ProcessStatus.Closed or ProcessStatus.Evaluated or ProcessStatus.Awarded;
+        status is ProcessStatus.Closed or ProcessStatus.Evaluated or ProcessStatus.Awarded or ProcessStatus.Cancelled;
 
     public static async Task EnsureBelongsAsync(IApplicationDbContext context, Guid workspaceId, Guid ownerFirmId, CancellationToken ct)
     {

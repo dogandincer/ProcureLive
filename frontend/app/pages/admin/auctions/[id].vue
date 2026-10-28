@@ -17,6 +17,9 @@ import {
   ArrowsRightLeftIcon,
   TrophyIcon,
   DocumentMagnifyingGlassIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  ArrowDownTrayIcon,
 } from "@heroicons/vue/24/outline";
 import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/vue/24/solid";
 
@@ -27,7 +30,7 @@ const api = useApi();
 const accessState = ref<"forbidden" | "notFound" | null>(null);
 const toast = useToast();
 const { t } = useI18n();
-const { formatDateTime, formatDuration, formatMoney } = useDateFormat();
+const { formatDate, formatDateTime, formatDuration, formatMoney } = useDateFormat();
 const { connectAndJoin, disconnect } = useAuctionHub();
 const { isAdminRole } = useAuth();
 
@@ -41,6 +44,83 @@ const inviteCompanyId = ref<string | null>(null);
 const inviteCompanyName = ref<string | null>(null);
 const { loadSupplierRows } = useSupplierLookup();
 const newItem = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece", targetPrice: null as number | null });
+
+// ---- Taslak düzenleme, kalem düzenle/sil, davet geri alma, Excel dışa aktarma ----
+const showDraftEditor = ref(false);
+const editingItemId = ref<string | null>(null);
+const itemForm = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece", targetPrice: null as number | null, requestedDeliveryDate: "", specification: "" });
+const pendingDelete = ref<AuctionItemDto | null>(null);
+const pendingRevoke = ref<{ id: string; companyName: string } | null>(null);
+const busyEdit = ref(false);
+const { exportRows } = useExcelExport();
+
+function startEditItem(item: AuctionItemDto) {
+  editingItemId.value = item.id;
+  Object.assign(itemForm, {
+    description: item.description, quantity: item.quantity, unitOfMeasure: item.unitOfMeasure, targetPrice: item.targetPrice,
+    requestedDeliveryDate: item.requestedDeliveryDate ? item.requestedDeliveryDate.slice(0, 10) : "", specification: item.specification ?? "",
+  });
+}
+
+async function saveItem() {
+  if (!editingItemId.value) return;
+  busyEdit.value = true;
+  await runAction(async () => {
+    await api.put(`/api/auctions/${auctionId}/items/${editingItemId.value}`, {
+      ...itemForm,
+      requestedDeliveryDate: itemForm.requestedDeliveryDate ? `${itemForm.requestedDeliveryDate}T12:00:00Z` : null,
+      specification: itemForm.specification || null,
+    });
+    editingItemId.value = null;
+    toast.success(t("auctions.edit.itemSaved"));
+    await load();
+  });
+  busyEdit.value = false;
+}
+
+async function confirmDeleteItem() {
+  const item = pendingDelete.value;
+  if (!item) return;
+  busyEdit.value = true;
+  await runAction(async () => {
+    await api.delete(`/api/auctions/${auctionId}/items/${item.id}`);
+    toast.success(t("auctions.edit.itemDeleted"));
+    await load();
+  });
+  pendingDelete.value = null;
+  busyEdit.value = false;
+}
+
+async function confirmRevoke() {
+  const inv = pendingRevoke.value;
+  if (!inv) return;
+  busyEdit.value = true;
+  await runAction(async () => {
+    await api.delete(`/api/auctions/${auctionId}/invitations/${inv.id}`);
+    toast.success(t("auctions.edit.invitationRevoked"));
+    await load();
+  });
+  pendingRevoke.value = null;
+  busyEdit.value = false;
+}
+
+// Tüm kalemlerin tüm teklifleri tek sayfada (karşılaştırmalar yüklü değilse önce yüklenir).
+async function exportBids() {
+  if (!auction.value) return;
+  await loadAllComparisons(auction.value.items);
+  const rows = auction.value.items.flatMap((it) => (comparisons[it.id] ?? []).map((b) => ({ it, b })));
+  exportRows(`${auction.value.referenceCode ?? "ihale"}-teklifler`, t("auctions.export.sheet"), [
+    { header: t("auctions.export.item"), value: (r) => r.it.description, width: 40 },
+    { header: t("auctions.export.quantity"), value: (r) => r.it.quantity },
+    { header: t("auctions.export.company"), value: (r) => r.b.companyName, width: 34 },
+    { header: t("auctions.export.unitPrice"), value: (r) => r.b.amount },
+    { header: t("auctions.export.total"), value: (r) => r.b.amount * r.it.quantity },
+    { header: t("auctions.export.currency"), value: (r) => r.b.currencyCode },
+    { header: t("auctions.export.normalized"), value: (r) => r.b.normalizedAmountInBaseCurrency },
+    { header: t("auctions.export.bidTime"), value: (r) => formatDateTime(r.b.bidTime), width: 18 },
+    { header: t("auctions.export.status"), value: (r) => (r.b.isAwarded ? t("auctions.evaluation.winner") : t(`enums.bidStatus.${r.b.status}`)) },
+  ], rows);
+}
 
 // Kazanan seçimi geri alınamaz: önce onay penceresi.
 const pendingAward = ref<{ item: AuctionItemDto; bid: BidComparisonDto } | null>(null);
@@ -260,6 +340,16 @@ onBeforeUnmount(() => {
         <p v-if="auction.description" class="mt-1 text-sm text-slate-500">{{ auction.description }}</p>
         <!-- İşyeri + sorumlu satınalmacı (katılım talepleri sorumluya düşer); düzenlenebilir -->
         <AuctionAssignment :auction="auction" @changed="load" />
+        <button
+          v-if="auction.status === 'Draft'"
+          type="button"
+          class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:underline"
+          data-testid="edit-draft"
+          @click="showDraftEditor = true"
+        >
+          <PencilSquareIcon class="h-3.5 w-3.5" />{{ $t("auctions.edit.open") }}
+        </button>
+        <AuctionDraftEditor :auction="auction" :open="showDraftEditor" @close="showDraftEditor = false" @saved="showDraftEditor = false; load()" />
         <StepBadge v-if="workflowStep" class="mt-2" :step="workflowStep.step" :total="4" :label="workflowStep.label" />
       </div>
       <AppBadge :tone="statusTone[auction.status]" class="mt-1">
@@ -301,7 +391,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <AuctionTermsCard :auction="auction" internal />
+    <AuctionTermsCard :auction="auction" internal @changed="load" />
 
     <!-- Durum yönetimi: yayınla / başlat / duraklat / devam / bitir / yeniden aç / iptal + süre uzatma + geçmiş -->
     <AuctionStatusPanel :auction-id="auctionId" :status="auction.status" :can-manage="isAdminRole()" @changed="load" />
@@ -318,6 +408,9 @@ onBeforeUnmount(() => {
         <div class="flex items-center gap-2">
           <TrophyIcon class="h-5 w-5 text-indigo-500" />
           <span class="font-semibold text-indigo-800">{{ $t("auctions.evaluation.heading") }}</span>
+          <button type="button" class="ml-auto inline-flex items-center gap-1 rounded-md border border-indigo-200 bg-surface px-2.5 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100" data-testid="export-bids" @click="exportBids">
+            <ArrowDownTrayIcon class="h-4 w-4" />{{ $t("auctions.export.button") }}
+          </button>
         </div>
         <div v-if="evaluationSummary" class="mt-1 text-sm text-indigo-600">
           <CheckCircleSolid v-if="evaluationSummary.awarded === evaluationSummary.total" class="inline h-4 w-4 text-emerald-500 mr-1" />
@@ -376,7 +469,7 @@ onBeforeUnmount(() => {
                   <template v-if="item.targetPrice"> · {{ $t("auctions.evaluation.targetUnit") }}: {{ formatMoney(item.targetPrice, auction.currencyCode) }}</template>
                 </div>
                 <div v-if="item.requestedDeliveryDate || item.specification" class="mt-1 space-y-0.5 text-xs text-slate-500">
-                  <div v-if="item.requestedDeliveryDate">{{ $t("auctions.terms.requestedDelivery") }}: {{ formatDateTime(item.requestedDeliveryDate) }}</div>
+                  <div v-if="item.requestedDeliveryDate">{{ $t("auctions.terms.requestedDelivery") }}: {{ formatDate(item.requestedDeliveryDate) }}</div>
                   <div v-if="item.specification" class="whitespace-pre-line">{{ $t("auctions.terms.specification") }}: {{ item.specification }}</div>
                 </div>
               </div>
@@ -391,13 +484,38 @@ onBeforeUnmount(() => {
               </div>
             </div>
 
-            <button
-              class="mt-3 flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700"
-              @click="loadComparison(item.id)"
-            >
-              <DocumentMagnifyingGlassIcon class="h-3.5 w-3.5" />
-              {{ $t("auctions.detail.compareBids") }}
-            </button>
+            <!-- Taslakta kalem düzenlenir / silinir -->
+            <form v-if="editingItemId === item.id" class="mt-3 grid grid-cols-1 gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-4" data-testid="item-editor" @submit.prevent="saveItem">
+              <input v-model="itemForm.description" required :aria-label="$t('auctions.detail.form.description')" :placeholder="$t('auctions.detail.form.description')" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm sm:col-span-4" />
+              <input v-model.number="itemForm.quantity" type="number" min="0.01" step="0.01" required :aria-label="$t('auctions.detail.form.quantity')" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+              <select v-model="itemForm.unitOfMeasure" :aria-label="$t('auctions.edit.unit')" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+                <option v-for="u in unitOfMeasures" :key="u" :value="u">{{ unitLabel(u) }}</option>
+              </select>
+              <input v-model.number="itemForm.targetPrice" type="number" min="0" step="0.01" :aria-label="$t('auctions.evaluation.targetUnit')" :placeholder="$t('auctions.evaluation.targetUnit')" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+              <input v-model="itemForm.requestedDeliveryDate" type="date" :aria-label="$t('auctions.terms.requestedDelivery')" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+              <textarea v-model="itemForm.specification" rows="2" :aria-label="$t('auctions.terms.specification')" :placeholder="$t('auctions.terms.specification')" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm sm:col-span-4" />
+              <div class="flex justify-end gap-2 sm:col-span-4">
+                <button type="button" class="rounded-md px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100" @click="editingItemId = null">{{ $t("common.cancel") }}</button>
+                <AppButton type="submit" :loading="busyEdit">{{ $t("common.save") }}</AppButton>
+              </div>
+            </form>
+            <div class="mt-3 flex flex-wrap items-center gap-4">
+              <button
+                class="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700"
+                @click="loadComparison(item.id)"
+              >
+                <DocumentMagnifyingGlassIcon class="h-3.5 w-3.5" />
+                {{ $t("auctions.detail.compareBids") }}
+              </button>
+              <template v-if="auction.status === 'Draft' && editingItemId !== item.id">
+                <button type="button" class="flex items-center gap-1 text-xs font-medium text-slate-600 hover:text-indigo-700" data-testid="edit-item" @click="startEditItem(item)">
+                  <PencilSquareIcon class="h-3.5 w-3.5" />{{ $t("common.edit") }}
+                </button>
+                <button type="button" class="flex items-center gap-1 text-xs font-medium text-rose-600 hover:text-rose-700" data-testid="delete-item" @click="pendingDelete = item">
+                  <TrashIcon class="h-3.5 w-3.5" />{{ $t("common.delete") }}
+                </button>
+              </template>
+            </div>
 
             <div v-if="comparisons[item.id]" class="mt-3 overflow-x-auto">
               <table class="w-full text-xs">
@@ -481,7 +599,16 @@ onBeforeUnmount(() => {
                   <span class="block truncate">{{ inv.companyName }}</span>
                   <span v-if="inv.origin !== 'Direct'" class="block text-[11px] text-slate-400">{{ $t(`auctions.detail.origin.${inv.origin}`) }}</span>
                 </span>
-                <AppBadge tone="slate">{{ $t(`enums.invitationStatus.${inv.status}`) }}</AppBadge>
+                <span class="flex shrink-0 items-center gap-2">
+                  <AppBadge tone="slate">{{ $t(`enums.invitationStatus.${inv.status}`) }}</AppBadge>
+                  <button
+                    v-if="inv.status === 'Invited' && ['Draft', 'Scheduled'].includes(auction.status)"
+                    type="button"
+                    class="text-xs font-medium text-rose-600 hover:underline"
+                    data-testid="revoke-invitation"
+                    @click="pendingRevoke = { id: inv.id, companyName: inv.companyName }"
+                  >{{ $t("auctions.edit.revoke") }}</button>
+                </span>
               </li>
             </ul>
             <EmptyState v-else class="mt-3">{{ $t("auctions.detail.emptyInvites") }}</EmptyState>
@@ -518,5 +645,24 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </template>
+
+    <ConfirmDialog
+      :open="!!pendingDelete"
+      :title="$t('auctions.edit.deleteItemTitle')"
+      :confirm-label="$t('common.delete')"
+      tone="danger"
+      :loading="busyEdit"
+      @confirm="confirmDeleteItem"
+      @cancel="pendingDelete = null"
+    >{{ $t("auctions.edit.deleteItemBody", { item: pendingDelete?.description ?? "" }) }}</ConfirmDialog>
+    <ConfirmDialog
+      :open="!!pendingRevoke"
+      :title="$t('auctions.edit.revokeTitle')"
+      :confirm-label="$t('auctions.edit.revoke')"
+      tone="danger"
+      :loading="busyEdit"
+      @confirm="confirmRevoke"
+      @cancel="pendingRevoke = null"
+    >{{ $t("auctions.edit.revokeBody", { company: pendingRevoke?.companyName ?? "" }) }}</ConfirmDialog>
   </div>
 </template>

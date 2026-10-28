@@ -44,3 +44,9 @@ public sealed record CurrentUserDto(
     string LastName,
     IReadOnlyCollection<string> Roles,
     Guid? CompanyId);
+
+public sealed record ForgotPasswordRequest(string Email);
+
+public sealed record ResetPasswordRequest(string Email, string Token, string NewPassword);
+
+public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);

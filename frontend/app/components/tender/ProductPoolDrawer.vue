@@ -40,9 +40,10 @@ async function runSearch(q: string) {
 const debouncedSearch = useDebounceFn((q: string) => runSearch(q), 300);
 watch(term, (q) => debouncedSearch(q));
 
+const assetUrl = useAssetUrl();
 function thumb(p: ProductDto): string | null {
   if (!p.images || p.images.length === 0) return null;
-  return (p.images.find((i) => i.isPrimary) ?? p.images[0]).url;
+  return assetUrl((p.images.find((i) => i.isPrimary) ?? p.images[0]).url);
 }
 
 function add(p: ProductDto) {

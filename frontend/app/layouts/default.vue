@@ -28,6 +28,7 @@ import {
   ChevronDoubleRightIcon,
   ShieldCheckIcon,
   SwatchIcon,
+  UserCircleIcon,
 } from "@heroicons/vue/24/outline";
 import type { FirmDto, WorkspaceDto } from "~/types/api";
 
@@ -160,7 +161,10 @@ const { subscription, isPlus, refresh: refreshSubscription } = useSubscription()
 // Kişisel ayarlar (görünüm) her rolde menünün sonunda.
 const accountSection: NavSection = {
   sectionKey: "nav.accountGroup",
-  links: [{ to: "/settings", labelKey: "nav.settings", icon: SwatchIcon }],
+  links: [
+    { to: "/profile", labelKey: "nav.profile", icon: UserCircleIcon },
+    { to: "/settings", labelKey: "nav.settings", icon: SwatchIcon },
+  ],
 };
 
 const navSections = computed<NavSection[]>(() => {
@@ -184,16 +188,43 @@ function closeSidebarOnNavigate() {
   sidebarOpen.value = false;
 }
 
+// Panel en yeni 15 bildirimle açılır; "Daha fazla göster" eski bildirimleri sayfa sayfa ekler.
+const notificationPage = ref(1);
+const notificationTotal = ref(0);
+const loadingMoreNotifications = ref(false);
+const NOTIFICATION_PAGE_SIZE = 15;
+const hasMoreNotifications = computed(() => notifications.value.length < notificationTotal.value);
+
 async function loadNotifications() {
   try {
     const [list, count] = await Promise.all([
-      api.get<{ items: NotificationDto[] }>("/api/notifications", { unreadOnly: unreadOnly.value || undefined, pageSize: 10 }),
+      api.get<{ items: NotificationDto[]; totalCount: number }>("/api/notifications", { unreadOnly: unreadOnly.value || undefined, page: 1, pageSize: NOTIFICATION_PAGE_SIZE }),
       api.get<number>("/api/notifications/unread-count"),
     ]);
     notifications.value = list.items;
+    notificationTotal.value = list.totalCount;
+    notificationPage.value = 1;
     unreadCount.value = count;
   } catch {
     // layout should never crash the page over a notification fetch failure
+  }
+}
+
+async function loadMoreNotifications() {
+  loadingMoreNotifications.value = true;
+  try {
+    const next = notificationPage.value + 1;
+    const list = await api.get<{ items: NotificationDto[]; totalCount: number }>("/api/notifications", {
+      unreadOnly: unreadOnly.value || undefined, page: next, pageSize: NOTIFICATION_PAGE_SIZE,
+    });
+    const seen = new Set(notifications.value.map((n) => n.id));
+    notifications.value = [...notifications.value, ...list.items.filter((n) => !seen.has(n.id))];
+    notificationTotal.value = list.totalCount;
+    notificationPage.value = next;
+  } catch {
+    // sessiz geç: panel kullanılabilir kalır
+  } finally {
+    loadingMoreNotifications.value = false;
   }
 }
 
@@ -483,6 +514,16 @@ onMounted(async () => {
                     <span class="mt-1 block text-[11px] text-slate-400">{{ formatDateTime(n.createdAt) }}</span>
                   </span>
                   <ChevronRightIcon v-if="notificationLink(n)" class="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                </button>
+                <button
+                  v-if="hasMoreNotifications"
+                  type="button"
+                  class="block w-full px-4 py-2.5 text-center text-xs font-medium text-indigo-600 hover:bg-slate-50 disabled:opacity-60"
+                  :disabled="loadingMoreNotifications"
+                  data-testid="notifications-more"
+                  @click="loadMoreNotifications"
+                >
+                  {{ loadingMoreNotifications ? $t("common.loading") : $t("notifications.loadMore", { shown: notifications.length, total: notificationTotal }) }}
                 </button>
               </div>
             </div>

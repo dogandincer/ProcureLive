@@ -184,4 +184,20 @@ public sealed class RfiProcessesController : ControllerBase
         await _sender.Send(new CloseRfiProcessCommand(id), cancellationToken);
         return NoContent();
     }
+
+    [HttpPost("{id:guid}/cancel")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> Cancel(Guid id, ProcureLive.Contracts.Common.CancelProcessRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ProcureLive.Application.Rfx.CancelRfiProcessCommand(id, request.Reason), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}/invitations/{invitationId:guid}")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> RevokeInvitation(Guid id, Guid invitationId, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ProcureLive.Application.Rfx.RevokeRfiInvitationCommand(id, invitationId), cancellationToken);
+        return NoContent();
+    }
 }

@@ -68,7 +68,8 @@
     "toggleMenu": "Menu",
     "permissions": "Permissions",
     "accountGroup": "Account",
-    "settings": "Settings"
+    "settings": "Settings",
+    "profile": "My profile"
   },
   "language": {
     "label": "Language",
@@ -86,7 +87,8 @@
     "markAllRead": "Mark all as read",
     "empty": "No notifications",
     "emptyUnread": "No unread notifications",
-    "openRecord": "Open record"
+    "openRecord": "Open record",
+    "loadMore": "Show more ({shown} / {total})"
   },
   "excelImport": {
     "defaultLabel": "Import from Excel",
@@ -234,7 +236,8 @@
       "InProgress": "In Progress",
       "Closed": "Closed",
       "Evaluated": "Evaluated",
-      "Awarded": "Awarded"
+      "Awarded": "Awarded",
+      "Cancelled": "Cancelled"
     },
     "questionType": {
       "Text": "Text",
@@ -568,7 +571,40 @@
       "attachments": "Attachments",
       "noAttachments": "This auction has no attachments.",
       "requestedDelivery": "Requested delivery",
-      "specification": "Specification"
+      "specification": "Specification",
+      "attachmentAdded": "Attachment added.",
+      "addAttachment": "Upload attachment",
+      "removeAttachment": "Remove attachment {name}"
+    },
+    "edit": {
+      "open": "Edit draft",
+      "title": "Edit draft auction",
+      "hint": "Title, dates and terms can be changed before publishing.",
+      "description": "Description",
+      "extension": "Extension trigger (min)",
+      "saved": "Draft updated.",
+      "unit": "Unit",
+      "itemSaved": "Item updated.",
+      "itemDeleted": "Item deleted.",
+      "deleteItemTitle": "Delete item",
+      "deleteItemBody": "Item “{item}” will be removed from the draft.",
+      "revoke": "Revoke",
+      "revokeTitle": "Revoke invitation",
+      "revokeBody": "The invitation sent to “{company}” will be revoked and the supplier notified.",
+      "invitationRevoked": "Invitation revoked."
+    },
+    "export": {
+      "button": "Export to Excel",
+      "sheet": "Bids",
+      "item": "Item",
+      "quantity": "Quantity",
+      "company": "Company",
+      "unitPrice": "Unit price",
+      "total": "Total",
+      "currency": "Currency",
+      "normalized": "In base currency",
+      "bidTime": "Bid time",
+      "status": "Status"
     }
   },
   "currencies": {
@@ -700,7 +736,9 @@
         "uploadTitle": "Enter a 3D model URL directly",
         "uploadLabel": "3D model URL (.glb or .gltf)",
         "show": "Show 3D model"
-      }
+      },
+      "uploadImage": "Upload image",
+      "orUrl": "or enter a link:"
     }
   },
   "companies": {
@@ -973,7 +1011,8 @@
       "actionError": "The action could not be completed.",
       "invitedToast": "Company invited.",
       "evaluationSavedToast": "Evaluation saved.",
-      "closedToast": "RFI process closed."
+      "closedToast": "RFI process closed.",
+      "openAttachment": "Open file"
     },
     "supplierList": {
       "title": "My RFI Invites",
@@ -1122,7 +1161,15 @@
     "pageInfo": "Page {page} / {totalPages} ({totalCount} records)",
     "previous": "Previous",
     "next": "Next",
-    "loadError": "Failed to load records."
+    "loadError": "Failed to load records.",
+    "export": {
+      "time": "Time",
+      "user": "User",
+      "action": "Action",
+      "entity": "Record type",
+      "entityId": "Record id",
+      "columns": "Changed fields"
+    }
   },
   "dashboardSupplier": {
     "greeting": "Hello, {name}",
@@ -1842,7 +1889,15 @@
     "revise": "Update Response",
     "reviseQuote": "Update Quote",
     "standardOnce": "With a Standard membership, changes are not possible after submitting.",
-    "declinedNoAccess": "Declined"
+    "declinedNoAccess": "Declined",
+    "edit": {
+      "cancel": "Cancel process",
+      "cancelTitle": "Cancel process",
+      "cancelBody": "The process will be cancelled and invited suppliers notified. This cannot be undone.",
+      "reason": "Reason (optional, shared with suppliers)",
+      "cancelled": "Process cancelled.",
+      "deleteLine": "Delete line {item}"
+    }
   },
   "processWorkspace": {
     "owner": "Owner firm",
@@ -1930,5 +1985,42 @@
       "error": "The bid must be lower than the best bid.",
       "input": "Sample input"
     }
+  },
+  "upload": {
+    "error": "The file could not be uploaded.",
+    "uploading": "Uploading…",
+    "choose": "Upload file",
+    "limits": "PDF, Word, Excel, images, ZIP; up to 10 MB."
+  },
+  "passwordReset": {
+    "forgotLink": "Forgot password?",
+    "forgotTitle": "Forgot password",
+    "forgotIntro": "Enter your account email and we will send you a link to set a new password.",
+    "sendLink": "Send link",
+    "sent": "If an account exists for this address, a password reset link has been sent. Check your email (the link is valid for 24 hours).",
+    "requestError": "The request could not be sent.",
+    "backToLogin": "Back to sign in",
+    "resetTitle": "Set a new password",
+    "resetIntro": "Enter a new password for {email}.",
+    "newPassword": "New password",
+    "confirm": "New password (again)",
+    "rules": "At least 8 characters, with at least one digit and one lowercase letter.",
+    "save": "Save password",
+    "mismatch": "The passwords do not match.",
+    "resetError": "The password could not be saved.",
+    "badLink": "The link is incomplete. Open the link from the email or request a new one.",
+    "done": "Your password was updated. You can sign in with your new password."
+  },
+  "profile": {
+    "title": "My profile",
+    "account": "Account",
+    "name": "Name",
+    "role": "Role",
+    "nameHint": "Contact your system administrator to change your name, email or role.",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "savePassword": "Change password",
+    "passwordChanged": "Your password was changed.",
+    "passwordError": "The password could not be changed."
   }
 }

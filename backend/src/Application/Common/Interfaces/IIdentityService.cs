@@ -41,6 +41,15 @@ public interface IIdentityService
 
     Task ResetFailedLoginsAsync(Guid userId, CancellationToken cancellationToken);
 
+    /// <summary>Şifre sıfırlama belirteci (ASP.NET Identity varsayılan sağlayıcısı); kullanıcı yoksa null.</summary>
+    Task<string?> GeneratePasswordResetTokenAsync(Guid userId, CancellationToken cancellationToken);
+
+    /// <summary>Belirteçle yeni şifre. Hatalı şifre kilidi varsa kaldırılır. Hata kodları: "InvalidToken" veya Türkçe kural mesajları.</summary>
+    Task<IdentityOperationResult> ResetPasswordAsync(Guid userId, string token, string newPassword, CancellationToken cancellationToken);
+
+    /// <summary>Mevcut şifreyle değiştirme. Hata kodları: "PasswordMismatch" veya Türkçe kural mesajları.</summary>
+    Task<IdentityOperationResult> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken);
+
     /// <summary><paramref name="roles"/> verilirse yalnızca bu rollerden en az birine sahip kullanıcılar listelenir.</summary>
     Task<PagedResult<ApplicationUserInfo>> ListUsersAsync(
         string? searchTerm,

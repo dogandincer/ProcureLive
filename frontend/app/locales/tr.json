@@ -68,7 +68,8 @@
     "toggleMenu": "Menü",
     "permissions": "Yetkiler",
     "accountGroup": "Hesap",
-    "settings": "Ayarlar"
+    "settings": "Ayarlar",
+    "profile": "Profilim"
   },
   "language": {
     "label": "Dil",
@@ -86,7 +87,8 @@
     "markAllRead": "Tümünü okundu işaretle",
     "empty": "Bildirim yok",
     "emptyUnread": "Okunmamış bildirim yok",
-    "openRecord": "Kayda git"
+    "openRecord": "Kayda git",
+    "loadMore": "Daha fazla göster ({shown} / {total})"
   },
   "excelImport": {
     "defaultLabel": "Excel'den Aktar",
@@ -234,7 +236,8 @@
       "InProgress": "Devam Ediyor",
       "Closed": "Kapatıldı",
       "Evaluated": "Değerlendirildi",
-      "Awarded": "Sonuçlandı"
+      "Awarded": "Sonuçlandı",
+      "Cancelled": "İptal edildi"
     },
     "questionType": {
       "Text": "Metin",
@@ -568,7 +571,40 @@
       "attachments": "Ekler",
       "noAttachments": "Bu ihalede ek yok.",
       "requestedDelivery": "İstenen teslim",
-      "specification": "Şartname"
+      "specification": "Şartname",
+      "attachmentAdded": "Ek eklendi.",
+      "addAttachment": "Ek yükle",
+      "removeAttachment": "{name} ekini kaldır"
+    },
+    "edit": {
+      "open": "Taslağı düzenle",
+      "title": "Taslak ihaleyi düzenle",
+      "hint": "Yayınlanmadan önce başlık, tarih ve şartlar değiştirilebilir.",
+      "description": "Açıklama",
+      "extension": "Süre uzatma tetikleyicisi (dk)",
+      "saved": "Taslak güncellendi.",
+      "unit": "Birim",
+      "itemSaved": "Kalem güncellendi.",
+      "itemDeleted": "Kalem silindi.",
+      "deleteItemTitle": "Kalemi sil",
+      "deleteItemBody": "“{item}” kalemi taslaktan silinecek.",
+      "revoke": "Geri al",
+      "revokeTitle": "Daveti geri al",
+      "revokeBody": "“{company}” için gönderilen davet geri alınacak ve tedarikçiye bildirim gidecek.",
+      "invitationRevoked": "Davet geri alındı."
+    },
+    "export": {
+      "button": "Excel'e aktar",
+      "sheet": "Teklifler",
+      "item": "Kalem",
+      "quantity": "Miktar",
+      "company": "Firma",
+      "unitPrice": "Birim fiyat",
+      "total": "Toplam",
+      "currency": "Para birimi",
+      "normalized": "Ana para birimi karşılığı",
+      "bidTime": "Teklif zamanı",
+      "status": "Durum"
     }
   },
   "currencies": {
@@ -700,7 +736,9 @@
         "uploadTitle": "Doğrudan 3D model adresi gir",
         "uploadLabel": "3D model adresi (.glb veya .gltf)",
         "show": "3D modeli göster"
-      }
+      },
+      "uploadImage": "Görsel yükle",
+      "orUrl": "veya bağlantı girin:"
     }
   },
   "companies": {
@@ -973,7 +1011,8 @@
       "actionError": "İşlem gerçekleştirilemedi.",
       "invitedToast": "Cari davet edildi.",
       "evaluationSavedToast": "Değerlendirme kaydedildi.",
-      "closedToast": "RFI süreci kapatıldı."
+      "closedToast": "RFI süreci kapatıldı.",
+      "openAttachment": "Dosyayı aç"
     },
     "supplierList": {
       "title": "RFI Davetlerim",
@@ -1122,7 +1161,15 @@
     "pageInfo": "Sayfa {page} / {totalPages} ({totalCount} kayıt)",
     "previous": "Önceki",
     "next": "Sonraki",
-    "loadError": "Kayıtlar yüklenemedi."
+    "loadError": "Kayıtlar yüklenemedi.",
+    "export": {
+      "time": "Zaman",
+      "user": "Kullanıcı",
+      "action": "İşlem",
+      "entity": "Kayıt türü",
+      "entityId": "Kayıt no",
+      "columns": "Değişen alanlar"
+    }
   },
   "dashboardSupplier": {
     "greeting": "Merhaba, {name}",
@@ -1842,7 +1889,15 @@
     "revise": "Yanıtı Güncelle",
     "reviseQuote": "Teklifi Güncelle",
     "standardOnce": "Standart üyelikte gönderdikten sonra değişiklik yapılamaz.",
-    "declinedNoAccess": "Reddettiniz"
+    "declinedNoAccess": "Reddettiniz",
+    "edit": {
+      "cancel": "Süreci iptal et",
+      "cancelTitle": "Süreci iptal et",
+      "cancelBody": "Süreç iptal edilecek; davetli tedarikçilere bildirim gider. Bu işlem geri alınamaz.",
+      "reason": "Gerekçe (isteğe bağlı, tedarikçilere iletilir)",
+      "cancelled": "Süreç iptal edildi.",
+      "deleteLine": "{item} kalemini sil"
+    }
   },
   "processWorkspace": {
     "owner": "Sahip firma",
@@ -1930,5 +1985,42 @@
       "error": "Teklif en iyi tekliften düşük olmalı.",
       "input": "Örnek giriş alanı"
     }
+  },
+  "upload": {
+    "error": "Dosya yüklenemedi.",
+    "uploading": "Yükleniyor…",
+    "choose": "Dosya yükle",
+    "limits": "PDF, Word, Excel, görsel, ZIP; en fazla 10 MB."
+  },
+  "passwordReset": {
+    "forgotLink": "Şifremi unuttum",
+    "forgotTitle": "Şifremi unuttum",
+    "forgotIntro": "Hesabınızın e-posta adresini girin; şifre yenileme bağlantısı gönderelim.",
+    "sendLink": "Bağlantı gönder",
+    "sent": "Bu adrese kayıtlı bir hesap varsa şifre yenileme bağlantısı gönderildi. E-postanızı kontrol edin (bağlantı 24 saat geçerli).",
+    "requestError": "İstek gönderilemedi.",
+    "backToLogin": "Girişe dön",
+    "resetTitle": "Yeni şifre belirle",
+    "resetIntro": "{email} hesabı için yeni şifrenizi girin.",
+    "newPassword": "Yeni şifre",
+    "confirm": "Yeni şifre (tekrar)",
+    "rules": "En az 8 karakter; en az bir rakam ve bir küçük harf.",
+    "save": "Şifreyi kaydet",
+    "mismatch": "Şifreler aynı değil.",
+    "resetError": "Şifre kaydedilemedi.",
+    "badLink": "Bağlantı eksik. E-postadaki bağlantıyı açın ya da yeni bağlantı isteyin.",
+    "done": "Şifreniz güncellendi. Yeni şifrenizle giriş yapabilirsiniz."
+  },
+  "profile": {
+    "title": "Profilim",
+    "account": "Hesap bilgileri",
+    "name": "Ad soyad",
+    "role": "Rol",
+    "nameHint": "Ad, e-posta ve rol değişikliği için sistem yöneticinize başvurun.",
+    "changePassword": "Şifre değiştir",
+    "currentPassword": "Mevcut şifre",
+    "savePassword": "Şifreyi değiştir",
+    "passwordChanged": "Şifreniz değiştirildi.",
+    "passwordError": "Şifre değiştirilemedi."
   }
 }

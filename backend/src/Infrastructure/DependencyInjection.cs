@@ -72,6 +72,7 @@ public static class DependencyInjection
         services.AddScoped<IEmailSender, LoggingEmailSender>();
         services.AddScoped<IPaymentGateway, MockPaymentGateway>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
+        services.AddSingleton<IAppUrlProvider, AppUrlProvider>();
         services.AddScoped<IAuctionModelRecommender, HeuristicAuctionModelRecommender>();
 
         services.AddHttpClient<IExchangeRateProvider, TcmbExchangeRateProvider>(client =>

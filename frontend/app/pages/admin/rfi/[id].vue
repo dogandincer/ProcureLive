@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { RfiProcessDetailDto, RfiResponseDto, SupplierEvaluationDto } from "~/types/api";
+import { ArrowDownTrayIcon } from "@heroicons/vue/24/outline";
 
 const route = useRoute();
 const processId = route.params.id as string;
@@ -77,6 +78,54 @@ async function submitEvaluation() {
   });
 }
 
+
+// ---- İptal, davet geri alma, dışa aktarma ----
+const showCancel = ref(false);
+const cancelReason = ref("");
+const pendingRevoke = ref<{ id: string; companyName: string } | null>(null);
+const busyEdit = ref(false);
+const { exportRows } = useExcelExport();
+const cancellable = computed(() => !!process.value && ['Draft', 'Sent', 'InProgress'].includes(process.value.status));
+const revocable = computed(() => !!process.value && ["Draft", "Sent", "InProgress"].includes(process.value.status));
+
+async function confirmCancel() {
+  busyEdit.value = true;
+  await runAction(async () => {
+    await api.post(`/api/rfi/processes/${processId}/cancel`, { reason: cancelReason.value.trim() || null });
+    toast.success(t("rfx.edit.cancelled"));
+    showCancel.value = false;
+    await load();
+  });
+  busyEdit.value = false;
+}
+
+async function confirmRevoke() {
+  const inv = pendingRevoke.value;
+  if (!inv) return;
+  busyEdit.value = true;
+  await runAction(async () => {
+    await api.delete(`/api/rfi/processes/${processId}/invitations/${inv.id}`);
+    toast.success(t("auctions.edit.invitationRevoked"));
+    await load();
+  });
+  pendingRevoke.value = null;
+  busyEdit.value = false;
+}
+
+const assetUrl = useAssetUrl();
+const answerText = (r: RfiResponseDto) =>
+  r.selectedOptionText ?? (r.answerBool !== null ? (r.answerBool ? t("common.yes") : t("common.no")) : (r.answerNumber ?? r.answerText ?? r.attachmentUrl ?? ""));
+
+async function exportResponses() {
+  if (!process.value) return;
+  if (responses.value.length === 0) await loadResponses();
+  exportRows(`${process.value.title}-cevaplar`, t("rfi.detail.incomingResponses"), [
+    { header: t("rfi.detail.responseTable.company"), value: (r: RfiResponseDto) => r.companyName, width: 34 },
+    { header: t("rfi.detail.responseTable.question"), value: (r) => r.questionText, width: 44 },
+    { header: t("rfi.detail.responseTable.answer"), value: (r) => answerText(r), width: 40 },
+  ], responses.value);
+}
+
 async function close() {
   await runAction(async () => {
     await api.post(`/api/rfi/processes/${processId}/close`);
@@ -113,9 +162,14 @@ onMounted(async () => {
           @changed="load"
         />
       </div>
-      <AppButton v-if="!['Closed', 'Evaluated'].includes(process.status)" variant="secondary" @click="close">
-        {{ $t("rfi.detail.closeProcess") }}
-      </AppButton>
+      <div class="flex gap-2">
+        <AppButton v-if="!['Closed', 'Evaluated', 'Cancelled'].includes(process.status)" variant="secondary" @click="close">
+          {{ $t("rfi.detail.closeProcess") }}
+        </AppButton>
+        <AppButton v-if="cancellable" variant="danger" data-testid="cancel-process" @click="showCancel = true; cancelReason = ''">
+          {{ $t("rfx.edit.cancel") }}
+        </AppButton>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -124,7 +178,16 @@ onMounted(async () => {
         <ul v-if="process.invitations.length > 0" class="mt-3 space-y-2 text-sm">
           <li v-for="inv in process.invitations" :key="inv.id" class="flex items-center justify-between">
             <span>{{ inv.companyName }}</span>
-            <span class="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ $t(`enums.invitationStatus.${inv.status}`) }}</span>
+            <span class="flex items-center gap-2">
+              <span class="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ $t(`enums.invitationStatus.${inv.status}`) }}</span>
+              <button
+              v-if="inv.status === 'Invited' && revocable"
+              type="button"
+              class="text-xs font-medium text-rose-600 hover:underline"
+              data-testid="revoke-invitation"
+              @click="pendingRevoke = { id: inv.id, companyName: inv.companyName }"
+            >{{ $t("auctions.edit.revoke") }}</button>
+            </span>
           </li>
         </ul>
         <EmptyState v-else class="mt-3">{{ $t("rfi.detail.emptyInvites") }}</EmptyState>
@@ -154,7 +217,12 @@ onMounted(async () => {
     </div>
 
     <AppCard>
-      <h3 class="text-sm font-semibold text-slate-700">{{ $t("rfi.detail.incomingResponses") }}</h3>
+      <h3 class="text-sm font-semibold text-slate-700">
+        {{ $t("rfi.detail.incomingResponses") }}
+        <button type="button" class="float-right inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:underline" data-testid="export-responses" @click="exportResponses">
+          <ArrowDownTrayIcon class="h-4 w-4" />{{ $t("auctions.export.button") }}
+        </button>
+      </h3>
       <div class="mt-3 overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
@@ -169,7 +237,8 @@ onMounted(async () => {
               <td class="py-2 text-slate-700">{{ r.companyName }}</td>
               <td class="py-2 text-slate-500">{{ r.questionText }}</td>
               <td class="py-2 text-slate-700">
-                {{ r.selectedOptionText ?? (r.answerBool !== null ? (r.answerBool ? $t("common.yes") : $t("common.no")) : (r.answerNumber ?? r.answerText)) }}
+                <a v-if="r.attachmentUrl" :href="assetUrl(r.attachmentUrl) ?? r.attachmentUrl" target="_blank" rel="noopener" class="text-indigo-600 hover:underline">{{ $t("rfi.detail.openAttachment") }}</a>
+                <template v-else>{{ answerText(r) }}</template>
               </td>
             </tr>
           </tbody>
@@ -210,5 +279,12 @@ onMounted(async () => {
         <EmptyState v-if="evaluations.length === 0">{{ $t("rfi.detail.emptyEvaluations") }}</EmptyState>
       </div>
     </AppCard>
+      <ConfirmDialog :open="showCancel" :title="$t('rfx.edit.cancelTitle')" :confirm-label="$t('rfx.edit.cancel')" tone="danger" :loading="busyEdit" @confirm="confirmCancel" @cancel="showCancel = false">
+      <p>{{ $t("rfx.edit.cancelBody") }}</p>
+      <textarea v-model="cancelReason" rows="2" maxlength="500" :aria-label="$t('rfx.edit.reason')" :placeholder="$t('rfx.edit.reason')" class="mt-2 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" data-testid="cancel-reason" />
+    </ConfirmDialog>
+    <ConfirmDialog :open="!!pendingRevoke" :title="$t('auctions.edit.revokeTitle')" :confirm-label="$t('auctions.edit.revoke')" tone="danger" :loading="busyEdit" @confirm="confirmRevoke" @cancel="pendingRevoke = null">
+      {{ $t("auctions.edit.revokeBody", { company: pendingRevoke?.companyName ?? "" }) }}
+    </ConfirmDialog>
   </div>
 </template>

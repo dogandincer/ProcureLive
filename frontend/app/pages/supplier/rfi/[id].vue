@@ -17,6 +17,7 @@ const showDecline = ref(false);
 const answers = reactive<Record<string, { text: string; number: number | null; bool: boolean | null; optionId: string | null; attachmentUrl: string }>>({});
 const submitting = ref(false);
 const accessDenied = ref(false);
+const assetUrl = useAssetUrl();
 
 const myInvitation = computed(() =>
   process.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId) ?? null,
@@ -198,7 +199,11 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
           <select v-else-if="q.questionType === 'MultipleChoice'" :id="`q-${q.id}`" v-model="answers[q.id].optionId" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50">
             <option v-for="o in q.options" :key="o.id" :value="o.id">{{ o.optionText }}</option>
           </select>
-          <input v-else :id="`q-${q.id}`" v-model="answers[q.id].attachmentUrl" type="url" :placeholder="$t('rfi.answer.fileUrlPlaceholder')" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50" />
+          <div v-else class="flex flex-wrap items-center gap-2">
+            <FileUploadButton v-if="canSubmit" purpose="rfi-answer" @uploaded="(f) => (answers[q.id].attachmentUrl = f.url)" />
+            <a v-if="answers[q.id].attachmentUrl" :href="assetUrl(answers[q.id].attachmentUrl) ?? answers[q.id].attachmentUrl" target="_blank" rel="noopener" class="text-sm font-medium text-indigo-600 hover:underline" data-testid="rfi-file-link">{{ $t("rfi.detail.openAttachment") }}</a>
+            <span v-else class="text-xs text-slate-400">{{ $t("upload.limits") }}</span>
+          </div>
           <p v-if="missingRequired.includes(q.id)" class="mt-1 text-xs text-rose-600">{{ $t("rfi.answer.requiredField") }}</p>
         </div>
         <p class="text-[11px] text-slate-400"><span class="text-rose-600">*</span> {{ $t("rfi.answer.requiredLegend") }}</p>

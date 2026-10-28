@@ -60,10 +60,7 @@ onMounted(load);
         <li v-for="r in rows" :key="r.code">
           <label class="flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2 text-sm" :class="selected.has(r.code) ? 'border-indigo-200 bg-indigo-50/50' : 'border-slate-200'">
             <input type="checkbox" class="mt-0.5 rounded border-slate-300" :checked="selected.has(r.code)" :data-testid="`perm-${r.code}`" @change="toggle(r.code)" />
-            <span>
-              <span class="block font-medium text-slate-800">{{ $t(`permissions.codes.${r.code.replace('.', '_')}`) }}</span>
-              <span class="font-mono text-[11px] text-slate-400">{{ r.code }}</span>
-            </span>
+            <span class="font-medium text-slate-800">{{ $t(`permissions.codes.${r.code.replace('.', '_')}`) }}</span>
           </label>
         </li>
       </ul>

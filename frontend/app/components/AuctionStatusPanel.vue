@@ -194,8 +194,8 @@ onMounted(load);
                       : i === pipelineIndex
                         ? panel.status === 'Paused'
                           ? 'border-amber-500 bg-amber-50 text-amber-600'
-                          : 'border-indigo-500 bg-white text-indigo-600 ring-4 ring-indigo-100'
-                        : 'border-slate-200 bg-white text-slate-300'
+                          : 'border-indigo-500 bg-surface text-indigo-600 ring-4 ring-indigo-100'
+                        : 'border-slate-200 bg-surface text-slate-300'
                 "
               >
                 <PauseIcon v-if="i === pipelineIndex && panel.status === 'Paused'" class="h-3.5 w-3.5" />
@@ -261,7 +261,7 @@ onMounted(load);
         <h4 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $t("auctions.status.history") }}</h4>
         <ol v-if="panel.history.length > 0" class="relative space-y-3 border-l border-slate-200 pl-4">
           <li v-for="h in visibleHistory" :key="h.id" class="relative">
-            <span class="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-white" :class="h.isAutomatic ? 'bg-slate-400' : 'bg-indigo-500'" />
+            <span class="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-surface" :class="h.isAutomatic ? 'bg-slate-400' : 'bg-indigo-500'" />
             <div class="flex flex-wrap items-center gap-1.5 text-sm">
               <AppBadge :tone="statusTone[h.fromStatus]">{{ $t(`enums.auctionStatus.${h.fromStatus}`) }}</AppBadge>
               <ArrowRightIcon class="h-3.5 w-3.5 text-slate-400" />
@@ -291,8 +291,8 @@ onMounted(load);
 
     <!-- Onay penceresi -->
     <Teleport to="body">
-      <div v-if="dialog && panel" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm" @click.self="dialog = null">
-        <form class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl" @submit.prevent="confirm">
+      <div v-if="dialog && panel" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" @click.self="dialog = null">
+        <form class="w-full max-w-md overflow-hidden rounded-2xl bg-surface shadow-2xl" @submit.prevent="confirm">
           <div class="flex items-start justify-between border-b border-slate-100 px-6 py-4">
             <div>
               <h2 class="text-base font-semibold text-slate-800">{{ $t(`auctions.status.actions.${dialogKey}`) }}</h2>

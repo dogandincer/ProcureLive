@@ -32,7 +32,7 @@ async function submit() {
   <div class="relative flex min-h-screen items-center justify-center bg-slate-100">
     <LanguageSwitcher class="absolute right-4 top-4 sm:right-6 sm:top-6" />
 
-    <form class="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm" @submit.prevent="submit">
+    <form class="w-full max-w-sm rounded-xl border border-slate-200 bg-surface p-8 shadow-sm" @submit.prevent="submit">
       <div class="flex items-center gap-3">
         <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-indigo-600 text-base font-bold text-white">
           <img v-if="logoSrc" :src="logoSrc" alt="" class="h-full w-full bg-white object-contain" />

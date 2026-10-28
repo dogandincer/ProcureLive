@@ -141,13 +141,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 via-white to-indigo-50 px-4 pb-10 pt-16 sm:py-10">
+  <div class="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 via-surface to-indigo-50 px-4 pb-10 pt-16 sm:py-10">
     <LanguageSwitcher class="absolute right-4 top-4 sm:right-6 sm:top-6" />
 
     <LoadingSpinner v-if="loading" />
 
     <!-- Geçersiz / süresi dolmuş / kapanmış ihale -->
-    <div v-else-if="!info || !info.isValid" class="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+    <div v-else-if="!info || !info.isValid" class="w-full max-w-md rounded-xl border border-slate-200 bg-surface p-8 text-center shadow-sm">
       <h1 class="text-xl font-bold text-indigo-700">{{ $t("app.name") }}</h1>
       <div class="mx-auto mt-6 flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-2xl">⚠️</div>
       <h2 class="mt-3 text-lg font-semibold text-slate-800">{{ $t(`invite.invalid.${info?.invalidReason ?? "InviteInvalid"}.title`) }}</h2>
@@ -157,11 +157,11 @@ onMounted(async () => {
       </NuxtLink>
     </div>
 
-    <div v-else class="grid w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl md:grid-cols-5">
+    <div v-else class="grid w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-surface shadow-xl md:grid-cols-5">
       <!-- Sol: davet özeti -->
       <section class="bg-gradient-to-b from-indigo-700 to-indigo-900 p-8 text-white md:col-span-2">
         <div class="flex items-center gap-2.5">
-          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15 text-sm font-bold">PL</div>
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-surface/15 text-sm font-bold">PL</div>
           <div class="text-sm font-semibold">{{ $t("app.name") }}</div>
         </div>
 
@@ -170,7 +170,7 @@ onMounted(async () => {
           {{ $t("invite.welcomeBody", { owner: info.ownerCompanyName }) }}
         </p>
 
-        <div class="mt-6 rounded-xl bg-white/10 p-4">
+        <div class="mt-6 rounded-xl bg-surface/10 p-4">
           <div class="text-xs uppercase tracking-wide text-indigo-200">{{ $t("invite.tender") }}</div>
           <div class="mt-1 text-base font-semibold">{{ info.auctionTitle }}</div>
           <div v-if="info.referenceCode" class="mt-0.5 font-mono text-xs text-indigo-200">{{ info.referenceCode }}</div>
@@ -225,7 +225,7 @@ onMounted(async () => {
             <button
               type="button"
               class="flex-1 rounded-md px-3 py-1.5 transition-colors"
-              :class="mode === 'register' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
+              :class="mode === 'register' ? 'bg-surface text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
               :disabled="info.registrationUsed"
               @click="mode = 'register'; formError = ''"
             >
@@ -234,7 +234,7 @@ onMounted(async () => {
             <button
               type="button"
               class="flex-1 rounded-md px-3 py-1.5 transition-colors"
-              :class="mode === 'login' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
+              :class="mode === 'login' ? 'bg-surface text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
               @click="mode = 'login'; formError = ''"
             >
               {{ $t("invite.tabs.login") }}

@@ -24,7 +24,7 @@ const message = computed(() => props.body ?? t(`restricted.${props.level}.body`)
 </script>
 
 <template>
-  <div class="relative min-h-[22rem] overflow-hidden rounded-xl border border-slate-200 bg-white">
+  <div class="relative min-h-[22rem] overflow-hidden rounded-xl border border-slate-200 bg-surface">
     <div class="pointer-events-none select-none blur-[6px]" aria-hidden="true">
       <slot>
         <div class="space-y-4 p-5">
@@ -39,9 +39,9 @@ const message = computed(() => props.body ?? t(`restricted.${props.level}.body`)
       </slot>
     </div>
 
-    <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-white/30 to-white/80 p-4">
+    <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-surface/30 to-surface/80 p-4">
       <div
-        class="w-full max-w-md rounded-xl border border-amber-200 bg-white/95 text-center shadow-lg"
+        class="w-full max-w-md rounded-xl border border-amber-200 bg-surface/95 text-center shadow-lg"
         :class="compact ? 'p-4' : 'p-6'"
       >
         <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">

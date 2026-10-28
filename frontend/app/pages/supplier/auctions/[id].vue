@@ -339,7 +339,7 @@ onBeforeUnmount(() => {
     <div
       v-else
       class="rounded-xl border p-5 text-center"
-      :class="isUrgent ? 'border-rose-300 bg-rose-50' : 'border-slate-200 bg-white'"
+      :class="isUrgent ? 'border-rose-300 bg-rose-50' : 'border-slate-200 bg-surface'"
       data-testid="countdown"
     >
       <div class="text-xs uppercase tracking-wide text-slate-500">{{ countdown.label }}</div>
@@ -390,7 +390,7 @@ onBeforeUnmount(() => {
       <div
         v-for="item in auction.items"
         :key="item.id"
-        class="rounded-xl border bg-white p-5 transition-colors"
+        class="rounded-xl border bg-surface p-5 transition-colors"
         :class="flashItem === item.id ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200'"
         data-testid="supplier-item"
       >

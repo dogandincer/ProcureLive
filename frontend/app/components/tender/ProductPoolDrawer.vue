@@ -68,9 +68,9 @@ onMounted(() => runSearch(""));
 
 <template>
   <div class="fixed inset-0 z-50 flex justify-end">
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="emit('close')" />
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="emit('close')" />
 
-    <aside class="relative flex h-full w-full max-w-md flex-col bg-white shadow-xl">
+    <aside class="relative flex h-full w-full max-w-md flex-col bg-surface shadow-xl">
       <!-- Header -->
       <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3">
         <h3 class="text-sm font-semibold text-slate-800">{{ $t("tender.pool.title") }}</h3>

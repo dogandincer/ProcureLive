@@ -27,6 +27,7 @@ import {
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
   ShieldCheckIcon,
+  SwatchIcon,
 } from "@heroicons/vue/24/outline";
 import type { FirmDto, WorkspaceDto } from "~/types/api";
 
@@ -35,6 +36,7 @@ const api = useApi();
 const { connect } = useNotificationHub();
 const lastNotification = useLastNotification();
 const { t, locale } = useI18n();
+const { formatDateTime } = useDateFormat();
 const route = useRoute();
 
 // Sistem firma + işyeri bazlı: en az bir firma ve bir işyeri tanımlı olmadan (iç kullanıcı) panel kilitlenir;
@@ -155,16 +157,23 @@ const supplierSections: NavSection[] = [
 // Tedarikçi plan rozeti (Plus / Standart kota) — fiyat sayfası ve katılım sonrası aynı state yenilenir.
 const { subscription, isPlus, refresh: refreshSubscription } = useSubscription();
 
+// Kişisel ayarlar (görünüm) her rolde menünün sonunda.
+const accountSection: NavSection = {
+  sectionKey: "nav.accountGroup",
+  links: [{ to: "/settings", labelKey: "nav.settings", icon: SwatchIcon }],
+};
+
 const navSections = computed<NavSection[]>(() => {
-  if (!isInternalRole()) return supplierSections;
+  if (!isInternalRole()) return [...supplierSections, accountSection];
   // Firma ve İşyeri tanımları yalnızca Admin'e görünür.
-  if (!isAdminRole()) return adminSections.map((s) => ({ ...s, links: s.links.filter((l) => !l.adminOnly) }));
+  if (!isAdminRole()) return [...adminSections.map((s) => ({ ...s, links: s.links.filter((l) => !l.adminOnly) })), accountSection];
   return [
     ...adminSections,
     {
       sectionKey: "nav.systemGroup",
       links: [{ to: "/admin/audit-log", labelKey: "nav.auditLog", icon: ClipboardDocumentCheckIcon }],
     },
+    accountSection,
   ];
 });
 
@@ -204,16 +213,52 @@ async function markRead(notification: NotificationDto) {
   }
 }
 
-// Bildirimin ilgili kaydı (ihale / cari) varsa tıklayınca o sayfaya gider.
+// Bildirime tıklayınca ilgili kayda gidilir: iç kullanıcı yönetim ekranına, tedarikçi kendi ekranına.
 function notificationLink(n: NotificationDto): string | null {
   if (!n.relatedEntityId) return null;
-  if (n.relatedEntityType === "Auction") {
-    const base = isInternalRole() ? "/admin/auctions" : "/supplier/auctions";
-    return `${base}/${n.relatedEntityId}${n.type === "ParticipationRequest" && !isInternalRole() ? "#participation" : ""}`;
+  const id = n.relatedEntityId;
+  const internal = isInternalRole();
+  switch (n.relatedEntityType) {
+    case "Auction":
+      return internal
+        ? `/admin/auctions/${id}`
+        : `/supplier/auctions/${id}${n.type === "ParticipationRequest" ? "#participation" : ""}`;
+    case "RfiProcess":
+      return internal ? `/admin/rfi/${id}` : `/supplier/rfi/${id}`;
+    case "RfqProcess":
+      return internal ? `/admin/rfq/${id}` : `/supplier/rfq/${id}`;
+    case "Company":
+      // Tedarikçiye gelen cari bildirimi (onay, abonelik) kendi paneline götürür.
+      return internal ? `/admin/companies/${id}` : "/supplier";
+    default:
+      return null;
   }
-  if (n.relatedEntityType === "Company" && isInternalRole()) return `/admin/companies/${n.relatedEntityId}`;
-  return null;
 }
+
+// Panel; dışarı tıklanınca, odak panelden çıkınca veya Esc ile kapanır.
+const bellRoot = ref<HTMLElement | null>(null);
+const bellButton = ref<HTMLButtonElement | null>(null);
+function onDocumentPointer(e: Event) {
+  if (showNotifications.value && bellRoot.value && !bellRoot.value.contains(e.target as Node)) showNotifications.value = false;
+}
+function onBellFocusOut(e: FocusEvent) {
+  const next = e.relatedTarget as Node | null;
+  if (showNotifications.value && next && bellRoot.value && !bellRoot.value.contains(next)) showNotifications.value = false;
+}
+function onDocumentKey(e: KeyboardEvent) {
+  if (e.key === "Escape" && showNotifications.value) {
+    showNotifications.value = false;
+    bellButton.value?.focus();
+  }
+}
+onMounted(() => {
+  document.addEventListener("pointerdown", onDocumentPointer, true);
+  document.addEventListener("keydown", onDocumentKey);
+});
+onBeforeUnmount(() => {
+  document.removeEventListener("pointerdown", onDocumentPointer, true);
+  document.removeEventListener("keydown", onDocumentKey);
+});
 
 async function openNotification(n: NotificationDto) {
   await markRead(n);
@@ -268,28 +313,28 @@ onMounted(async () => {
     <!-- Mobile overlay -->
     <div
       v-if="sidebarOpen"
-      class="fixed inset-0 z-30 bg-slate-900/60 backdrop-blur-sm md:hidden"
+      class="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden"
       @click="sidebarOpen = false"
     />
 
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 -translate-x-full flex-col bg-slate-900 transition-all md:static md:translate-x-0"
-      :class="[sidebarOpen ? 'translate-x-0' : '', collapsed ? 'md:w-16' : 'md:w-64']"
+      class="fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 -transide-x-full flex-col bg-side-900 transition-all md:static md:transide-x-0"
+      :class="[sidebarOpen ? 'transide-x-0' : '', collapsed ? 'md:w-16' : 'md:w-64']"
     >
       <!-- Brand (varsayılan firmanın logosu / adı) -->
-      <div class="flex items-center gap-2.5 border-b border-slate-700/60 py-4" :class="collapsed ? 'px-5 md:justify-center md:px-0' : 'px-5'">
+      <div class="flex items-center gap-2.5 border-b border-side-700/60 py-4" :class="collapsed ? 'px-5 md:justify-center md:px-0' : 'px-5'">
         <div class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-indigo-600 text-sm font-bold text-white">
           <img v-if="logoSrc" :src="logoSrc" alt="" class="h-full w-full bg-white object-contain" />
           <template v-else>{{ initials }}</template>
         </div>
         <div class="min-w-0" :class="{ 'md:hidden': collapsed }">
-          <div class="truncate text-sm font-semibold leading-none text-white" :title="branding.appName">{{ branding.appName }}</div>
-          <div class="mt-0.5 truncate text-[10px] text-slate-400">{{ $t("app.tagline") }}</div>
+          <div class="truncate text-sm font-semibold leading-none text-side-50" :title="branding.appName">{{ branding.appName }}</div>
+          <div class="mt-0.5 truncate text-[10px] text-side-400">{{ $t("app.tagline") }}</div>
         </div>
       </div>
 
-      <div v-if="isInternalRole()" class="flex flex-col gap-2 border-b border-slate-700/60 p-3 md:hidden">
+      <div v-if="isInternalRole()" class="flex flex-col gap-2 border-b border-side-700/60 p-3 md:hidden">
         <FirmSwitcher block />
         <WorkspaceSwitcher block />
       </div>
@@ -299,7 +344,7 @@ onMounted(async () => {
         <div v-for="(group, i) in navSections" :key="i">
           <div
             v-if="group.sectionKey"
-            class="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500"
+            class="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-widest text-side-500"
             :class="{ 'md:hidden': collapsed }"
           >
             {{ $t(group.sectionKey) }}
@@ -309,7 +354,7 @@ onMounted(async () => {
               v-for="link in group.links"
               :key="link.to"
               :to="link.to"
-              class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+              class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-side-300 hover:bg-side-800 hover:text-side-50 transition-colors"
               :class="{ 'md:justify-center md:px-0': collapsed }"
               :title="collapsed ? $t(link.labelKey) : undefined"
               active-class="bg-indigo-600 text-white shadow-sm"
@@ -325,7 +370,7 @@ onMounted(async () => {
 
       <!-- Daralt / genişlet (masaüstü) -->
       <button
-        class="hidden items-center gap-2 border-t border-slate-700/60 px-5 py-2 text-xs text-slate-400 hover:bg-slate-800 hover:text-white md:flex"
+        class="hidden items-center gap-2 border-t border-side-700/60 px-5 py-2 text-xs text-side-400 hover:bg-side-800 hover:text-side-50 md:flex"
         :class="{ 'justify-center px-0': collapsed }"
         :title="collapsed ? $t('nav.expand') : $t('nav.collapse')"
         @click="toggleSidebar"
@@ -335,16 +380,16 @@ onMounted(async () => {
       </button>
 
       <!-- User info at bottom -->
-      <div class="border-t border-slate-700/60 px-4 py-3" :class="{ 'md:hidden': collapsed }">
-        <div class="text-xs text-slate-400 truncate">
+      <div class="border-t border-side-700/60 px-4 py-3" :class="{ 'md:hidden': collapsed }">
+        <div class="text-xs text-side-400 truncate">
           {{ currentUser?.firstName }} {{ currentUser?.lastName }}
         </div>
-        <div class="mt-0.5 text-[10px] text-slate-500">{{ roleDisplay }}</div>
+        <div class="mt-0.5 text-[10px] text-side-500">{{ roleDisplay }}</div>
         <NuxtLink
           v-if="isSupplierRole() && subscription"
           to="/supplier/pricing"
           class="mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-          :class="isPlus ? 'bg-amber-400/20 text-amber-300' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'"
+          :class="isPlus ? 'bg-amber-400/20 text-amber-300' : 'bg-side-700 text-side-300 hover:bg-side-600'"
           @click="closeSidebarOnNavigate"
         >
           <SparklesIcon v-if="isPlus" class="h-3 w-3" />
@@ -357,7 +402,7 @@ onMounted(async () => {
     <!-- Main content -->
     <div class="flex min-h-screen min-w-0 flex-1 flex-col">
       <!-- Header -->
-      <header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-2.5 sm:px-6 shadow-sm">
+      <header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-surface px-4 py-2.5 sm:px-6 shadow-sm">
         <div class="flex min-w-0 flex-1 items-center gap-3">
           <!-- Hamburger: mobilde menüyü açar, masaüstünde kenar çubuğunu daraltır/genişletir -->
           <button
@@ -381,8 +426,9 @@ onMounted(async () => {
           <LanguageSwitcher />
 
           <!-- Notifications bell -->
-          <div class="relative">
+          <div ref="bellRoot" class="relative" @focusout="onBellFocusOut">
             <button
+              ref="bellButton"
               class="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100 transition-colors"
               :aria-label="$t('notifications.title')"
               :aria-expanded="showNotifications"
@@ -391,7 +437,7 @@ onMounted(async () => {
               <BellIcon class="h-5 w-5" />
               <span
                 v-if="unreadCount > 0"
-                class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white ring-2 ring-white"
+                class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white ring-2 ring-surface"
               >
                 {{ unreadCount > 99 ? "99+" : unreadCount }}
               </span>
@@ -399,7 +445,8 @@ onMounted(async () => {
 
             <div
               v-if="showNotifications"
-              class="absolute right-0 z-20 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white shadow-xl"
+              class="absolute right-0 z-20 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-surface shadow-xl"
+              data-testid="notification-panel"
             >
               <div class="flex items-center justify-between border-b border-slate-100 px-4 py-2.5">
                 <span class="text-sm font-semibold text-slate-800">{{ $t("notifications.title") }}</span>
@@ -424,12 +471,18 @@ onMounted(async () => {
                 <button
                   v-for="n in notifications"
                   :key="n.id"
-                  class="block w-full border-b border-slate-50 px-4 py-3 text-left text-sm hover:bg-slate-50 transition-colors"
+                  class="flex w-full items-start gap-2 border-b border-slate-50 px-4 py-3 text-left text-sm hover:bg-slate-50 transition-colors"
                   :class="{ 'bg-indigo-50/60': !n.isRead }"
+                  :title="notificationLink(n) ? $t('notifications.openRecord') : undefined"
+                  data-testid="notification-item"
                   @click="openNotification(n)"
                 >
-                  <div class="font-medium text-slate-800 leading-snug">{{ n.title }}</div>
-                  <div class="mt-0.5 line-clamp-2 text-xs text-slate-500">{{ n.body }}</div>
+                  <span class="min-w-0 flex-1">
+                    <span class="block font-medium leading-snug text-slate-800">{{ n.title }}</span>
+                    <span class="mt-0.5 line-clamp-2 block text-xs text-slate-500">{{ n.body }}</span>
+                    <span class="mt-1 block text-[11px] text-slate-400">{{ formatDateTime(n.createdAt) }}</span>
+                  </span>
+                  <ChevronRightIcon v-if="notificationLink(n)" class="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                 </button>
               </div>
             </div>
@@ -448,7 +501,7 @@ onMounted(async () => {
 
       <main class="flex-1 overflow-x-hidden p-4 sm:p-6">
         <div v-if="setupGate" class="flex min-h-[60vh] items-center justify-center">
-          <div class="max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+          <div class="max-w-md rounded-2xl border border-slate-200 bg-surface p-8 text-center shadow-sm">
             <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50">
               <BuildingOffice2Icon v-if="setupGate === 'firm'" class="h-6 w-6 text-indigo-600" />
               <BuildingOfficeIcon v-else class="h-6 w-6 text-indigo-600" />

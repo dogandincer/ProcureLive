@@ -41,7 +41,7 @@ onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside))
 
     <div
       v-if="open"
-      class="absolute z-30 mt-1.5 min-w-[220px] rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+      class="absolute z-30 mt-1.5 min-w-[220px] rounded-xl border border-slate-200 bg-surface py-1 shadow-lg"
       :class="props.block ? 'left-0 right-0' : 'right-0'"
     >
       <button

@@ -21,8 +21,8 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
 
 <template>
   <Teleport to="body">
-    <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" @click.self="!loading && emit('cancel')">
-      <div role="dialog" aria-modal="true" :aria-label="title" class="w-full max-w-md rounded-xl bg-white p-5 shadow-xl" data-testid="confirm-dialog">
+    <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" @click.self="!loading && emit('cancel')">
+      <div role="dialog" aria-modal="true" :aria-label="title" class="w-full max-w-md rounded-xl bg-surface p-5 shadow-xl" data-testid="confirm-dialog">
         <h2 class="text-base font-semibold text-slate-800">{{ title }}</h2>
         <div class="mt-2 text-sm text-slate-600"><slot /></div>
         <div class="mt-5 flex justify-end gap-2">

@@ -324,7 +324,7 @@ onMounted(load);
             <img :src="img.url" :alt="product.name" class="h-full w-full object-cover" loading="lazy" />
             <StarIcon v-if="img.isPrimary" class="absolute left-1 top-1 h-4 w-4 fill-amber-400 text-amber-400" />
             <button
-              class="absolute right-1 top-1 rounded-full bg-white/80 p-1 text-slate-400 opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
+              class="absolute right-1 top-1 rounded-full bg-surface/80 p-1 text-slate-400 opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
               @click="removeImage(img.id)"
             >
               <TrashIcon class="h-3.5 w-3.5" />

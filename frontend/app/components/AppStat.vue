@@ -19,7 +19,7 @@ const iconBg: Record<string, string> = {
 </script>
 
 <template>
-  <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+  <div class="rounded-xl border border-slate-200 bg-surface p-5 shadow-sm">
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
         <div class="text-xs font-medium text-slate-500 uppercase tracking-wide">{{ label }}</div>

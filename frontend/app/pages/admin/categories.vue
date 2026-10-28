@@ -102,7 +102,7 @@ onMounted(load);
       </div>
     </div>
 
-    <form v-if="showForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="create">
+    <form v-if="showForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-surface p-5 sm:grid-cols-2" @submit.prevent="create">
       <input v-model="form.name" :placeholder="$t('categories.form.name')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
       <input v-model="form.code" :placeholder="$t('categories.form.code')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
       <select v-model="form.parentCategoryId" class="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2">

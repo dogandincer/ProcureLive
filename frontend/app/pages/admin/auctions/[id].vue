@@ -269,21 +269,21 @@ onBeforeUnmount(() => {
 
     <!-- KPI row -->
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="rounded-xl border border-slate-200 bg-surface p-4 shadow-sm">
         <div class="flex items-center gap-2 text-xs text-slate-500">
           <ArrowsRightLeftIcon class="h-3.5 w-3.5" />
           {{ $t("auctions.detail.type") }}
         </div>
         <div class="mt-1 font-semibold text-slate-800">{{ $t(`enums.auctionType.${auction.auctionType}`) }}</div>
       </div>
-      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="rounded-xl border border-slate-200 bg-surface p-4 shadow-sm">
         <div class="flex items-center gap-2 text-xs text-slate-500">
           <CurrencyDollarIcon class="h-3.5 w-3.5" />
           {{ $t("auctions.detail.currency") }}
         </div>
         <div class="mt-1 font-semibold text-slate-800">{{ auction.currencyCode }}</div>
       </div>
-      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="rounded-xl border border-slate-200 bg-surface p-4 shadow-sm">
         <div class="flex items-center gap-2 text-xs text-slate-500">
           <ClockIcon class="h-3.5 w-3.5" />
           {{ $t("auctions.detail.timeLeft") }}
@@ -292,7 +292,7 @@ onBeforeUnmount(() => {
           {{ auction.status === "Live" ? timeLeftLabel : auction.status === "Paused" ? $t("enums.auctionStatus.Paused") : auction.status === "Scheduled" ? $t("auctions.detail.startsIn", { time: startsInLabel }) : formatDateTime(auction.endAt) }}
         </div>
       </div>
-      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="rounded-xl border border-slate-200 bg-surface p-4 shadow-sm">
         <div class="flex items-center gap-2 text-xs text-slate-500">
           <BoltIcon class="h-3.5 w-3.5" />
           {{ $t("auctions.detail.extensionRule") }}
@@ -427,7 +427,7 @@ onBeforeUnmount(() => {
           <!-- Add item form (Draft only) -->
           <form
             v-if="auction.status === 'Draft'"
-            class="rounded-xl border border-dashed border-slate-300 bg-white p-5 shadow-sm"
+            class="rounded-xl border border-dashed border-slate-300 bg-surface p-5 shadow-sm"
             @submit.prevent="addItem"
           >
             <h3 class="text-sm font-semibold text-slate-700">{{ $t("auctions.detail.addItem") }}</h3>

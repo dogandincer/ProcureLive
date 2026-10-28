@@ -147,7 +147,7 @@ onMounted(async () => {
           v-model="term"
           type="search"
           :placeholder="$t('search.placeholder')"
-          class="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          class="w-full rounded-xl border border-slate-300 bg-surface py-3 pl-10 pr-4 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
         />
         <svg v-if="searching" class="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-slate-400" viewBox="0 0 24 24" fill="none">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
@@ -170,7 +170,7 @@ onMounted(async () => {
       </div>
 
       <!-- İhale filtreleri -->
-      <div v-if="show('tenders')" class="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4">
+      <div v-if="show('tenders')" class="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-surface p-4">
         <div>
           <label class="mb-1 block text-xs font-medium text-slate-500">{{ $t("search.filters.auctionType") }}</label>
           <select v-model="auctionType" class="rounded-md border border-slate-300 px-3 py-1.5 text-sm">
@@ -210,7 +210,7 @@ onMounted(async () => {
       <section v-if="show('companies') && result.companies.length > 0" class="space-y-3">
         <h2 v-if="tab === 'all'" class="text-sm font-semibold uppercase tracking-wide text-slate-500">{{ $t("search.tabs.companies") }}</h2>
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <div v-for="c in result.companies" :key="c.id" class="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div v-for="c in result.companies" :key="c.id" class="flex flex-col rounded-xl border border-slate-200 bg-surface p-5 shadow-sm">
             <div class="flex items-start gap-3">
               <img v-if="c.logoUrl" :src="c.logoUrl" :alt="c.name" class="h-12 w-12 shrink-0 rounded-lg border border-slate-100 object-contain" />
               <div v-else class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-sm font-bold text-indigo-700">
@@ -258,7 +258,7 @@ onMounted(async () => {
       <!-- İhaleler -->
       <section v-if="show('tenders') && result.tenders.length > 0" class="space-y-3">
         <h2 v-if="tab === 'all'" class="text-sm font-semibold uppercase tracking-wide text-slate-500">{{ $t("search.tabs.tenders") }}</h2>
-        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-surface">
           <NuxtLink
             v-for="x in result.tenders"
             :key="x.id"
@@ -291,7 +291,7 @@ onMounted(async () => {
       <section v-if="show('products') && result.products.length > 0" class="space-y-3">
         <h2 v-if="tab === 'all'" class="text-sm font-semibold uppercase tracking-wide text-slate-500">{{ $t("search.tabs.products") }}</h2>
         <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <div v-for="p in result.products" :key="p.id" class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4">
+          <div v-for="p in result.products" :key="p.id" class="flex items-center gap-3 rounded-xl border border-slate-200 bg-surface p-4">
             <img v-if="p.thumbnailUrl" :src="p.thumbnailUrl" :alt="p.name" class="h-14 w-14 shrink-0 rounded-lg border border-slate-100 object-cover" />
             <div v-else class="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-slate-100"><CubeIcon class="h-6 w-6 text-slate-400" /></div>
             <div class="min-w-0 flex-1">

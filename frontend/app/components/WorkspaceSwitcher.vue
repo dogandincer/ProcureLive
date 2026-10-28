@@ -32,7 +32,7 @@ onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside))
 <template>
   <div ref="el" class="relative" :class="{ 'w-full': props.block }">
     <button
-      class="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors"
+      class="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-surface px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors"
       :class="{ 'border-indigo-400 bg-indigo-50 text-indigo-700': selectedWorkspaceId, 'w-full': props.block }"
       :title="$t('workspaces.switcherTitle')"
       @click="open = !open"
@@ -47,7 +47,7 @@ onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside))
     <div
       v-if="open"
       :class="props.block ? 'left-0 right-0' : 'right-0'"
-      class="absolute z-30 mt-1.5 min-w-[200px] rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+      class="absolute z-30 mt-1.5 min-w-[200px] rounded-xl border border-slate-200 bg-surface py-1 shadow-lg"
     >
       <button
         class="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-slate-50"

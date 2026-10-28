@@ -73,7 +73,7 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
             <li>{{ $t("dashboardSupplier.pending.stepInvite") }}</li>
           </ul>
           <div class="flex flex-wrap gap-2 pt-1">
-            <NuxtLink to="/supplier/settings" class="rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-amber-800 ring-1 ring-amber-300 hover:bg-amber-100">{{ $t("nav.companySettings") }}</NuxtLink>
+            <NuxtLink to="/supplier/settings" class="rounded-md bg-surface px-3 py-1.5 text-xs font-semibold text-amber-800 ring-1 ring-amber-300 hover:bg-amber-100">{{ $t("nav.companySettings") }}</NuxtLink>
             <NuxtLink :to="isPlus ? '/supplier/search' : '/supplier/pricing'" class="rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600">
               {{ isPlus ? $t("nav.plusSearch") : $t("nav.pricing") }}
             </NuxtLink>
@@ -103,7 +103,7 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
     <div v-if="liveAuctions.length > 0" class="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
       <h2 class="text-sm font-semibold text-emerald-800">🔴 {{ $t("dashboardSupplier.liveNow") }}</h2>
       <ul class="mt-3 space-y-2">
-        <li v-for="a in liveAuctions" :key="a.id" class="flex items-center justify-between rounded-lg bg-white px-4 py-2">
+        <li v-for="a in liveAuctions" :key="a.id" class="flex items-center justify-between rounded-lg bg-surface px-4 py-2">
           <span class="text-sm font-medium text-slate-700">{{ a.title }}</span>
           <NuxtLink :to="`/supplier/auctions/${a.id}`" class="rounded-md bg-emerald-600 px-3 py-1 text-xs font-semibold text-white">
             {{ $t("dashboardSupplier.goToAuction") }}

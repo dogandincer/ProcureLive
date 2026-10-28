@@ -133,7 +133,7 @@ watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
       </div>
     </div>
 
-    <form v-if="showTemplateForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="createTemplate">
+    <form v-if="showTemplateForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-surface p-5 sm:grid-cols-2" @submit.prevent="createTemplate">
       <input v-model="templateForm.name" :placeholder="$t('rfi.templateForm.name')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
       <input v-model="templateForm.description" :placeholder="$t('rfi.templateForm.description')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
       <AppButton type="submit" variant="secondary" class="sm:col-span-2">{{ $t("rfi.templateForm.save") }}</AppButton>
@@ -188,7 +188,7 @@ watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
       </template>
     </AppCard>
 
-    <form v-if="showProcessForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="createProcess">
+    <form v-if="showProcessForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-surface p-5 sm:grid-cols-2" @submit.prevent="createProcess">
       <select v-model="processForm.rfiTemplateId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm">
         <option v-for="tpl in templates" :key="tpl.id" :value="tpl.id">{{ tpl.name }} ({{ tpl.questions.length }} {{ $t("rfi.questionCount") }})</option>
       </select>

@@ -169,7 +169,7 @@ onUnmounted(() => {
       </div>
       <button
         :disabled="loading"
-        class="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+        class="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-surface px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors"
         @click="load"
       >
         <ArrowPathIcon class="h-4 w-4" :class="{ 'animate-spin': loading }" />

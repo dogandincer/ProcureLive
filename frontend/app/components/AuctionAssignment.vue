@@ -82,7 +82,7 @@ async function save() {
       </button>
     </div>
 
-    <form v-else class="mt-1 flex flex-wrap items-end gap-2 rounded-lg border border-slate-200 bg-white p-2" @submit.prevent="save">
+    <form v-else class="mt-1 flex flex-wrap items-end gap-2 rounded-lg border border-slate-200 bg-surface p-2" @submit.prevent="save">
       <label class="flex flex-col gap-0.5">
         <span>{{ $t("auctions.detail.workspace") }}</span>
         <select v-model="workspaceId" :disabled="!workspaceEditable" class="rounded-md border border-slate-300 px-2 py-1 text-sm disabled:bg-slate-50">

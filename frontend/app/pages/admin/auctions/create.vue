@@ -174,7 +174,7 @@ onMounted(async () => {
           @click="goTo(s.n)"
         >
           <CheckCircleIcon v-if="s.n < activeStep && stepValid[s.n]" class="h-3.5 w-3.5" />
-          <span v-else class="flex h-4 w-4 items-center justify-center rounded-full bg-white/30 text-[10px]">{{ s.n }}</span>
+          <span v-else class="flex h-4 w-4 items-center justify-center rounded-full bg-surface/30 text-[10px]">{{ s.n }}</span>
           {{ $t(`tender.wizard.steps.${s.key}`) }}
         </button>
         <ChevronRightIcon v-if="i < steps.length - 1" class="h-3 w-3 shrink-0 text-slate-300" />
@@ -399,8 +399,8 @@ onMounted(async () => {
 
     <!-- Line spec editor -->
     <div v-if="editingSpecTempId" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-slate-900/40" @click="editingSpecTempId = null" />
-      <div class="relative w-full max-w-lg rounded-xl bg-white p-4 shadow-xl">
+      <div class="absolute inset-0 bg-black/40" @click="editingSpecTempId = null" />
+      <div class="relative w-full max-w-lg rounded-xl bg-surface p-4 shadow-xl">
         <h3 class="mb-2 text-sm font-semibold text-slate-800">{{ $t("tender.grid.col.spec") }}</h3>
         <textarea v-model="specDraft" rows="6" maxlength="4000" :placeholder="$t('tender.wizard.specPlaceholder')" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
         <div class="mt-3 flex justify-end gap-2">

@@ -140,7 +140,7 @@ onMounted(load);
       </div>
     </div>
 
-    <form v-if="showForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="create">
+    <form v-if="showForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-surface p-5 sm:grid-cols-2" @submit.prevent="create">
       <input v-model="form.sku" :placeholder="$t('products.form.sku')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
       <input v-model="form.name" :placeholder="$t('products.form.name')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
       <select v-model="form.categoryId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm">

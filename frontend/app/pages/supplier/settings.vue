@@ -71,7 +71,7 @@ onMounted(async () => {
 
     <template v-else-if="settings">
       <!-- Plan -->
-      <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4" :class="settings.isPlus ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-white'">
+      <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4" :class="settings.isPlus ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-surface'">
         <div class="flex items-center gap-2 text-sm">
           <SparklesIcon v-if="settings.isPlus" class="h-5 w-5 text-amber-500" />
           <span class="font-semibold text-slate-800">{{ settings.isPlus ? "Plus" : $t("pricing.standard") }}</span>

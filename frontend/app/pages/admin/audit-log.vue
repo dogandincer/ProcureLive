@@ -108,11 +108,11 @@ onMounted(load);
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div>
                         <div class="mb-1 text-xs font-semibold uppercase text-slate-400">{{ $t("auditLog.oldValues") }}</div>
-                        <pre class="overflow-x-auto rounded bg-white p-2 text-xs text-slate-600">{{ prettyJson(log.oldValues) }}</pre>
+                        <pre class="overflow-x-auto rounded bg-surface p-2 text-xs text-slate-600">{{ prettyJson(log.oldValues) }}</pre>
                       </div>
                       <div>
                         <div class="mb-1 text-xs font-semibold uppercase text-slate-400">{{ $t("auditLog.newValues") }}</div>
-                        <pre class="overflow-x-auto rounded bg-white p-2 text-xs text-slate-600">{{ prettyJson(log.newValues) }}</pre>
+                        <pre class="overflow-x-auto rounded bg-surface p-2 text-xs text-slate-600">{{ prettyJson(log.newValues) }}</pre>
                       </div>
                     </div>
                   </td>

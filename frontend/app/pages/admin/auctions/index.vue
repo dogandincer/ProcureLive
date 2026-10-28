@@ -119,7 +119,7 @@ watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
       </div>
     </div>
 
-    <form v-if="showForm" class="space-y-4 rounded-xl border border-slate-200 bg-white p-5" @submit.prevent="createAuction">
+    <form v-if="showForm" class="space-y-4 rounded-xl border border-slate-200 bg-surface p-5" @submit.prevent="createAuction">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div class="sm:col-span-2">
           <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.title") }}</label>

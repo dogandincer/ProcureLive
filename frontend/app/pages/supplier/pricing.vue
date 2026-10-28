@@ -105,7 +105,7 @@ const features = computed(() => [
 <template>
   <div class="space-y-8">
     <!-- Satın alım başarılı -->
-    <div v-if="purchase" class="overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm">
+    <div v-if="purchase" class="overflow-hidden rounded-2xl border border-emerald-200 bg-surface shadow-sm">
       <div class="bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-8 text-center text-white">
         <CheckCircleIcon class="mx-auto h-14 w-14" />
         <h1 class="mt-3 text-2xl font-bold">{{ $t("pricing.success.title") }}</h1>
@@ -149,7 +149,7 @@ const features = computed(() => [
 
       <template v-else-if="plans">
         <!-- Mevcut plan -->
-        <div v-if="subscription" class="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+        <div v-if="subscription" class="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-surface p-4 text-sm">
           <div>
             <span class="text-slate-500">{{ $t("pricing.currentPlan") }}:</span>
             <span class="ml-1 font-semibold" :class="isPlus ? 'text-amber-600' : 'text-slate-800'">
@@ -166,7 +166,7 @@ const features = computed(() => [
         </div>
 
         <!-- Standart vs Plus karşılaştırma -->
-        <div class="mx-auto max-w-3xl overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div class="mx-auto max-w-3xl overflow-x-auto rounded-xl border border-slate-200 bg-surface">
           <table class="w-full min-w-[34rem] text-sm">
             <thead>
               <tr class="border-b border-slate-100 bg-slate-50 text-left text-xs uppercase text-slate-500">
@@ -195,7 +195,7 @@ const features = computed(() => [
           <div
             v-for="b in plans.bands"
             :key="b.band"
-            class="relative flex flex-col rounded-2xl border bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+            class="relative flex flex-col rounded-2xl border bg-surface p-6 shadow-sm transition-shadow hover:shadow-md"
             :class="b.band === recommendedBand && !isCurrent(b) ? 'border-amber-300 ring-2 ring-amber-200' : 'border-slate-200'"
           >
             <span
@@ -234,8 +234,8 @@ const features = computed(() => [
 
     <!-- Demo ödeme penceresi (body'ye taşınır: sayfa içi stacking context'i başlığın altında kalmasın) -->
     <Teleport to="body">
-      <div v-if="checkoutBand" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm" @click.self="closeCheckout">
-        <form class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl" @submit.prevent="pay">
+      <div v-if="checkoutBand" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" @click.self="closeCheckout">
+        <form class="w-full max-w-md overflow-hidden rounded-2xl bg-surface shadow-2xl" @submit.prevent="pay">
           <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
             <div>
               <h2 class="text-base font-semibold text-slate-800">{{ $t("pricing.checkout.title") }}</h2>

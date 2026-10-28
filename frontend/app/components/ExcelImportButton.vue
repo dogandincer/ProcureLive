@@ -90,14 +90,14 @@ async function confirmImport() {
   <div class="relative inline-block">
     <button
       type="button"
-      class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+      class="rounded-md border border-slate-300 bg-surface px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
       @click="openPanel"
     >
       📥 {{ displayLabel }}
     </button>
 
-    <div v-if="open" class="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/30 p-4" @click.self="closePanel">
-      <div class="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-5 shadow-xl">
+    <div v-if="open" class="fixed inset-0 z-30 flex items-center justify-center bg-black/30 p-4" @click.self="closePanel">
+      <div class="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-surface p-5 shadow-xl">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-semibold text-slate-800">{{ displayLabel }}</h3>
           <button class="text-sm text-slate-400 hover:text-slate-600" @click="closePanel">✕</button>

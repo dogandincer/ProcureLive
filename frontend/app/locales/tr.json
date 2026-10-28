@@ -66,7 +66,9 @@
     "collapse": "Menüyü daralt",
     "expand": "Menüyü genişlet",
     "toggleMenu": "Menü",
-    "permissions": "Yetkiler"
+    "permissions": "Yetkiler",
+    "accountGroup": "Hesap",
+    "settings": "Ayarlar"
   },
   "language": {
     "label": "Dil",
@@ -83,7 +85,8 @@
     "unreadOnly": "Okunmamış",
     "markAllRead": "Tümünü okundu işaretle",
     "empty": "Bildirim yok",
-    "emptyUnread": "Okunmamış bildirim yok"
+    "emptyUnread": "Okunmamış bildirim yok",
+    "openRecord": "Kayda git"
   },
   "excelImport": {
     "defaultLabel": "Excel'den Aktar",
@@ -1875,6 +1878,57 @@
     "notFound": {
       "title": "Kayıt bulunamadı",
       "body": "Kayıt silinmiş ya da bağlantı hatalı olabilir."
+    }
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "subtitle": "Görünüm tercihleriniz yalnızca sizin hesabınız için bu tarayıcıda saklanır ve anında uygulanır.",
+    "resetDone": "Görünüm varsayılana döndü.",
+    "reset": "Varsayılana dön",
+    "mode": {
+      "title": "Tema",
+      "light": "Açık",
+      "lightHint": "Aydınlık zemin",
+      "dark": "Koyu",
+      "darkHint": "Göz yormayan koyu zemin",
+      "system": "Sisteme uy",
+      "systemHint": "İşletim sisteminin ayarını izler"
+    },
+    "palette": {
+      "title": "Renk paleti",
+      "subtitle": "Butonlar, bağlantılar, seçili menü ve vurgular bu renkle gösterilir.",
+      "presets": {
+        "indigo": "İndigo",
+        "ocean": "Okyanus",
+        "emerald": "Zümrüt",
+        "teal": "Deniz",
+        "violet": "Mor",
+        "rose": "Gül",
+        "sunset": "Gün batımı",
+        "graphite": "Grafit"
+      },
+      "custom": "Özel renk",
+      "customHint": "Paletten bir renk seçin; açık ve koyu tonlar otomatik üretilir.",
+      "picker": "Serbest renk seçici",
+      "hex": "Renk kodu",
+      "generated": "Üretilen tonlar",
+      "lowContrast": "Bu renk açık kaldığı için buton yazıları zor okunabilir. Daha koyu bir ton seçmenizi öneririz."
+    },
+    "sidebar": {
+      "title": "Menü stili",
+      "dark": "Koyu menü",
+      "light": "Açık menü",
+      "accent": "Palet renginde"
+    },
+    "preview": {
+      "title": "Önizleme",
+      "primary": "Ana buton",
+      "secondary": "İkincil buton",
+      "link": "Bağlantı",
+      "success": "Teklifiniz kaydedildi.",
+      "warning": "İhale 15 dakika içinde başlıyor.",
+      "error": "Teklif en iyi tekliften düşük olmalı.",
+      "input": "Örnek giriş alanı"
     }
   }
 }

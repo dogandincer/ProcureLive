@@ -66,7 +66,9 @@
     "collapse": "Collapse menu",
     "expand": "Expand menu",
     "toggleMenu": "Menu",
-    "permissions": "Permissions"
+    "permissions": "Permissions",
+    "accountGroup": "Account",
+    "settings": "Settings"
   },
   "language": {
     "label": "Language",
@@ -83,7 +85,8 @@
     "unreadOnly": "Unread",
     "markAllRead": "Mark all as read",
     "empty": "No notifications",
-    "emptyUnread": "No unread notifications"
+    "emptyUnread": "No unread notifications",
+    "openRecord": "Open record"
   },
   "excelImport": {
     "defaultLabel": "Import from Excel",
@@ -1875,6 +1878,57 @@
     "notFound": {
       "title": "Record not found",
       "body": "The record may have been deleted or the link is wrong."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Your appearance preferences are stored for your account in this browser and apply immediately.",
+    "resetDone": "Appearance restored to default.",
+    "reset": "Restore default",
+    "mode": {
+      "title": "Theme",
+      "light": "Light",
+      "lightHint": "Bright background",
+      "dark": "Dark",
+      "darkHint": "Easy-on-the-eyes dark background",
+      "system": "Match system",
+      "systemHint": "Follows your operating system"
+    },
+    "palette": {
+      "title": "Color palette",
+      "subtitle": "Buttons, links, the selected menu item and highlights use this color.",
+      "presets": {
+        "indigo": "Indigo",
+        "ocean": "Ocean",
+        "emerald": "Emerald",
+        "teal": "Teal",
+        "violet": "Violet",
+        "rose": "Rose",
+        "sunset": "Sunset",
+        "graphite": "Graphite"
+      },
+      "custom": "Custom color",
+      "customHint": "Pick a color from the palette; light and dark tones are generated automatically.",
+      "picker": "Free color picker",
+      "hex": "Color code",
+      "generated": "Generated tones",
+      "lowContrast": "This color is light, so button text may be hard to read. We recommend a darker tone."
+    },
+    "sidebar": {
+      "title": "Menu style",
+      "dark": "Dark menu",
+      "light": "Light menu",
+      "accent": "Palette color"
+    },
+    "preview": {
+      "title": "Preview",
+      "primary": "Primary button",
+      "secondary": "Secondary button",
+      "link": "Link",
+      "success": "Your bid was saved.",
+      "warning": "The auction starts in 15 minutes.",
+      "error": "The bid must be lower than the best bid.",
+      "input": "Sample input"
     }
   }
 }

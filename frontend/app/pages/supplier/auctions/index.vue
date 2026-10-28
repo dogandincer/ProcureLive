@@ -135,7 +135,7 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
         </div>
       </div>
       <div v-if="!isPlus" class="flex items-center gap-3">
-        <div class="hidden h-2 w-32 overflow-hidden rounded-full bg-white sm:block">
+        <div class="hidden h-2 w-32 overflow-hidden rounded-full bg-surface sm:block">
           <div
             class="h-full rounded-full"
             :class="quotaReached ? 'bg-rose-500' : 'bg-indigo-500'"

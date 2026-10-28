@@ -41,7 +41,7 @@ function confirmRemove(tempId: string, name: string) {
 </script>
 
 <template>
-  <div class="rounded-xl border border-slate-200 bg-white">
+  <div class="rounded-xl border border-slate-200 bg-surface">
     <!-- Toolbar -->
     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-3 py-2.5">
       <div class="flex items-center gap-2">

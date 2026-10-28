@@ -160,7 +160,7 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
       </div>
     </div>
 
-    <form v-else-if="accepted" class="space-y-4 rounded-xl border border-slate-200 bg-white p-5" @submit.prevent="submitQuote">
+    <form v-else-if="accepted" class="space-y-4 rounded-xl border border-slate-200 bg-surface p-5" @submit.prevent="submitQuote">
       <!-- Durum: kapalı süreç / gönderildi (Standart: revizyon Plus'a özel) / Plus: revize edilebilir -->
       <p v-if="!process.isOpen" class="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-600">{{ $t("rfx.closed") }}</p>
       <div v-else-if="process.hasSubmitted && !canSubmit" class="flex flex-wrap items-center justify-between gap-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
@@ -199,7 +199,7 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
       <p v-if="canSubmit && !process.hasSubmitted && !isPlus" class="text-[11px] text-slate-400">{{ $t("rfx.standardOnce") }}</p>
     </form>
 
-    <div v-else class="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">
+    <div v-else class="rounded-xl border border-slate-200 bg-surface p-5 text-sm text-slate-500">
       {{ $t("rfq.quote.noInteraction") }}
     </div>
   </div>

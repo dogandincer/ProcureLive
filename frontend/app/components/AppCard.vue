@@ -3,7 +3,7 @@ withDefaults(defineProps<{ title?: string; description?: string; noPadding?: boo
 </script>
 
 <template>
-  <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+  <div class="rounded-xl border border-slate-200 bg-surface shadow-sm overflow-hidden">
     <div v-if="title || $slots.header" class="flex items-center justify-between border-b border-slate-100 px-5 py-3">
       <div>
         <slot name="header">

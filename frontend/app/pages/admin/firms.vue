@@ -253,7 +253,7 @@ onMounted(load);
                 <PhotoIcon v-else class="h-8 w-8 text-slate-300" />
               </div>
               <div class="space-y-2">
-                <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-slate-300 bg-surface px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
                   <PhotoIcon class="h-4 w-4" /> {{ $t("firms.logoChoose") }}
                   <input type="file" accept="image/png,image/jpeg,image/webp,image/x-icon" class="hidden" @change="onLogoSelected" />
                 </label>

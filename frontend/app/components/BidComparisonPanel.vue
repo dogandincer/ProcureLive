@@ -68,7 +68,7 @@ function barColor(rank: number): string {
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm" data-testid="bid-comparison">
+  <div class="overflow-hidden rounded-xl border border-slate-200 bg-surface shadow-sm" data-testid="bid-comparison">
     <div class="flex items-start justify-between gap-4 border-b border-slate-100 bg-slate-50 px-5 py-3">
       <div class="min-w-0">
         <div class="font-semibold leading-snug text-slate-800">{{ item.description }}</div>
@@ -100,7 +100,7 @@ function barColor(rank: number): string {
         v-for="(bid, idx) in ranked"
         :key="bid.bidId"
         class="px-5 py-3"
-        :class="bid.isAwarded ? 'bg-emerald-50/60' : 'bg-white hover:bg-slate-50'"
+        :class="bid.isAwarded ? 'bg-emerald-50/60' : 'bg-surface hover:bg-slate-50'"
       >
         <div class="flex items-center gap-3">
           <div class="w-7 shrink-0 text-center text-base leading-none">
@@ -144,7 +144,7 @@ function barColor(rank: number): string {
             <button
               v-else-if="canAward"
               type="button"
-              class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
+              class="rounded-lg border border-slate-200 bg-surface px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
               @click="emit('award', bid)"
             >
               {{ $t("auctions.evaluation.selectWinner") }}

@@ -306,7 +306,7 @@ onMounted(load);
           <option v-for="w in workspaces" :key="w.id" :value="w.id">{{ w.name }}</option>
         </select>
       </div>
-      <div v-if="company.companyType !== 'Internal'" class="mt-3 rounded-lg border border-slate-200 bg-white p-3">
+      <div v-if="company.companyType !== 'Internal'" class="mt-3 rounded-lg border border-slate-200 bg-surface p-3">
         <ChipMultiSelect
           v-model="visibleWorkspaceIds"
           :options="visibleOptions"
@@ -444,7 +444,7 @@ onMounted(load);
               'flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors',
               selectedSectorIds.has(sector.id)
                 ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-300',
+                : 'border-slate-200 bg-surface text-slate-600 hover:border-indigo-300',
             ]"
             @click="toggleSector(sector.id)"
           >

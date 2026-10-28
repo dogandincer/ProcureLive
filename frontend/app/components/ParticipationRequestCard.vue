@@ -69,7 +69,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="participation" class="space-y-4 rounded-xl border border-indigo-200 bg-white p-5">
+  <div id="participation" class="space-y-4 rounded-xl border border-indigo-200 bg-surface p-5">
     <div>
       <h2 class="text-sm font-semibold text-slate-800">{{ $t("participation.title") }}</h2>
       <p class="mt-0.5 text-xs text-slate-500">{{ $t("participation.intro", { owner: auction.ownerCompanyName }) }}</p>

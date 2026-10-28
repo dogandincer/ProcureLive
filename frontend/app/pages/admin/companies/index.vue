@@ -254,7 +254,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <form v-if="showForm" class="space-y-4 rounded-xl border border-slate-200 bg-white p-5" @submit.prevent="create">
+    <form v-if="showForm" class="space-y-4 rounded-xl border border-slate-200 bg-surface p-5" @submit.prevent="create">
       <!-- TCKN/VKN lookup bar -->
       <div class="rounded-lg border border-indigo-100 bg-indigo-50/40 p-3">
         <label class="mb-1 block text-xs font-medium text-indigo-800">{{ $t("companies.lookup.label") }}</label>

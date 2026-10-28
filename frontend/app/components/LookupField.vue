@@ -112,8 +112,8 @@ function onKeydown(e: KeyboardEvent) {
     </div>
 
     <Teleport to="body">
-      <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm" @click.self="open = false">
-        <div class="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" @keydown="onKeydown">
+      <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" @click.self="open = false">
+        <div class="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-surface shadow-2xl" @keydown="onKeydown">
           <div class="flex items-center justify-between border-b border-slate-100 px-5 py-3">
             <h2 class="text-sm font-semibold text-slate-800">{{ title }}</h2>
             <button type="button" class="rounded p-1 text-slate-400 hover:bg-slate-100" @click="open = false">

@@ -6,7 +6,7 @@ defineProps<{ kind: "forbidden" | "notFound"; backTo: string; backLabel: string 
 </script>
 
 <template>
-  <div class="mx-auto mt-10 max-w-md rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm" data-testid="access-state">
+  <div class="mx-auto mt-10 max-w-md rounded-xl border border-slate-200 bg-surface p-6 text-center shadow-sm" data-testid="access-state">
     <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
       <LockClosedIcon v-if="kind === 'forbidden'" class="h-5 w-5 text-slate-500" />
       <QuestionMarkCircleIcon v-else class="h-5 w-5 text-slate-500" />

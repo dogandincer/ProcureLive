@@ -88,6 +88,7 @@ public sealed class SaveFirmCommandHandler : IRequestHandler<SaveFirmCommand, Gu
         firm.TaxOffice = Clean(d.TaxOffice) ?? string.Empty;
         firm.TaxNumber = Clean(d.TaxNumber) ?? string.Empty;
         firm.AppTitleSuffix = Clean(d.AppTitleSuffix);
+        firm.RequirePublishApproval = d.RequirePublishApproval;
 
         UpsertBillingAddress(firm, d);
 

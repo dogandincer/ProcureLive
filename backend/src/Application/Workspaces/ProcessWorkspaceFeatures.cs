@@ -27,6 +27,7 @@ internal static class ProcessWorkspaceRules
     }
 }
 
+[RequiresPermission(PermissionCodes.RfiManage)]
 public sealed record ChangeRfiWorkspaceCommand(Guid RfiProcessId, Guid TargetWorkspaceId)
     : IRequest, IRfiScopedRequest, IWorkspaceTargetRequest
 {
@@ -56,6 +57,7 @@ public sealed class ChangeRfiWorkspaceCommandHandler : IRequestHandler<ChangeRfi
     }
 }
 
+[RequiresPermission(PermissionCodes.RfqManage)]
 public sealed record ChangeRfqWorkspaceCommand(Guid RfqProcessId, Guid TargetWorkspaceId)
     : IRequest, IRfqScopedRequest, IWorkspaceTargetRequest
 {

@@ -38,7 +38,8 @@ const ranked = computed(() => {
 });
 
 const awarded = computed(() => props.bids.find((b) => b.isAwarded) ?? null);
-const canAward = computed(() => props.auctionStatus === "Ended" && !awarded.value);
+const { can } = usePermissions();
+const canAward = computed(() => props.auctionStatus === "Ended" && !awarded.value && can("auctions.award"));
 const best = computed(() => ranked.value[0]?.normalizedAmountInBaseCurrency ?? 0);
 const maxNormalized = computed(() => Math.max(...ranked.value.map((b) => b.normalizedAmountInBaseCurrency), 1));
 

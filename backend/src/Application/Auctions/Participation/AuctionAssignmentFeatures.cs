@@ -64,6 +64,7 @@ public sealed class GetResponsibleCandidatesQueryHandler : IRequestHandler<GetRe
     }
 }
 
+[RequiresPermission(PermissionCodes.AuctionsManage)]
 public sealed record UpdateAuctionAssignmentCommand(Guid AuctionId, Guid? WorkspaceId, Guid ResponsibleUserId)
     : IRequest, IAuctionScopedRequest, IWorkspaceTargetRequest;
 

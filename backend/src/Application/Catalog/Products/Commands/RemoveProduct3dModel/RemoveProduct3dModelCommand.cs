@@ -3,4 +3,5 @@ using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Catalog.Products.Commands.RemoveProduct3dModel;
 
+[RequiresPermission(PermissionCodes.ProductsManage)]
 public sealed record RemoveProduct3dModelCommand(Guid ProductId) : IRequest, IProductScopedRequest;

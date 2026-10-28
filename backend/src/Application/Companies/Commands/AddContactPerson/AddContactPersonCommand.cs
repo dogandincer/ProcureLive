@@ -3,6 +3,7 @@ using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Companies.Commands.AddContactPerson;
 
+[RequiresPermission(PermissionCodes.CompaniesManage)]
 public sealed record AddContactPersonCommand(
     Guid CompanyId,
     string FirstName,

@@ -29,6 +29,7 @@ import {
   ShieldCheckIcon,
   SwatchIcon,
   UserCircleIcon,
+  ShoppingCartIcon,
 } from "@heroicons/vue/24/outline";
 import type { FirmDto, WorkspaceDto } from "~/types/api";
 
@@ -129,6 +130,7 @@ const adminSections: NavSection[] = [
       { to: "/admin/auctions", labelKey: "nav.auctions", icon: ClipboardDocumentListIcon },
       { to: "/admin/rfi", labelKey: "nav.rfi", icon: QuestionMarkCircleIcon },
       { to: "/admin/rfq", labelKey: "nav.rfq", icon: DocumentTextIcon },
+      { to: "/admin/orders", labelKey: "nav.orders", icon: ShoppingCartIcon },
       { to: "/admin/monitoring", labelKey: "nav.monitoring", icon: ChartBarIcon },
     ],
   },
@@ -143,6 +145,7 @@ const supplierSections: NavSection[] = [
       { to: "/supplier/history", labelKey: "nav.auctionHistory", icon: ArchiveBoxIcon },
       { to: "/supplier/rfi", labelKey: "nav.rfiInvites", icon: QuestionMarkCircleIcon },
       { to: "/supplier/rfq", labelKey: "nav.rfqInvites", icon: DocumentTextIcon },
+      { to: "/supplier/orders", labelKey: "nav.myOrders", icon: ShoppingCartIcon },
     ],
   },
   {
@@ -252,15 +255,18 @@ function notificationLink(n: NotificationDto): string | null {
   switch (n.relatedEntityType) {
     case "Auction":
       return internal
-        ? `/admin/auctions/${id}`
-        : `/supplier/auctions/${id}${n.type === "ParticipationRequest" ? "#participation" : ""}`;
+        ? `/admin/auctions/${id}${n.type === "ProcessQuestion" ? "#qa" : ""}`
+        : `/supplier/auctions/${id}${n.type === "ParticipationRequest" ? "#participation" : n.type === "ProcessQuestion" ? "#qa" : ""}`;
     case "RfiProcess":
-      return internal ? `/admin/rfi/${id}` : `/supplier/rfi/${id}`;
+      return (internal ? `/admin/rfi/${id}` : `/supplier/rfi/${id}`) + (n.type === "ProcessQuestion" ? "#qa" : "");
     case "RfqProcess":
-      return internal ? `/admin/rfq/${id}` : `/supplier/rfq/${id}`;
+      return (internal ? `/admin/rfq/${id}` : `/supplier/rfq/${id}`) + (n.type === "ProcessQuestion" ? "#qa" : "");
     case "Company":
-      // Tedarikçiye gelen cari bildirimi (onay, abonelik) kendi paneline götürür.
+      // Tedarikçiye gelen cari bildirimi (onay, abonelik) kendi paneline; belge süresi uyarısı belge kartına götürür.
+      if (n.type === "DocumentExpiry") return internal ? `/admin/companies/${id}#documents` : "/supplier/settings#documents";
       return internal ? `/admin/companies/${id}` : "/supplier";
+    case "PurchaseOrder":
+      return internal ? `/admin/orders/${id}` : `/supplier/orders/${id}`;
     default:
       return null;
   }

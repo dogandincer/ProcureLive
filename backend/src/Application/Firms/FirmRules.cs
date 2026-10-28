@@ -53,7 +53,7 @@ public static class FirmRules
             r.Firm.Phone, r.Firm.Phone2, r.Firm.MobilePhone, r.Firm.Fax, r.Firm.Email, r.Firm.Email2, r.Firm.Website,
             NullIfEmpty(r.Firm.TaxOffice), NullIfEmpty(r.Firm.TaxNumber),
             r.Billing?.Country, r.Billing?.City, r.Billing?.District, r.Billing?.PostalCode, r.Billing?.Line1,
-            r.Firm.LogoUrl, r.Firm.IsDefaultFirm, r.Firm.AppTitleSuffix, r.WorkspaceCount)).ToList();
+            r.Firm.LogoUrl, r.Firm.IsDefaultFirm, r.Firm.AppTitleSuffix, r.WorkspaceCount, r.Firm.RequirePublishApproval)).ToList();
     }
 
     private static string? NullIfEmpty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;

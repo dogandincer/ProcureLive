@@ -253,6 +253,7 @@ public sealed class GetParticipationRequestsQueryHandler : IRequestHandler<GetPa
 
 // ---------------------------------------------------------------- 2) Cari onayı
 
+[RequiresPermission(PermissionCodes.AuctionsManage)]
 public sealed record ApproveParticipationCompanyCommand(Guid AuctionId, Guid RequestId) : IRequest, IAuctionScopedRequest;
 
 public sealed class ApproveParticipationCompanyCommandHandler : IRequestHandler<ApproveParticipationCompanyCommand>
@@ -317,6 +318,7 @@ public sealed class ApproveParticipationCompanyCommandHandler : IRequestHandler<
 
 // ---------------------------------------------------------------- 3) Ön teklifi kabul et → ihaleye dahil et
 
+[RequiresPermission(PermissionCodes.AuctionsManage)]
 public sealed record AcceptParticipationRequestCommand(Guid AuctionId, Guid RequestId) : IRequest, IAuctionScopedRequest;
 
 public sealed class AcceptParticipationRequestCommandHandler : IRequestHandler<AcceptParticipationRequestCommand>
@@ -419,6 +421,7 @@ public sealed class AcceptParticipationRequestCommandHandler : IRequestHandler<A
 
 // ---------------------------------------------------------------- Red
 
+[RequiresPermission(PermissionCodes.AuctionsManage)]
 public sealed record RejectParticipationRequestCommand(Guid AuctionId, Guid RequestId, string? Reason) : IRequest, IAuctionScopedRequest;
 
 public sealed class RejectParticipationRequestCommandValidator : AbstractValidator<RejectParticipationRequestCommand>

@@ -26,4 +26,16 @@ public sealed record AuctionStatusPanelDto(
     DateTime? PausedAt,
     bool HasAwards,
     IReadOnlyList<StatusTransitionOptionDto> Transitions,
-    IReadOnlyList<AuctionStatusChangeDto> History);
+    IReadOnlyList<AuctionStatusChangeDto> History,
+    // Yayın onayı: firma onay istiyor ve kullanıcı satınalmacı → "Yayınla" yerine "Onaya gönder"; Admin bekleyen talebi onaylar/reddeder.
+    bool PublishApprovalRequired = false,
+    DateTime? ApprovalRequestedAt = null,
+    string? ApprovalRequestedByName = null,
+    string? ApprovalRejectReason = null);
+
+public sealed record RejectPublishRequest(string Reason);
+
+public sealed record RequestPublishApprovalRequest(DateTime? NewStartAt, DateTime? NewEndAt);
+
+public sealed record PendingPublishApprovalDto(
+    Guid AuctionId, string Title, string OwnerCompanyName, DateTime StartAt, DateTime RequestedAt, string? RequestedByName);

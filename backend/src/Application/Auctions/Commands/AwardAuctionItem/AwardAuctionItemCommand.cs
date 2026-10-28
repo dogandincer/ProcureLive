@@ -3,6 +3,7 @@ using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Auctions.Commands.AwardAuctionItem;
 
+[RequiresPermission(PermissionCodes.AuctionsAward)]
 public sealed record AwardAuctionItemCommand(
     Guid AuctionId,
     Guid AuctionItemId,

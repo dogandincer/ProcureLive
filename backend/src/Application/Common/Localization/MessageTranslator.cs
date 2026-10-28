@@ -197,6 +197,45 @@ public static class MessageTranslator
         // RFI/RFQ işyeri, ön teklif → ilk teklif
         ["Seçilen işyeri sahip firmaya ait değil."] = "The selected workspace does not belong to the owner firm.",
         ["Kapanmış sürecin işyeri değiştirilemez."] = "The workspace of a closed process cannot be changed.",
+        ["Bilinmeyen yetki kodu."] = "Unknown permission code.",
+        ["Bu firmada ihale yayını Admin onayı gerektirir. \"Yayın onayı iste\" ile onaya gönderin."] = "Publishing auctions in this company requires Admin approval. Use \"Request publish approval\".",
+        ["Bu firmada ihale yayını Admin onayı gerektirir."] = "Publishing auctions in this company requires Admin approval.",
+        ["Bu durum değişikliğini yalnızca Admin yapabilir."] = "Only an Admin can make this status change.",
+        ["Yalnızca taslak ihale onaya gönderilebilir."] = "Only a draft auction can be sent for approval.",
+        ["Bu ihale zaten onay bekliyor."] = "This auction is already awaiting approval.",
+        ["Bu ihale için bekleyen bir yayın onayı talebi yok."] = "There is no pending publish approval request for this auction.",
+        ["Ret gerekçesi zorunludur."] = "A rejection reason is required.",
+        ["Yayın Onayı Bekleniyor"] = "Publish Approval Pending",
+        ["Yayın Onaylandı"] = "Publishing Approved",
+        ["Yayın Reddedildi"] = "Publishing Rejected",
+        ["Sipariş için önce en az bir kalemde kazanan seçilmelidir."] = "Select a winner for at least one item before creating an order.",
+        ["Bu ihalenin tüm kazananları için sipariş zaten açılmış."] = "Orders already exist for all winners of this auction.",
+        ["Sipariş için önce kazanan teklif seçilmelidir."] = "Select the winning quote before creating an order.",
+        ["Bu RFQ için sipariş zaten açılmış."] = "An order already exists for this RFQ.",
+        ["Yalnızca taslak sipariş düzenlenebilir."] = "Only a draft order can be edited.",
+        ["Yalnızca taslak sipariş gönderilebilir."] = "Only a draft order can be sent.",
+        ["Onaylanmış veya iptal edilmiş sipariş iptal edilemez."] = "A confirmed or cancelled order cannot be cancelled.",
+        ["Siparişi yalnızca tedarikçi onaylayabilir."] = "Only the supplier can confirm the order.",
+        ["Yalnızca gönderilmiş sipariş onaylanabilir."] = "Only a sent order can be confirmed.",
+        ["Yeni Sipariş"] = "New Purchase Order",
+        ["Sipariş İptal Edildi"] = "Purchase Order Cancelled",
+        ["Sipariş Onaylandı"] = "Purchase Order Confirmed",
+        ["Soru yalnızca tedarikçi tarafından sorulabilir; iç kullanıcılar duyuru yayınlar."] = "Only suppliers can ask questions; internal users post announcements.",
+        ["Süreç soru almaya açık değil."] = "The process is not open for questions.",
+        ["Duyuruyu yalnızca süreç sahibi yayınlayabilir."] = "Only the process owner can post announcements.",
+        ["Soru boş olamaz."] = "The question cannot be empty.",
+        ["Cevap boş olamaz."] = "The answer cannot be empty.",
+        ["Duyuru metni boş olamaz."] = "The announcement text cannot be empty.",
+        ["Yeni Tedarikçi Sorusu"] = "New Supplier Question",
+        ["Sorunuz Cevaplandı"] = "Your Question Was Answered",
+        ["Yeni Soru-Cevap"] = "New Q&A",
+        ["Yeni Duyuru"] = "New Announcement",
+        ["Yalnızca kendi firmanızın belgelerini yönetebilirsiniz."] = "You can only manage your own company's documents.",
+        ["Belge adı zorunludur."] = "A document name is required.",
+        ["Belge dosyası yüklenmelidir."] = "Upload the document file.",
+        ["Belge dosyası sistem üzerinden yüklenmelidir."] = "The document file must be uploaded through the system.",
+        ["Belge Süresi Doldu"] = "Document Expired",
+        ["Belge Süresi Doluyor"] = "Document Expiring Soon",
         ["Şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş. Yeni bir bağlantı isteyin."] = "The password reset link is invalid or has expired. Request a new link.",
         ["Mevcut şifrenizi girin."] = "Enter your current password.",
         ["Yeni şifre mevcut şifreden farklı olmalıdır."] = "The new password must differ from the current one.",
@@ -286,6 +325,24 @@ public static class MessageTranslator
     private static string StatusName(string turkish) => StatusNames.TryGetValue(turkish, out string? en) ? en : turkish;
 
     private static string WithReason(string text, Group reason) => reason.Success ? $"{text} Reason: {reason.Value}" : text;
+
+    private static string ProcessEn(string kind) => kind switch { "ihalesi" => "auction", "RFI süreci" => "RFI", _ => "RFQ" };
+
+    /// <summary>Yetki açıklamaları (<see cref="Security.PermissionCodes.All"/>) İngilizce karşılıkları.</summary>
+    private static string PermissionEn(string description) => description switch
+    {
+        "İhale oluşturma, düzenleme, yayınlama ve davet" => "Create, edit, publish auctions and invite",
+        "İhalede kazanan seçme" => "Award auction winners",
+        "RFI şablonu ve süreci yönetme" => "Manage RFI templates and processes",
+        "RFQ süreci yönetme" => "Manage RFQ processes",
+        "RFQ'da kazanan seçme" => "Award RFQ winners",
+        "Cari (tedarikçi) kartı yönetme" => "Manage supplier cards",
+        "Ürün kartı yönetme" => "Manage product cards",
+        "Kategori, sektör, para birimi ve kur tanımları" => "Categories, sectors, currencies and exchange rates",
+        "Sipariş oluşturma ve gönderme" => "Create and send purchase orders",
+        "Tedarikçi sorularını yanıtlama ve duyuru" => "Answer supplier questions and post announcements",
+        _ => description,
+    };
 
     private static readonly (Regex Pattern, MatchEvaluator Render)[] TemplateRules =
     [
@@ -437,6 +494,32 @@ public static class MessageTranslator
             m => WithReason($"RFI \"{m.Groups[1].Value}\" was cancelled.", m.Groups[2])),
         (new Regex(@"^""([^""]+)"" RFQ süreci iptal edildi\.(?: Gerekçe: (.+))?$"),
             m => WithReason($"RFQ \"{m.Groups[1].Value}\" was cancelled.", m.Groups[2])),
+        (new Regex(@"^Bu işlem için yetkiniz yok: (.+)\.$"),
+            m => $"You do not have permission for this action: {PermissionEn(m.Groups[1].Value)}."),
+        (new Regex(@"^""([^""]+)"" ihalesi yayın onayınızı bekliyor\.$"),
+            m => $"Auction \"{m.Groups[1].Value}\" is awaiting your publish approval."),
+        (new Regex(@"^""([^""]+)"" ihalesinin yayını onaylandı ve ihale planlandı\.$"),
+            m => $"Publishing of auction \"{m.Groups[1].Value}\" was approved and the auction is scheduled."),
+        (new Regex(@"^""([^""]+)"" ihalesinin yayın talebi reddedildi\. Gerekçe: (.+)$"),
+            m => $"The publish request for auction \"{m.Groups[1].Value}\" was rejected. Reason: {m.Groups[2].Value}"),
+        (new Regex(@"^(\S+) numaralı sipariş size gönderildi \(""(.+)""\)\. Lütfen inceleyip onaylayın\.$"),
+            m => $"Purchase order {m.Groups[1].Value} was sent to you (\"{m.Groups[2].Value}\"). Please review and confirm it."),
+        (new Regex(@"^(\S+) numaralı sipariş iptal edildi\.(?: Gerekçe: (.+))?$"),
+            m => WithReason($"Purchase order {m.Groups[1].Value} was cancelled.", m.Groups[2])),
+        (new Regex(@"^(.+), (\S+) numaralı siparişi onayladı\.$"),
+            m => $"{m.Groups[1].Value} confirmed purchase order {m.Groups[2].Value}."),
+        (new Regex(@"^""(.+)"" (ihalesi|RFI süreci|RFQ süreci) için yeni bir soru var\.$"),
+            m => $"There is a new question for {ProcessEn(m.Groups[2].Value)} \"{m.Groups[1].Value}\"."),
+        (new Regex(@"^""(.+)"" (ihalesi|RFI süreci|RFQ süreci) için sorduğunuz soru cevaplandı\.$"),
+            m => $"Your question about {ProcessEn(m.Groups[2].Value)} \"{m.Groups[1].Value}\" was answered."),
+        (new Regex(@"^""(.+)"" (ihalesi|RFI süreci|RFQ süreci) için herkese açık yeni bir soru-cevap yayınlandı\.$"),
+            m => $"A new public Q&A was published for {ProcessEn(m.Groups[2].Value)} \"{m.Groups[1].Value}\"."),
+        (new Regex(@"^""(.+)"" (ihalesi|RFI süreci|RFQ süreci) için yeni bir duyuru yayınlandı\.$"),
+            m => $"A new announcement was posted for {ProcessEn(m.Groups[2].Value)} \"{m.Groups[1].Value}\"."),
+        (new Regex(@"^(?:(.+): )?""(.+)"" belgesinin geçerliliği (\S+) tarihinde doldu\. Güncel belgeyi yükleyin\.$"),
+            m => $"{(m.Groups[1].Success ? m.Groups[1].Value + ": " : "")}Document \"{m.Groups[2].Value}\" expired on {m.Groups[3].Value}. Upload a current document."),
+        (new Regex(@"^(?:(.+): )?""(.+)"" belgesinin geçerliliği (\S+) tarihinde dolacak\. Güncel belgeyi yükleyin\.$"),
+            m => $"{(m.Groups[1].Success ? m.Groups[1].Value + ": " : "")}Document \"{m.Groups[2].Value}\" expires on {m.Groups[3].Value}. Upload a current document."),
     ];
 
     private static string RenderInvitationResponse(Match m, string processNoun)

@@ -23,4 +23,6 @@ public static class ErrorCodes
     public const string RequiredAnswersMissing = "RequiredAnswersMissing";
     public const string InvalidCredentials = "InvalidCredentials";
     public const string AccountInactive = "AccountInactive";
+    public const string PermissionDenied = "PermissionDenied";
+    public const string PublishApprovalRequired = "PublishApprovalRequired";
 }

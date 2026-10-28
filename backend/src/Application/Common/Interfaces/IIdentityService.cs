@@ -50,6 +50,9 @@ public interface IIdentityService
     /// <summary>Mevcut şifreyle değiştirme. Hata kodları: "PasswordMismatch" veya Türkçe kural mesajları.</summary>
     Task<IdentityOperationResult> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken);
 
+    /// <summary>Rol adına göre Identity rol kimliği (yetki tablosu RolePermissions bu kimliği kullanır).</summary>
+    Task<Guid?> GetRoleIdAsync(string roleName, CancellationToken cancellationToken);
+
     /// <summary><paramref name="roles"/> verilirse yalnızca bu rollerden en az birine sahip kullanıcılar listelenir.</summary>
     Task<PagedResult<ApplicationUserInfo>> ListUsersAsync(
         string? searchTerm,

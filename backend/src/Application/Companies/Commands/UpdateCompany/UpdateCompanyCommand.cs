@@ -6,6 +6,7 @@ using ProcureLive.Domain.Enums;
 
 namespace ProcureLive.Application.Companies.Commands.UpdateCompany;
 
+[RequiresPermission(PermissionCodes.CompaniesManage)]
 public sealed record UpdateCompanyCommand(
     Guid Id,
     string Name,

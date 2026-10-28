@@ -2,6 +2,7 @@
 import type { PagedResult, RfiProcessDto, RfiTemplateDto } from "~/types/api";
 
 const api = useApi();
+const { can } = usePermissions();
 const toast = useToast();
 const { t } = useI18n();
 const processes = ref<RfiProcessDto[]>([]);
@@ -124,10 +125,10 @@ watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-slate-800">{{ $t("rfi.title") }}</h1>
       <div class="flex gap-2">
-        <AppButton variant="secondary" @click="showTemplateForm = !showTemplateForm">
+        <AppButton v-if="can('rfi.manage')" variant="secondary" @click="showTemplateForm = !showTemplateForm">
           {{ $t("rfi.newTemplate") }}
         </AppButton>
-        <AppButton @click="showProcessForm = !showProcessForm">
+        <AppButton v-if="can('rfi.manage')" @click="showProcessForm = !showProcessForm">
           {{ $t("rfi.newProcess") }}
         </AppButton>
       </div>

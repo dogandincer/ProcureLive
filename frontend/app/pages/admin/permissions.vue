@@ -139,6 +139,9 @@ onMounted(async () => {
       </div>
     </AppCard>
 
+    <!-- İşlem bazlı rol yetkileri (Satınalmacı) -->
+    <RolePermissionsCard />
+
     <!-- Satınalmacı yetkileri -->
     <div class="grid gap-6 lg:grid-cols-3">
       <AppCard :title="$t('permissions.buyersTitle')" no-padding>

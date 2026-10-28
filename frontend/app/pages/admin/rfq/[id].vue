@@ -21,6 +21,23 @@ const inviteCompanyName = ref<string | null>(null);
 const { loadSupplierRows } = useSupplierLookup();
 const newLine = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece" });
 const loading = ref(true);
+const { can } = usePermissions();
+
+// Kazanan tekliften sipariş taslağı (RFQ sonuçlandıktan sonra).
+const orderList = ref<{ reload: () => Promise<void> } | null>(null);
+const creatingOrder = ref(false);
+async function createOrder() {
+  creatingOrder.value = true;
+  try {
+    const ids = await api.post<string[]>(`/api/rfq/processes/${processId}/purchase-orders`);
+    toast.success(t("orders.createdToast", { n: ids.length }));
+    await navigateTo(`/admin/orders/${ids[0]}`);
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("orders.actionError")));
+  } finally {
+    creatingOrder.value = false;
+  }
+}
 
 async function runAction(action: () => Promise<void>) {
   try {
@@ -458,7 +475,7 @@ onMounted(async () => {
         >
           <span>{{ q.companyName }}</span>
           <button
-            v-if="process.status === 'Closed'"
+            v-if="process.status === 'Closed' && can('rfq.award')"
             class="rounded bg-indigo-600 px-2 py-1 text-xs font-semibold text-white"
             @click="award(q.id)"
           >
@@ -472,6 +489,15 @@ onMounted(async () => {
         {{ $t("rfq.detail.closeBeforeAward") }}
       </p>
     </AppCard>
+    <AppCard v-if="process.status === 'Awarded'" :title="$t('orders.sectionTitle')" :description="$t('orders.sectionHintRfq')">
+      <div class="space-y-3" data-testid="rfq-orders">
+        <AppButton v-if="can('orders.manage')" :loading="creatingOrder" data-testid="create-orders" @click="createOrder">{{ $t("orders.createFromRfq") }}</AppButton>
+        <PurchaseOrderList ref="orderList" internal :source-id="processId" compact />
+      </div>
+    </AppCard>
+
+    <ProcessQaPanel v-if="process.status !== 'Draft'" kind="rfq" :process-id="processId" internal />
+
     <ConfirmDialog :open="showCancel" :title="$t('rfx.edit.cancelTitle')" :confirm-label="$t('rfx.edit.cancel')" tone="danger" :loading="busyEdit" @confirm="confirmCancel" @cancel="showCancel = false">
       <p>{{ $t("rfx.edit.cancelBody") }}</p>
       <textarea v-model="cancelReason" rows="2" maxlength="500" :aria-label="$t('rfx.edit.reason')" :placeholder="$t('rfx.edit.reason')" class="mt-2 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" data-testid="cancel-reason" />

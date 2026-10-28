@@ -3,4 +3,5 @@ using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Companies.Commands.AssignSectors;
 
+[RequiresPermission(PermissionCodes.CompaniesManage)]
 public sealed record AssignSectorsCommand(Guid CompanyId, IReadOnlyCollection<Guid> SectorIds) : IRequest, ICompanyScopedRequest;

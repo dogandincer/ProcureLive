@@ -454,6 +454,7 @@ export interface FirmDto {
   isDefault: boolean;
   appTitleSuffix: string | null;
   workspaceCount: number;
+  requirePublishApproval: boolean;
 }
 
 export interface BrandingDto {
@@ -496,6 +497,20 @@ export interface AuctionStatusPanelDto {
   hasAwards: boolean;
   transitions: StatusTransitionOptionDto[];
   history: AuctionStatusChangeDto[];
+  /** Firma yayın onayı istiyor ve kullanıcı satınalmacı: "Yayınla" yerine "Onaya gönder". */
+  publishApprovalRequired: boolean;
+  approvalRequestedAt: string | null;
+  approvalRequestedByName: string | null;
+  approvalRejectReason: string | null;
+}
+
+export interface PendingPublishApprovalDto {
+  auctionId: string;
+  title: string;
+  ownerCompanyName: string;
+  startAt: string;
+  requestedAt: string;
+  requestedByName: string | null;
 }
 
 // --- Davet linki (onboarding) ---
@@ -924,4 +939,90 @@ export interface UploadedFileDto {
   fileName: string;
   contentType: string;
   sizeBytes: number;
+}
+
+// --- Faz K: sipariş, soru-cevap, cari belgeleri, işlem yetkileri ---
+
+export type PurchaseOrderStatus = "Draft" | "Sent" | "Confirmed" | "Cancelled";
+
+export interface PurchaseOrderListItemDto {
+  id: string;
+  orderNumber: string;
+  sourceKind: "Auction" | "Rfi" | "Rfq";
+  sourceId: string;
+  sourceTitle: string;
+  supplierCompanyId: string;
+  supplierCompanyName: string;
+  ownerCompanyName: string;
+  currencyCode: string;
+  totalAmount: number;
+  status: PurchaseOrderStatus;
+  createdAt: string;
+  sentAt: string | null;
+  confirmedAt: string | null;
+  lineCount: number;
+}
+
+export interface PurchaseOrderLineDto {
+  id: string;
+  description: string;
+  quantity: number;
+  unitOfMeasure: string;
+  unitPrice: number;
+  lineTotal: number;
+}
+
+export interface PurchaseOrderDetailDto {
+  id: string;
+  orderNumber: string;
+  sourceKind: "Auction" | "Rfi" | "Rfq";
+  sourceId: string;
+  sourceTitle: string;
+  ownerCompanyId: string;
+  ownerCompanyName: string;
+  supplierCompanyId: string;
+  supplierCompanyName: string;
+  currencyCode: string;
+  totalAmount: number;
+  status: PurchaseOrderStatus;
+  notes: string | null;
+  deliveryDate: string | null;
+  supplierNote: string | null;
+  createdAt: string;
+  sentAt: string | null;
+  confirmedAt: string | null;
+  cancelledAt: string | null;
+  lines: PurchaseOrderLineDto[];
+}
+
+export interface ProcessQuestionDto {
+  id: string;
+  question: string;
+  answer: string | null;
+  isPublic: boolean;
+  isAnnouncement: boolean;
+  /** Yalnızca iç kullanıcıya döner; tedarikçide her zaman null. */
+  companyName: string | null;
+  isMine: boolean;
+  createdAt: string;
+  answeredAt: string | null;
+}
+
+export type CompanyDocumentExpiry = "Valid" | "ExpiringSoon" | "Expired" | "NoExpiry";
+
+export interface CompanyDocumentDto {
+  id: string;
+  documentType: string;
+  title: string;
+  fileUrl: string;
+  fileName: string;
+  validUntil: string | null;
+  expiryState: CompanyDocumentExpiry;
+  createdAt: string;
+}
+
+export interface RolePermissionDto {
+  code: string;
+  description: string;
+  granted: boolean;
 }

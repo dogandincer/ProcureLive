@@ -279,6 +279,9 @@ onMounted(async () => {
         <EmptyState v-if="evaluations.length === 0">{{ $t("rfi.detail.emptyEvaluations") }}</EmptyState>
       </div>
     </AppCard>
+
+    <ProcessQaPanel v-if="process.status !== 'Draft'" kind="rfi" :process-id="processId" internal />
+
       <ConfirmDialog :open="showCancel" :title="$t('rfx.edit.cancelTitle')" :confirm-label="$t('rfx.edit.cancel')" tone="danger" :loading="busyEdit" @confirm="confirmCancel" @cancel="showCancel = false">
       <p>{{ $t("rfx.edit.cancelBody") }}</p>
       <textarea v-model="cancelReason" rows="2" maxlength="500" :aria-label="$t('rfx.edit.reason')" :placeholder="$t('rfx.edit.reason')" class="mt-2 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" data-testid="cancel-reason" />

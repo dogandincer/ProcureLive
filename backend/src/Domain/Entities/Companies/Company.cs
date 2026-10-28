@@ -68,6 +68,9 @@ public class Company : AuditableEntity, ISoftDelete
     /// <summary>Firmanın açtığı ihaleler Plus aramalarında listelenebilir mi (ihale bazında ayrıca işaretlenmeli).</summary>
     public bool ListTendersForPlus { get; set; }
 
+    /// <summary>Firma: satınalmacının yayınladığı ihale Admin onayından sonra planlanır (varsayılan açık).</summary>
+    public bool RequirePublishApproval { get; set; } = true;
+
     public Guid? WorkspaceId { get; set; }
 
     public Workspace? Workspace { get; set; }

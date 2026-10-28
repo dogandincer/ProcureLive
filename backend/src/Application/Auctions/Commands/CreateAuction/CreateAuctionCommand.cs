@@ -4,6 +4,7 @@ using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Auctions.Commands.CreateAuction;
 
+[RequiresPermission(PermissionCodes.AuctionsManage)]
 public sealed record CreateAuctionCommand(
     string Title,
     string? Description,

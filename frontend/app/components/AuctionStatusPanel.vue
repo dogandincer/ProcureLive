@@ -14,13 +14,15 @@ import {
   CpuChipIcon,
   UserIcon,
   XMarkIcon,
+  CheckBadgeIcon,
+  PaperAirplaneIcon,
 } from "@heroicons/vue/24/outline";
 
 /**
  * İhale durum yönetimi: yaşam döngüsü, sunucunun izin verdiği geçişler (AuctionStatusMachine), onay penceresi ve
  * durum geçmişi. Geçiş kuralları istemcide tekrarlanmaz — butonlar yalnızca panel uç noktasının döndürdüğü geçişlerdir.
  */
-const props = defineProps<{ auctionId: string; status: string; canManage: boolean }>();
+const props = withDefaults(defineProps<{ auctionId: string; status: string; canManage: boolean; isAdmin?: boolean }>(), { isAdmin: false });
 const emit = defineEmits<{ changed: [] }>();
 
 const api = useApi();
@@ -38,7 +40,7 @@ const extendMinutes = ref(5);
 const extending = ref(false);
 const showAllHistory = ref(false);
 
-type ActionKey = "publish" | "startNow" | "resume" | "reopen" | "pause" | "endNow" | "unpublish" | "cancel";
+type ActionKey = "publish" | "startNow" | "resume" | "reopen" | "pause" | "endNow" | "unpublish" | "cancel" | "requestApproval";
 
 const actionStyle: Record<ActionKey, { icon: Component; variant: "primary" | "secondary" | "danger" | "success" }> = {
   publish: { icon: RocketLaunchIcon, variant: "primary" },
@@ -49,7 +51,18 @@ const actionStyle: Record<ActionKey, { icon: Component; variant: "primary" | "se
   endNow: { icon: StopIcon, variant: "secondary" },
   unpublish: { icon: ArrowUturnLeftIcon, variant: "secondary" },
   cancel: { icon: XCircleIcon, variant: "danger" },
+  requestApproval: { icon: PaperAirplaneIcon, variant: "primary" },
 };
+
+// Yayın onayı: firma onay istiyorsa satınalmacının "Yayınla"sı onay talebine dönüşür (aynı tarih penceresi kullanılır).
+const approvalOption: StatusTransitionOptionDto = { to: "Scheduled", requiresReason: false, requiresEndAt: false, allowsEndAt: true, allowsStartAt: true };
+const approvalMode = ref(false);
+const canRequestApproval = computed(
+  () => !!panel.value && panel.value.status === "Draft" && panel.value.publishApprovalRequired && !panel.value.approvalRequestedAt,
+);
+const rejecting = ref(false);
+const rejectReason = ref("");
+const approvalBusy = ref(false);
 
 const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "rose"> = {
   Draft: "slate",
@@ -75,7 +88,7 @@ function actionKey(o: StatusTransitionOptionDto): ActionKey {
   return map[o.to] ?? "publish";
 }
 
-const dialogKey = computed(() => (dialog.value ? actionKey(dialog.value) : null));
+const dialogKey = computed<ActionKey | null>(() => (dialog.value ? (approvalMode.value ? "requestApproval" : actionKey(dialog.value)) : null));
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const toLocalInput = (ms: number) => {
@@ -92,10 +105,11 @@ async function load() {
   }
 }
 
-function openDialog(o: StatusTransitionOptionDto) {
+function openDialog(o: StatusTransitionOptionDto, forApproval = false) {
   const p = panel.value!;
   const now = Date.now();
-  const key = actionKey(o);
+  approvalMode.value = forApproval;
+  const key = forApproval ? "publish" : actionKey(o);
   dialog.value = o;
   dialogError.value = "";
   form.reason = "";
@@ -122,10 +136,18 @@ const canConfirm = computed(() => {
 async function confirm() {
   if (!dialog.value || !canConfirm.value) return;
   const o = dialog.value;
-  const key = actionKey(o);
+  const key = dialogKey.value!;
   saving.value = true;
   dialogError.value = "";
   try {
+    if (approvalMode.value) {
+      await api.post(`/api/auctions/${props.auctionId}/publish-approval`, { newStartAt: toIso(form.startAt), newEndAt: toIso(form.endAt) });
+      toast.success(t("auctions.status.toast.requestApproval"));
+      dialog.value = null;
+      await load();
+      emit("changed");
+      return;
+    }
     // Devam ettirmede varsayılan bitişi sunucu hesaplar (duraklama süresi eklenir); yalnızca elle değiştirildiyse gönder.
     const sendEnd = o.requiresEndAt || (o.allowsEndAt && (key !== "resume" || endDirty.value));
     await api.post(`/api/auctions/${props.auctionId}/status`, {
@@ -161,6 +183,36 @@ async function extend() {
     toast.error(apiErrorMessage(error, t("auctions.status.saveError")));
   } finally {
     extending.value = false;
+  }
+}
+
+async function approve() {
+  approvalBusy.value = true;
+  try {
+    await api.post(`/api/auctions/${props.auctionId}/publish-approval/approve`);
+    toast.success(t("auctions.approval.approvedToast"));
+    await load();
+    emit("changed");
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("auctions.status.saveError")));
+  } finally {
+    approvalBusy.value = false;
+  }
+}
+
+async function reject() {
+  if (rejectReason.value.trim().length < 3) return;
+  approvalBusy.value = true;
+  try {
+    await api.post(`/api/auctions/${props.auctionId}/publish-approval/reject`, { reason: rejectReason.value.trim() });
+    toast.success(t("auctions.approval.rejectedToast"));
+    rejecting.value = false;
+    rejectReason.value = "";
+    await load();
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("auctions.status.saveError")));
+  } finally {
+    approvalBusy.value = false;
   }
 }
 
@@ -231,11 +283,35 @@ onMounted(load);
         </div>
       </dl>
 
+      <!-- Yayın onayı -->
+      <div v-if="panel.approvalRequestedAt && panel.status === 'Draft'" class="space-y-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800" data-testid="approval-pending">
+        <p>{{ $t("auctions.approval.pending", { name: panel.approvalRequestedByName ?? "—", date: formatDateTime(panel.approvalRequestedAt) }) }}</p>
+        <div v-if="isAdmin" class="flex flex-wrap items-center gap-2">
+          <AppButton variant="success" :loading="approvalBusy" data-testid="approval-approve" @click="approve"><CheckBadgeIcon class="h-4 w-4" />{{ $t("auctions.approval.approve") }}</AppButton>
+          <AppButton v-if="!rejecting" variant="danger" data-testid="approval-reject" @click="rejecting = true">{{ $t("auctions.approval.reject") }}</AppButton>
+        </div>
+        <form v-if="isAdmin && rejecting" class="space-y-2" @submit.prevent="reject">
+          <label for="approval-reject-reason" class="block text-xs font-medium">{{ $t("auctions.approval.rejectReason") }}</label>
+          <textarea id="approval-reject-reason" v-model="rejectReason" rows="2" maxlength="500" class="w-full rounded-md border border-amber-300 bg-surface px-3 py-2 text-sm text-slate-800" data-testid="approval-reject-reason" />
+          <div class="flex gap-2">
+            <AppButton type="submit" variant="danger" :loading="approvalBusy" :disabled="rejectReason.trim().length < 3" data-testid="approval-reject-confirm">{{ $t("auctions.approval.reject") }}</AppButton>
+            <AppButton variant="ghost" @click="rejecting = false">{{ $t("common.cancel") }}</AppButton>
+          </div>
+        </form>
+      </div>
+      <p v-else-if="panel.approvalRejectReason && panel.status === 'Draft'" class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" data-testid="approval-rejected">
+        {{ $t("auctions.approval.rejected", { reason: panel.approvalRejectReason }) }}
+      </p>
+
       <!-- Geçişler -->
       <div v-if="panel.status === 'Cancelled' || panel.status === 'Awarded'" class="rounded-lg px-4 py-3 text-sm" :class="panel.status === 'Cancelled' ? 'bg-rose-50 text-rose-700' : 'bg-indigo-50 text-indigo-700'">
         {{ panel.status === "Cancelled" ? $t("auctions.status.cancelledBanner") : $t("auctions.status.awardedBanner") }}
       </div>
       <div v-else-if="canManage" class="flex flex-wrap items-center gap-2">
+        <AppButton v-if="canRequestApproval" data-testid="approval-request" @click="openDialog(approvalOption, true)">
+          <PaperAirplaneIcon class="h-4 w-4" />
+          {{ $t("auctions.status.actions.requestApproval") }}
+        </AppButton>
         <AppButton
           v-for="o in panel.transitions"
           :key="o.to"
@@ -245,9 +321,11 @@ onMounted(load);
           <component :is="actionStyle[actionKey(o)].icon" class="h-4 w-4" />
           {{ $t(`auctions.status.actions.${actionKey(o)}`) }}
         </AppButton>
-        <span v-if="panel.transitions.length === 0" class="text-sm text-slate-400">{{ $t("auctions.status.noActions") }}</span>
+        <span v-if="panel.transitions.length === 0 && !canRequestApproval" class="text-sm text-slate-400">
+          {{ panel.approvalRequestedAt ? $t("auctions.approval.waitingActions") : $t("auctions.status.noActions") }}
+        </span>
 
-        <div v-if="panel.status === 'Live'" class="ml-auto flex items-center gap-2 rounded-lg border border-slate-200 px-2 py-1">
+        <div v-if="panel.status === 'Live' && isAdmin" class="ml-auto flex items-center gap-2 rounded-lg border border-slate-200 px-2 py-1">
           <ClockIcon class="h-4 w-4 text-slate-400" />
           <input v-model.number="extendMinutes" type="number" min="1" class="w-16 rounded-md border border-slate-300 px-2 py-1 text-sm" />
           <span class="text-xs text-slate-500">{{ $t("auctions.status.minutes") }}</span>
@@ -327,7 +405,7 @@ onMounted(load);
               />
               <p v-if="dialogKey === 'resume'" class="mt-1 text-[11px] text-slate-400">{{ $t("auctions.status.dialog.endHintResume") }}</p>
             </div>
-            <div>
+            <div v-if="!approvalMode">
               <label class="mb-1 block text-sm font-medium text-slate-700">
                 {{ dialog.requiresReason ? $t("auctions.status.dialog.reasonRequired") : $t("auctions.status.dialog.reason") }}
               </label>

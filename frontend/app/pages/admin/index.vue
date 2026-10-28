@@ -15,6 +15,7 @@ const api = useApi();
 const toast = useToast();
 const { t } = useI18n();
 const { formatDateTime } = useDateFormat();
+const { isAdminRole } = useAuth();
 
 const auctions = ref<AuctionDto[]>([]);
 const companyCount = ref(0);
@@ -141,6 +142,9 @@ watch([selectedFirmId, selectedWorkspaceId], load);
         <template #icon><BoltIcon class="h-5 w-5" /></template>
       </AppStat>
     </div>
+
+    <!-- Yayın onayı bekleyen ihaleler (yalnızca Admin) -->
+    <PendingApprovalsCard v-if="isAdminRole()" />
 
     <!-- Recent auctions table -->
     <AppCard :title="$t('dashboardAdmin.recentAuctions')" :description="$t('dashboardAdmin.recentAuctionsSub')">

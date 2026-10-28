@@ -9,10 +9,18 @@ namespace ProcureLive.Infrastructure.Identity;
 public sealed class IdentityService : IIdentityService
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<ApplicationRole> _roleManager;
 
-    public IdentityService(UserManager<ApplicationUser> userManager)
+    public IdentityService(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
     {
         _userManager = userManager;
+        _roleManager = roleManager;
+    }
+
+    public async Task<Guid?> GetRoleIdAsync(string roleName, CancellationToken cancellationToken)
+    {
+        ApplicationRole? role = await _roleManager.FindByNameAsync(roleName);
+        return role?.Id;
     }
 
     public async Task<IdentityOperationResult> CreateUserAsync(

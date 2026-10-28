@@ -156,6 +156,9 @@ builder.Services.AddHostedService<NotificationEmailDispatchHostedService>();
 // Faz 4c: kur bilgilerini TCMB'den saatlik otomatik cekme (baslangicta bir kez + her saat).
 builder.Services.AddHostedService<ExchangeRateSyncHostedService>();
 
+// Faz K: cari belgelerinin son geçerlilik uyarısı (30 gün kala, bir kez).
+builder.Services.AddHostedService<DocumentExpiryHostedService>();
+
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
@@ -194,6 +197,7 @@ using (IServiceScope scope = app.Services.CreateScope())
 {
     await ProcureLive.Infrastructure.Persistence.Seed.InitialAdminSeeder.SeedAsync(scope.ServiceProvider);
     await ProcureLive.Infrastructure.Persistence.Seed.FirmBootstrapper.RunAsync(scope.ServiceProvider);
+    await ProcureLive.Infrastructure.Persistence.Seed.PermissionBootstrapper.RunAsync(scope.ServiceProvider);
 }
 
 app.Run();

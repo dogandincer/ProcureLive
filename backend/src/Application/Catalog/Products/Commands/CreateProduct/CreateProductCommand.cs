@@ -4,6 +4,7 @@ using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Catalog.Products.Commands.CreateProduct;
 
+[RequiresPermission(PermissionCodes.ProductsManage)]
 public sealed record CreateProductCommand(
     string Sku,
     string Name,

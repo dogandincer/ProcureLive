@@ -4,6 +4,7 @@ using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Catalog.Products.Commands.UpdateProduct;
 
+[RequiresPermission(PermissionCodes.ProductsManage)]
 public sealed record UpdateProductCommand(
     Guid Id,
     string Name,

@@ -4,6 +4,7 @@ using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Companies.Commands.AddAddress;
 
+[RequiresPermission(PermissionCodes.CompaniesManage)]
 public sealed record AddAddressCommand(
     Guid CompanyId,
     AddressType AddressType,

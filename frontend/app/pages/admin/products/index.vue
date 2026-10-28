@@ -4,6 +4,7 @@ import type { ExcelColumn } from "~/composables/useExcelImport";
 import { CubeTransparentIcon, TrashIcon } from "@heroicons/vue/24/outline";
 
 const api = useApi();
+const { can } = usePermissions();
 const toast = useToast();
 const { t } = useI18n();
 const { selectedWorkspaceId } = useWorkspace();
@@ -134,7 +135,7 @@ onMounted(load);
       <h1 class="text-xl font-bold text-slate-800">{{ $t("products.title") }}</h1>
       <div class="flex gap-2">
         <ExcelImportButton :columns="importColumns" template-filename="urunler-sablon.xlsx" :import-row="importProductRow" @imported="load" />
-        <AppButton @click="showForm = !showForm">
+        <AppButton v-if="can('products.manage')" @click="showForm = !showForm">
           {{ showForm ? $t("common.cancel") : $t("products.new") }}
         </AppButton>
       </div>

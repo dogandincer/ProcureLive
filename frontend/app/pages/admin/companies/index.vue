@@ -5,6 +5,7 @@ import { MagnifyingGlassIcon, StarIcon, TrashIcon } from "@heroicons/vue/24/outl
 
 /** Cari ekranı: davetle veya kendi kaydıyla gelen tedarikçiler (Firma tanımı Firma Tanım ekranındadır). */
 const api = useApi();
+const { can } = usePermissions();
 const toast = useToast();
 const { t } = useI18n();
 const { selectedWorkspaceId, selectedWorkspace, workspaces } = useWorkspace();
@@ -248,7 +249,7 @@ onMounted(() => {
       </div>
       <div class="flex gap-2">
         <ExcelImportButton :columns="importColumns" template-filename="cariler-sablon.xlsx" :import-row="importCompanyRow" @imported="load" />
-        <AppButton @click="showForm = !showForm">
+        <AppButton v-if="can('companies.manage')" @click="showForm = !showForm">
           {{ showForm ? $t("common.cancel") : $t("companies.new") }}
         </AppButton>
       </div>

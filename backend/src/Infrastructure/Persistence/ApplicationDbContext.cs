@@ -55,6 +55,14 @@ public class ApplicationDbContext
 
     public DbSet<ParticipationRequestLine> ParticipationRequestLines => Set<ParticipationRequestLine>();
 
+    public DbSet<Domain.Entities.Orders.PurchaseOrder> PurchaseOrders => Set<Domain.Entities.Orders.PurchaseOrder>();
+
+    public DbSet<Domain.Entities.Orders.PurchaseOrderLine> PurchaseOrderLines => Set<Domain.Entities.Orders.PurchaseOrderLine>();
+
+    public DbSet<Domain.Entities.Collaboration.ProcessQuestion> ProcessQuestions => Set<Domain.Entities.Collaboration.ProcessQuestion>();
+
+    public DbSet<CompanyDocument> CompanyDocuments => Set<CompanyDocument>();
+
     public DbSet<Category> Categories => Set<Category>();
 
     public DbSet<Product> Products => Set<Product>();

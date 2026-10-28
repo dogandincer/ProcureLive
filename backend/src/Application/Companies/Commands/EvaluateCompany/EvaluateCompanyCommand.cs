@@ -3,6 +3,7 @@ using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Companies.Commands.EvaluateCompany;
 
+[RequiresPermission(PermissionCodes.CompaniesManage)]
 public sealed record EvaluateCompanyCommand(
     Guid CompanyId,
     int QualityScore,

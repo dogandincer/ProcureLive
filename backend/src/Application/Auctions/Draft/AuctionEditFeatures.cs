@@ -32,6 +32,7 @@ internal static class AuctionEditRules
 
 // ---------------------------------------------------------------- Başlık, tarihler, şartlar
 
+[RequiresPermission(PermissionCodes.AuctionsManage)]
 public sealed record UpdateAuctionDraftCommand(
     Guid AuctionId,
     string Title,
@@ -90,6 +91,7 @@ public sealed class UpdateAuctionDraftCommandHandler : IRequestHandler<UpdateAuc
 
 // ---------------------------------------------------------------- Kalem düzenle / sil
 
+[RequiresPermission(PermissionCodes.AuctionsManage)]
 public sealed record UpdateAuctionItemCommand(
     Guid AuctionId,
     Guid ItemId,
@@ -133,6 +135,7 @@ public sealed class UpdateAuctionItemCommandHandler : IRequestHandler<UpdateAuct
     }
 }
 
+[RequiresPermission(PermissionCodes.AuctionsManage)]
 public sealed record DeleteAuctionItemCommand(Guid AuctionId, Guid ItemId) : IRequest, IAuctionScopedRequest;
 
 public sealed class DeleteAuctionItemCommandHandler : IRequestHandler<DeleteAuctionItemCommand>
@@ -155,6 +158,7 @@ public sealed class DeleteAuctionItemCommandHandler : IRequestHandler<DeleteAuct
 
 // ---------------------------------------------------------------- Ekler
 
+[RequiresPermission(PermissionCodes.AuctionsManage)]
 public sealed record AddAuctionAttachmentCommand(Guid AuctionId, string FileName, string Url, string? ContentType, long SizeBytes)
     : IRequest<Guid>, IAuctionScopedRequest;
 
@@ -184,6 +188,7 @@ public sealed class AddAuctionAttachmentCommandHandler : IRequestHandler<AddAuct
     }
 }
 
+[RequiresPermission(PermissionCodes.AuctionsManage)]
 public sealed record DeleteAuctionAttachmentCommand(Guid AuctionId, Guid AttachmentId) : IRequest, IAuctionScopedRequest;
 
 public sealed class DeleteAuctionAttachmentCommandHandler : IRequestHandler<DeleteAuctionAttachmentCommand>
@@ -211,6 +216,7 @@ public sealed class DeleteAuctionAttachmentCommandHandler : IRequestHandler<Dele
 // ---------------------------------------------------------------- Davet geri alma
 
 /// <summary>Yanıt verilmemiş davet geri alınır; o cari için kullanılmamış davet linkleri de geçersizleşir.</summary>
+[RequiresPermission(PermissionCodes.AuctionsManage)]
 public sealed record RevokeAuctionInvitationCommand(Guid AuctionId, Guid InvitationId) : IRequest, IAuctionScopedRequest;
 
 public sealed class RevokeAuctionInvitationCommandHandler : IRequestHandler<RevokeAuctionInvitationCommand>

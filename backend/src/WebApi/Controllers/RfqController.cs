@@ -191,4 +191,12 @@ public sealed class RfqController : ControllerBase
         await _sender.Send(new ProcureLive.Application.Rfx.DeleteRfqLineItemCommand(id, lineItemId), cancellationToken);
         return NoContent();
     }
+
+    /// <summary>Kazanan tekliften sipariş taslağı.</summary>
+    [HttpPost("{id:guid}/purchase-orders")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<IReadOnlyList<Guid>>> CreatePurchaseOrder(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await _sender.Send(new ProcureLive.Application.Orders.CreateOrderFromRfqCommand(id), cancellationToken));
+    }
 }

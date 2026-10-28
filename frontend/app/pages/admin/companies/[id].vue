@@ -11,6 +11,7 @@ const toast = useToast();
 const { t } = useI18n();
 
 const company = ref<CompanyDetailDto | null>(null);
+const { can } = usePermissions();
 const loading = ref(true);
 const showContactForm = ref(false);
 const showAddressForm = ref(false);
@@ -354,6 +355,8 @@ onMounted(load);
     <CompanySettingsCard :company-id="companyId" />
 
     <CompanyUsersCard v-if="company.companyType !== 'Internal'" :company-id="companyId" />
+
+    <CompanyDocumentsCard v-if="company.companyType !== 'Internal'" :company-id="companyId" :editable="can('companies.manage')" />
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <AppCard>

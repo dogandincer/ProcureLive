@@ -14,12 +14,15 @@ public sealed class PublishAuctionCommandHandler : IRequestHandler<PublishAuctio
     private readonly IApplicationDbContext _context;
     private readonly IDateTime _dateTime;
     private readonly ICurrentUserService _currentUserService;
+    private readonly AuctionStatusService _statusService;
 
-    public PublishAuctionCommandHandler(IApplicationDbContext context, IDateTime dateTime, ICurrentUserService currentUserService)
+    public PublishAuctionCommandHandler(
+        IApplicationDbContext context, IDateTime dateTime, ICurrentUserService currentUserService, AuctionStatusService statusService)
     {
         _context = context;
         _dateTime = dateTime;
         _currentUserService = currentUserService;
+        _statusService = statusService;
     }
 
     public async Task Handle(PublishAuctionCommand request, CancellationToken cancellationToken)
@@ -37,6 +40,11 @@ public sealed class PublishAuctionCommandHandler : IRequestHandler<PublishAuctio
         if (auction.Status != AuctionStatus.Draft)
         {
             throw new ConflictException("Yalnızca taslak (Draft) durumundaki ihaleler yayınlanabilir.");
+        }
+
+        if (await _statusService.RequiresPublishApprovalAsync(auction.OwnerCompanyId, cancellationToken))
+        {
+            throw new ConflictException("Bu firmada ihale yayını Admin onayı gerektirir.", ErrorCodes.PublishApprovalRequired);
         }
 
         if (auction.Items.Count == 0)

@@ -8,6 +8,7 @@ namespace ProcureLive.Application.Auctions.Commands.CreateTender;
 /// Tek transaction'da ihale (master) + kalemler + davetler + ekleri oluşturur.
 /// Enum alanları controller'da parse edilip buraya tiplenmiş gelir.
 /// </summary>
+[RequiresPermission(PermissionCodes.AuctionsManage)]
 public sealed record CreateTenderCommand(
     string? ReferenceCode,
     string Title,

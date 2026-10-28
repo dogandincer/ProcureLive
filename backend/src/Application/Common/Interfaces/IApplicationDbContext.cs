@@ -44,6 +44,14 @@ public interface IApplicationDbContext
 
     DbSet<ParticipationRequestLine> ParticipationRequestLines { get; }
 
+    DbSet<Domain.Entities.Orders.PurchaseOrder> PurchaseOrders { get; }
+
+    DbSet<Domain.Entities.Orders.PurchaseOrderLine> PurchaseOrderLines { get; }
+
+    DbSet<Domain.Entities.Collaboration.ProcessQuestion> ProcessQuestions { get; }
+
+    DbSet<CompanyDocument> CompanyDocuments { get; }
+
     DbSet<Category> Categories { get; }
 
     DbSet<Product> Products { get; }

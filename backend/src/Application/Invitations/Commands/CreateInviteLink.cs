@@ -11,6 +11,7 @@ using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Invitations.Commands;
 
+[RequiresPermission(PermissionCodes.CompaniesManage)]
 public sealed record CreateInviteLinkCommand(Guid AuctionId, Guid CompanyId, string? Email, int? ValidDays) : IRequest<InviteLinkDto>, IAuctionScopedRequest;
 
 public sealed class CreateInviteLinkCommandValidator : AbstractValidator<CreateInviteLinkCommand>

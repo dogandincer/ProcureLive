@@ -69,7 +69,9 @@
     "permissions": "Yetkiler",
     "accountGroup": "Hesap",
     "settings": "Ayarlar",
-    "profile": "Profilim"
+    "profile": "Profilim",
+    "orders": "Siparişler",
+    "myOrders": "Siparişlerim"
   },
   "language": {
     "label": "Dil",
@@ -409,7 +411,8 @@
         "pause": "Duraklat",
         "endNow": "Şimdi Bitir",
         "unpublish": "Taslağa Al",
-        "cancel": "İptal Et"
+        "cancel": "İptal Et",
+        "requestApproval": "Yayın onayı iste"
       },
       "effect": {
         "publish": "İhale planlanır ve başlangıç saatinde otomatik olarak canlıya geçer.",
@@ -419,7 +422,8 @@
         "pause": "Teklif alımı geçici olarak durur ve süre işlemez. Tedarikçilere gerekçeyle bildirim gider.",
         "endNow": "İhale hemen kapanır ve teklif değerlendirme aşamasına geçer.",
         "unpublish": "İhale yayından kaldırılıp taslağa döner; düzenlenip yeniden yayınlanabilir.",
-        "cancel": "İhale kalıcı olarak iptal edilir ve bu işlem geri alınamaz. Tedarikçilere gerekçeyle bildirim gider."
+        "cancel": "İhale kalıcı olarak iptal edilir ve bu işlem geri alınamaz. Tedarikçilere gerekçeyle bildirim gider.",
+        "requestApproval": "Firmanızda ihale yayını Admin onayı gerektirir. Seçtiğiniz tarihlerle onaya gönderilir; onaylanınca ihale planlanır ve tedarikçilere bildirim gider."
       },
       "dialog": {
         "reason": "Gerekçe (isteğe bağlı)",
@@ -437,7 +441,8 @@
         "pause": "İhale duraklatıldı.",
         "endNow": "İhale sonlandırıldı.",
         "unpublish": "İhale taslağa alındı.",
-        "cancel": "İhale iptal edildi."
+        "cancel": "İhale iptal edildi.",
+        "requestApproval": "Yayın onayı istendi; Admin'e bildirim gitti."
       },
       "auto": {
         "Live": "Planlanan başlangıç saati geldi",
@@ -605,6 +610,20 @@
       "normalized": "Ana para birimi karşılığı",
       "bidTime": "Teklif zamanı",
       "status": "Durum"
+    },
+    "approval": {
+      "pending": "Yayın onayı bekleniyor — talep eden: {name}, {date}.",
+      "approve": "Onayla ve yayınla",
+      "reject": "Reddet",
+      "rejectReason": "Ret gerekçesi (talep edene iletilir)",
+      "approvedToast": "Yayın onaylandı; ihale planlandı.",
+      "rejectedToast": "Yayın talebi reddedildi.",
+      "rejected": "Son yayın talebi reddedildi. Gerekçe: {reason}",
+      "waitingActions": "Onay sonuçlanana kadar durum değiştirilemez.",
+      "dashboardTitle": "Yayın onayı bekleyen ihaleler ({n})",
+      "dashboardHint": "Satınalmacıların onaya gönderdiği taslaklar. Detayda onaylayın veya gerekçeyle reddedin.",
+      "requestedBy": "{name}, {date}",
+      "plannedStart": "Başlangıç: {date}"
     }
   },
   "currencies": {
@@ -1752,14 +1771,16 @@
       "billingPostalCode": "Posta Kodu",
       "billingAddressLine": "Adres",
       "appTitleSuffix": "Uygulama adı eki",
-      "isDefault": "Bu firmayı varsayılan olarak ayarla"
+      "isDefault": "Bu firmayı varsayılan olarak ayarla",
+      "requirePublishApproval": "İhale yayını için Admin onayı gerekir"
     },
     "table": {
       "firm": "Firma",
       "contact": "İletişim",
       "workspaces": "İşyeri",
       "default": "Varsayılan"
-    }
+    },
+    "requirePublishApprovalHint": "Açıksa satınalmacılar taslağı doğrudan yayınlayamaz; \"Yayın onayı iste\" ile Admin'e gönderir."
   },
   "permissions": {
     "title": "Yetkiler",
@@ -1804,7 +1825,25 @@
     "saved": "Yetkiler kaydedildi.",
     "saveError": "Yetkiler kaydedilemedi.",
     "loadError": "Yetkiler yüklenemedi.",
-    "discardConfirm": "Kaydedilmemiş değişiklikler var. Vazgeçilsin mi?"
+    "discardConfirm": "Kaydedilmemiş değişiklikler var. Vazgeçilsin mi?",
+    "unsaved": "Kaydedilmemiş değişiklik var.",
+    "role": {
+      "title": "Satınalmacı işlem yetkileri",
+      "hint": "Tüm satınalmacılar için geçerlidir. Kaldırılan işlem ekranda gizlenir ve sunucuda da reddedilir. Firma/işyeri kapsamı aşağıda ayrıca verilir.",
+      "saved": "Rol yetkileri kaydedildi."
+    },
+    "codes": {
+      "auctions_manage": "İhale oluşturma, düzenleme, yayınlama ve davet",
+      "auctions_award": "İhalede kazanan seçme",
+      "rfi_manage": "RFI şablonu ve süreci yönetme",
+      "rfq_manage": "RFQ süreci yönetme",
+      "rfq_award": "RFQ'da kazanan seçme",
+      "companies_manage": "Cari (tedarikçi) kartı ve belgeleri yönetme",
+      "products_manage": "Ürün kartı yönetme",
+      "catalog_manage": "Kategori, sektör, para birimi ve kur tanımları",
+      "orders_manage": "Sipariş oluşturma ve gönderme",
+      "qa_answer": "Tedarikçi sorularını yanıtlama ve duyuru"
+    }
   },
   "register": {
     "title": "Tedarikçi kaydı",
@@ -2022,5 +2061,142 @@
     "savePassword": "Şifreyi değiştir",
     "passwordChanged": "Şifreniz değiştirildi.",
     "passwordError": "Şifre değiştirilemedi."
+  },
+  "orders": {
+    "title": "Siparişler",
+    "intro": "Sonuçlanan ihale ve RFQ'lardan açılan siparişler. Taslak sipariş tedarikçiye görünmez; gönderince tedarikçi onaylar.",
+    "supplierIntro": "Size gönderilen siparişler. İnceleyip onayladığınızda satınalma ekibine bildirim gider.",
+    "loadError": "Siparişler yüklenemedi.",
+    "actionError": "İşlem yapılamadı.",
+    "search": "Sipariş no, süreç veya tedarikçi ara",
+    "allStatuses": "Tüm durumlar",
+    "status": {
+      "Draft": "Taslak",
+      "Sent": "Gönderildi",
+      "Confirmed": "Onaylandı",
+      "Cancelled": "İptal edildi"
+    },
+    "kind": {
+      "Auction": "İhale",
+      "Rfi": "RFI",
+      "Rfq": "RFQ"
+    },
+    "number": "Sipariş no",
+    "source": "Kaynak süreç",
+    "supplier": "Tedarikçi",
+    "buyer": "Alıcı firma",
+    "total": "Toplam",
+    "date": "Tarih",
+    "empty": "Henüz sipariş yok.",
+    "emptyForSource": "Bu süreçten henüz sipariş açılmadı.",
+    "saved": "Sipariş taslağı kaydedildi.",
+    "print": "Yazdır",
+    "send": "Tedarikçiye gönder",
+    "cancel": "Siparişi iptal et",
+    "confirm": "Siparişi onayla",
+    "confirmHint": "Bu sipariş onayınızı bekliyor. Teslim planınızı not olarak ekleyebilirsiniz.",
+    "parties": "Taraflar",
+    "timeline": "Süreç",
+    "createdAt": "Oluşturuldu",
+    "sentAt": "Gönderildi",
+    "confirmedAt": "Onaylandı",
+    "cancelledAt": "İptal edildi",
+    "terms": "Teslimat ve notlar",
+    "deliveryDate": "İstenen teslim tarihi",
+    "notes": "Sipariş notu",
+    "supplierNote": "Tedarikçi notu",
+    "supplierNoteLabel": "Not (isteğe bağlı): teslim planı, sevkiyat bilgisi…",
+    "lines": "Sipariş kalemleri",
+    "item": "Kalem",
+    "quantity": "Miktar",
+    "unitPrice": "Birim fiyat",
+    "lineTotal": "Tutar",
+    "cancelReason": "Gerekçe (isteğe bağlı, tedarikçiye iletilir)",
+    "done": {
+      "send": "Sipariş tedarikçiye gönderildi.",
+      "cancel": "Sipariş iptal edildi.",
+      "confirm": "Sipariş onaylandı."
+    },
+    "dialog": {
+      "sendTitle": "Siparişi gönder",
+      "sendConfirm": "Gönder",
+      "sendBody": "{number} numaralı sipariş {supplier} firmasına gönderilecek. Gönderildikten sonra düzenlenemez.",
+      "cancelTitle": "Siparişi iptal et",
+      "cancelConfirm": "İptal et",
+      "cancelBody": "{number} numaralı sipariş iptal edilecek. Gönderilmişse tedarikçiye bildirim gider.",
+      "confirmTitle": "Siparişi onayla",
+      "confirmConfirm": "Onayla",
+      "confirmBody": "{number} numaralı siparişi kabul ettiğinizi onaylıyorsunuz."
+    },
+    "sectionTitle": "Siparişler",
+    "sectionHint": "Kazanan seçilen kalemlerden tedarikçi başına bir sipariş taslağı açılır.",
+    "sectionHintRfq": "Kazanan tekliften sipariş taslağı açılır.",
+    "createFromAuction": "Kazananlardan sipariş taslağı oluştur",
+    "createFromRfq": "Kazanan tekliften sipariş oluştur",
+    "createdToast": "{n} sipariş taslağı oluşturuldu."
+  },
+  "qa": {
+    "title": "Soru-cevap ve duyurular",
+    "internalHint": "Tedarikçi sorularını cevaplayın; cevabı herkese açarsanız tüm katılımcılar görür (soran firma adı gizli kalır).",
+    "supplierHint": "Süreçle ilgili sorunuzu sorun. Satınalmacı herkese açık cevaplarsa diğer katılımcılar firma adınızı görmez.",
+    "openCount": "{n} soru cevap bekliyor.",
+    "announcementLabel": "Tüm katılımcılara duyuru",
+    "announcementPlaceholder": "Ör. Teslimat adresi güncellendi…",
+    "announce": "Duyuru yayınla",
+    "announced": "Duyuru yayınlandı; katılımcılara bildirim gitti.",
+    "askLabel": "Sorunuz",
+    "askPlaceholder": "Ör. Teslimat hangi adrese yapılacak?",
+    "ask": "Soru gönder",
+    "asked": "Sorunuz satınalma ekibine iletildi.",
+    "answered": "Cevap kaydedildi.",
+    "error": "İşlem yapılamadı.",
+    "empty": "Henüz soru veya duyuru yok.",
+    "announcement": "Duyuru",
+    "mine": "Sizin sorunuz",
+    "public": "Herkese açık",
+    "private": "Yalnızca soran firma",
+    "waiting": "Cevap bekleniyor",
+    "answer": "Cevap",
+    "makePublic": "Cevabı tüm katılımcılara açık yayınla",
+    "saveAnswer": "Cevabı kaydet",
+    "editAnswer": "Cevabı düzenle",
+    "reply": "Cevapla"
+  },
+  "documents": {
+    "title": "Belgeler",
+    "hint": "Vergi levhası, ISO sertifikası, sigorta poliçesi gibi belgeler. Son geçerlilik tarihinden 30 gün önce bildirim gönderilir.",
+    "loadError": "Belgeler yüklenemedi.",
+    "saveError": "Belge kaydedilemedi.",
+    "added": "Belge eklendi.",
+    "deleted": "Belge silindi.",
+    "warning": "{n} belgenin süresi dolmuş ya da 30 gün içinde doluyor.",
+    "empty": "Henüz belge eklenmedi.",
+    "add": "Belge ekle",
+    "typeLabel": "Belge türü",
+    "name": "Belge adı",
+    "validUntil": "Son geçerlilik tarihi (isteğe bağlı)",
+    "validUntilShort": "Son geçerlilik: {date}",
+    "file": "Dosya",
+    "limits": "PDF veya görsel; en fazla 10 MB.",
+    "delete": "{name} belgesini sil",
+    "deleteTitle": "Belgeyi sil",
+    "deleteBody": "“{name}” belgesi silinecek.",
+    "state": {
+      "Valid": "Geçerli",
+      "ExpiringSoon": "Yakında doluyor",
+      "Expired": "Süresi doldu",
+      "NoExpiry": "Süresiz"
+    },
+    "type": {
+      "TaxCertificate": "Vergi levhası",
+      "TradeRegistry": "Ticaret sicil gazetesi",
+      "SignatureCircular": "İmza sirküleri",
+      "Iso9001": "ISO 9001 Kalite",
+      "Iso14001": "ISO 14001 Çevre",
+      "Iso27001": "ISO 27001 Bilgi Güvenliği",
+      "Iso45001": "ISO 45001 İSG",
+      "Insurance": "Sigorta poliçesi",
+      "Other": "Diğer"
+    }
   }
 }

@@ -11,5 +11,9 @@ public enum NotificationType
     System = 6,
     InvitationResponded = 7,
     AuctionStatusChanged = 8,
-    ParticipationRequest = 9
+    ParticipationRequest = 9,
+    PurchaseOrder = 10,
+    ProcessQuestion = 11,
+    DocumentExpiry = 12,
+    PublishApproval = 13
 }

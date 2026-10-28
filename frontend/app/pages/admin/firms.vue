@@ -27,7 +27,7 @@ const emptyForm = () => ({
   phone: "", phone2: "", mobilePhone: "", fax: "", email: "", email2: "", website: "",
   taxOffice: "", taxNumber: "",
   billingCountry: "Türkiye", billingCity: "", billingDistrict: "", billingPostalCode: "", billingAddressLine: "",
-  isDefault: false, appTitleSuffix: "",
+  isDefault: false, appTitleSuffix: "", requirePublishApproval: true,
 });
 const form = reactive(emptyForm());
 
@@ -80,7 +80,7 @@ function openEdit(f: FirmDto) {
     taxOffice: f.taxOffice ?? "", taxNumber: f.taxNumber ?? "",
     billingCountry: f.billingCountry ?? "Türkiye", billingCity: f.billingCity ?? "", billingDistrict: f.billingDistrict ?? "",
     billingPostalCode: f.billingPostalCode ?? "", billingAddressLine: f.billingAddressLine ?? "",
-    isDefault: f.isDefault, appTitleSuffix: f.appTitleSuffix ?? "",
+    isDefault: f.isDefault, appTitleSuffix: f.appTitleSuffix ?? "", requirePublishApproval: f.requirePublishApproval,
   });
   resetLogo();
   showForm.value = true;
@@ -287,6 +287,13 @@ onMounted(load);
         <label class="flex items-center gap-2 text-sm text-slate-700">
           <input v-model="form.isDefault" type="checkbox" class="rounded" :disabled="!!editingFirm?.isDefault" />
           {{ $t("firms.f.isDefault") }}
+        </label>
+        <label class="flex items-start gap-2 text-sm text-slate-700">
+          <input v-model="form.requirePublishApproval" type="checkbox" class="mt-0.5 rounded" data-testid="firm-require-approval" />
+          <span>
+            {{ $t("firms.f.requirePublishApproval") }}
+            <span class="block text-xs text-slate-400">{{ $t("firms.requirePublishApprovalHint") }}</span>
+          </span>
         </label>
 
         <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">

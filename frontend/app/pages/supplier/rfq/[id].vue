@@ -26,6 +26,8 @@ const myInvitation = computed(() =>
 const accepted = computed(() => !!myInvitation.value && ["Accepted", "Participating"].includes(myInvitation.value.status));
 // Standart kota dolu ve davet kabul edilmemiş: kalemler sunucuda düşürüldü → "Plus alınız".
 const restricted = computed(() => !!process.value && process.value.accessLevel !== "Full");
+const showQa = computed(() => !!process.value && !restricted.value && !!myInvitation.value && myInvitation.value.status !== "Declined");
+const qaOpen = computed(() => !!process.value && ["Sent", "InProgress"].includes(process.value.status));
 // İlk teklif herkese; gönderilmiş teklifin revizyonu yalnızca Plus'a ve süreç açıkken (sunucu da zorlar).
 const canSubmit = computed(() => !!process.value?.canSubmit);
 
@@ -202,5 +204,7 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
     <div v-else class="rounded-xl border border-slate-200 bg-surface p-5 text-sm text-slate-500">
       {{ $t("rfq.quote.noInteraction") }}
     </div>
+
+    <ProcessQaPanel v-if="showQa" kind="rfq" :process-id="processId" :internal="false" :can-ask="qaOpen" />
   </div>
 </template>

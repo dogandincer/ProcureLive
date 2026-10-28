@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProcureLive.Application.Auctions.Approval;
 using ProcureLive.Application.Auctions.Commands.AddAuctionItem;
 using ProcureLive.Application.Auctions.Commands.AwardAuctionItem;
 using ProcureLive.Application.Auctions.Commands.CancelAuction;
@@ -22,6 +23,7 @@ using ProcureLive.Application.Auctions.Queries.GetMyAuctionHistory;
 using ProcureLive.Application.Common.Security;
 using ProcureLive.Application.Invitations.Commands;
 using ProcureLive.Application.Invitations.Queries;
+using ProcureLive.Application.Orders;
 using ProcureLive.Contracts.Auctions;
 using ProcureLive.Contracts.Common;
 using ProcureLive.Contracts.Invitations;
@@ -299,10 +301,10 @@ public sealed class AuctionsController : ControllerBase
 
     /// <summary>
     /// Elle durum değişikliği (Planlandı→Canlı, Canlı→Duraklatıldı/Sona Erdi/İptal ...). İzinli geçişler ve
-    /// kurallar AuctionStatusMachine'dedir; yalnızca Admin.
+    /// kurallar AuctionStatusMachine'dedir. Satınalmacı yalnızca taslağı yayınlar/iptal eder (firma onay istiyorsa yayın onaya gider).
     /// </summary>
     [HttpPost("{id:guid}/status")]
-    [Authorize(Policy = Policies.RequireAdmin)]
+    [Authorize(Policy = Policies.RequireInternalUser)]
     public async Task<IActionResult> ChangeStatus(Guid id, ChangeAuctionStatusRequest request, CancellationToken cancellationToken)
     {
         if (!Enum.TryParse(request.Status, true, out AuctionStatus target) || !Enum.IsDefined(target))
@@ -313,6 +315,48 @@ public sealed class AuctionsController : ControllerBase
         await _sender.Send(
             new ChangeAuctionStatusCommand(id, target, request.Reason, request.NewStartAt, request.NewEndAt), cancellationToken);
         return NoContent();
+    }
+
+    /// <summary>Yayın onayı talebi (firması onay isteyen satınalmacı). Admin'lere bildirim gider.</summary>
+    [HttpPost("{id:guid}/publish-approval")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<IActionResult> RequestPublishApproval(
+        Guid id, [FromBody] RequestPublishApprovalRequest? request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new RequestPublishApprovalCommand(id, request?.NewStartAt, request?.NewEndAt), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/publish-approval/approve")]
+    [Authorize(Policy = Policies.RequireAdmin)]
+    public async Task<IActionResult> ApprovePublish(Guid id, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ApprovePublishCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/publish-approval/reject")]
+    [Authorize(Policy = Policies.RequireAdmin)]
+    public async Task<IActionResult> RejectPublish(Guid id, RejectPublishRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new RejectPublishCommand(id, request.Reason), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Admin panosu: yayın onayı bekleyen ihaleler.</summary>
+    [HttpGet("pending-approvals")]
+    [Authorize(Policy = Policies.RequireAdmin)]
+    public async Task<ActionResult<IReadOnlyList<PendingPublishApprovalDto>>> PendingApprovals(CancellationToken cancellationToken)
+    {
+        return Ok(await _sender.Send(new GetPendingPublishApprovalsQuery(), cancellationToken));
+    }
+
+    /// <summary>Kazananlardan sipariş taslağı (tedarikçi başına bir sipariş; açık siparişi olan tedarikçi atlanır).</summary>
+    [HttpPost("{id:guid}/purchase-orders")]
+    [Authorize(Policy = Policies.RequireInternalUser)]
+    public async Task<ActionResult<IReadOnlyList<Guid>>> CreatePurchaseOrders(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await _sender.Send(new CreateOrdersFromAuctionCommand(id), cancellationToken));
     }
 
     /// <summary>Admin manual intervention: "23:00'da bitecek ihaleyi anında 23:01 yapabilme."</summary>

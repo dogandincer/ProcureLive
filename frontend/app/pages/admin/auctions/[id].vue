@@ -33,6 +33,24 @@ const { t } = useI18n();
 const { formatDate, formatDateTime, formatDuration, formatMoney } = useDateFormat();
 const { connectAndJoin, disconnect } = useAuctionHub();
 const { isAdminRole } = useAuth();
+const { can } = usePermissions();
+
+// ---- Sonuçtan sipariş: kalem bazlı kazananlar → tedarikçi başına bir sipariş taslağı ----
+const orderList = ref<{ reload: () => Promise<void> } | null>(null);
+const creatingOrders = ref(false);
+async function createOrders() {
+  creatingOrders.value = true;
+  try {
+    const ids = await api.post<string[]>(`/api/auctions/${auctionId}/purchase-orders`);
+    toast.success(t("orders.createdToast", { n: ids.length }));
+    if (ids.length === 1) await navigateTo(`/admin/orders/${ids[0]}`);
+    else await orderList.value?.reload();
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("orders.actionError")));
+  } finally {
+    creatingOrders.value = false;
+  }
+}
 
 const auction = ref<AuctionDetailDto | null>(null);
 const loading = ref(true);
@@ -394,7 +412,7 @@ onBeforeUnmount(() => {
     <AuctionTermsCard :auction="auction" internal @changed="load" />
 
     <!-- Durum yönetimi: yayınla / başlat / duraklat / devam / bitir / yeniden aç / iptal + süre uzatma + geçmiş -->
-    <AuctionStatusPanel :auction-id="auctionId" :status="auction.status" :can-manage="isAdminRole()" @changed="load" />
+    <AuctionStatusPanel :auction-id="auctionId" :status="auction.status" :can-manage="isAdminRole() || can('auctions.manage')" :is-admin="isAdminRole()" @changed="load" />
 
     <!-- Davetsiz tedarikçilerin katılım talepleri: cari onayı → ön teklif kabulü / red -->
     <!-- Durum değişince (ör. canlıya geçişte ön teklifler teklife dönüşür) panel yeniden yüklenir. -->
@@ -430,6 +448,13 @@ onBeforeUnmount(() => {
           @award="(bid) => (pendingAward = { item, bid })"
         />
       </div>
+
+      <AppCard v-if="evaluationSummary && evaluationSummary.awarded > 0" :title="$t('orders.sectionTitle')" :description="$t('orders.sectionHint')">
+        <div class="space-y-3" data-testid="auction-orders">
+          <AppButton v-if="can('orders.manage')" :loading="creatingOrders" data-testid="create-orders" @click="createOrders">{{ $t("orders.createFromAuction") }}</AppButton>
+          <PurchaseOrderList ref="orderList" internal :source-id="auctionId" compact />
+        </div>
+      </AppCard>
 
       <ConfirmDialog
         :open="!!pendingAward"
@@ -645,6 +670,8 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </template>
+
+    <ProcessQaPanel v-if="auction.status !== 'Draft'" kind="auction" :process-id="auctionId" internal />
 
     <ConfirmDialog
       :open="!!pendingDelete"

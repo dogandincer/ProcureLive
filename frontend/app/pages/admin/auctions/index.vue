@@ -2,6 +2,7 @@
 import type { AuctionDto, CurrencyDto, PagedResult } from "~/types/api";
 
 const api = useApi();
+const { can } = usePermissions();
 const toast = useToast();
 const { t } = useI18n();
 const { formatDateTime } = useDateFormat();
@@ -110,10 +111,10 @@ watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-slate-800">{{ $t("auctions.title") }}</h1>
       <div class="flex items-center gap-2">
-        <NuxtLink to="/admin/auctions/create" class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+        <NuxtLink v-if="can('auctions.manage')" to="/admin/auctions/create" class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
           {{ $t("tender.wizard.title") }}
         </NuxtLink>
-        <AppButton variant="secondary" @click="showForm = !showForm">
+        <AppButton v-if="can('auctions.manage')" variant="secondary" @click="showForm = !showForm">
           {{ showForm ? $t("common.cancel") : $t("auctions.new") }}
         </AppButton>
       </div>

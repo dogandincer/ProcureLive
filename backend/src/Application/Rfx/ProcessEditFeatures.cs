@@ -20,8 +20,10 @@ internal static class ProcessEditRules
         string.IsNullOrWhiteSpace(reason) ? text : $"{text} Gerekçe: {reason.Trim()}";
 }
 
+[RequiresPermission(PermissionCodes.RfiManage)]
 public sealed record CancelRfiProcessCommand(Guid RfiProcessId, string? Reason) : IRequest, IRfiScopedRequest;
 
+[RequiresPermission(PermissionCodes.RfqManage)]
 public sealed record CancelRfqProcessCommand(Guid RfqProcessId, string? Reason) : IRequest, IRfqScopedRequest;
 
 public sealed class CancelRfiProcessCommandValidator : AbstractValidator<CancelRfiProcessCommand>
@@ -99,8 +101,10 @@ public sealed class CancelRfqProcessCommandHandler : IRequestHandler<CancelRfqPr
 
 // ---------------------------------------------------------------- Davet geri alma
 
+[RequiresPermission(PermissionCodes.RfiManage)]
 public sealed record RevokeRfiInvitationCommand(Guid RfiProcessId, Guid InvitationId) : IRequest, IRfiScopedRequest;
 
+[RequiresPermission(PermissionCodes.RfqManage)]
 public sealed record RevokeRfqInvitationCommand(Guid RfqProcessId, Guid InvitationId) : IRequest, IRfqScopedRequest;
 
 public sealed class RevokeRfiInvitationCommandHandler : IRequestHandler<RevokeRfiInvitationCommand>
@@ -165,6 +169,7 @@ public sealed class RevokeRfqInvitationCommandHandler : IRequestHandler<RevokeRf
 
 // ---------------------------------------------------------------- RFQ kalemi silme
 
+[RequiresPermission(PermissionCodes.RfqManage)]
 public sealed record DeleteRfqLineItemCommand(Guid RfqProcessId, Guid LineItemId) : IRequest, IRfqScopedRequest;
 
 public sealed class DeleteRfqLineItemCommandHandler : IRequestHandler<DeleteRfqLineItemCommand>

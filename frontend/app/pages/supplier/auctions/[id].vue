@@ -38,6 +38,8 @@ const higherIsBetter = computed(() => auction.value?.auctionType === "English");
 
 // Kısıtlı görünüm: sunucu kalem/fiyat/ek/şart verisini hiç göndermedi; sayfa yalnızca vitrin + bulanık iskelet gösterir.
 const restricted = computed(() => !!auction.value && auction.value.accessLevel !== "Full");
+const showQa = computed(() => !!auction.value && !restricted.value && !!myInvitation.value && myInvitation.value.status !== "Declined");
+const qaOpen = computed(() => !!auction.value && ["Scheduled", "Live", "Paused"].includes(auction.value.status));
 const restrictedLevel = computed(() => (auction.value?.accessLevel === "NoAccess" ? "NoAccess" : "QuotaExceeded"));
 const showJoin = computed(() => !!auction.value && auction.value.canJoin && !myInvitation.value);
 const showParticipation = computed(() => {
@@ -456,5 +458,7 @@ onBeforeUnmount(() => {
       </ul>
       <EmptyState v-else class="mt-3">{{ $t("auctions.live.emptyFeed") }}</EmptyState>
     </AppCard>
+
+    <ProcessQaPanel v-if="showQa" kind="auction" :process-id="auction.id" :internal="false" :can-ask="qaOpen" />
   </div>
 </template>

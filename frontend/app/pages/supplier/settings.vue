@@ -6,6 +6,7 @@ const api = useApi();
 const toast = useToast();
 const { t } = useI18n();
 const { formatDate } = useDateFormat();
+const { currentUser } = useAuth();
 
 const settings = ref<CompanySettingsDto | null>(null);
 const form = reactive({ logoUrl: "", showContactInfo: false, listTendersForPlus: false });
@@ -120,6 +121,8 @@ onMounted(async () => {
       <div class="flex justify-end">
         <AppButton :loading="saving" :disabled="!dirty" @click="save">{{ $t("common.save") }}</AppButton>
       </div>
+
+      <CompanyDocumentsCard v-if="currentUser?.companyId" :company-id="currentUser.companyId" editable />
     </template>
   </div>
 </template>

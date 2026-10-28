@@ -23,7 +23,8 @@ public sealed record FirmDto(
     string? LogoUrl,
     bool IsDefault,
     string? AppTitleSuffix,
-    int WorkspaceCount);
+    int WorkspaceCount,
+    bool RequirePublishApproval = false);
 
 /// <summary>Firma kaydet (oluştur/güncelle). Yalnızca Kod ve Ad zorunludur.</summary>
 public sealed record SaveFirmRequest(
@@ -46,7 +47,8 @@ public sealed record SaveFirmRequest(
     string? BillingPostalCode,
     string? BillingAddressLine,
     bool IsDefault,
-    string? AppTitleSuffix);
+    string? AppTitleSuffix,
+    bool RequirePublishApproval = true);
 
 /// <summary>Giriş ekranı ve sekme markası (anonim). AppName = "{Kısa Ad} {Ek}" veya temel ad.</summary>
 public sealed record BrandingDto(string AppName, string? ShortName, string Suffix, string? LogoUrl, bool IsCustom);

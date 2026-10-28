@@ -8,6 +8,7 @@ namespace ProcureLive.Application.Companies.Commands.CreateCompany;
 /// Tedarikçi cari oluşturur (Firma tanımı Firma Tanım ekranından yapılır). Kod boşsa CARI-#### üretilir;
 /// isteğe bağlı olarak sektörler, ek görünür işyerleri ve tedarikçinin giriş kullanıcısı aynı adımda açılır.
 /// </summary>
+[RequiresPermission(PermissionCodes.CompaniesManage)]
 public sealed record CreateCompanyCommand(
     string Name,
     string TaxNumber,

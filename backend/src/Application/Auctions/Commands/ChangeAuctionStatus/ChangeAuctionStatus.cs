@@ -6,6 +6,7 @@ using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Auctions.Commands.ChangeAuctionStatus;
 
+[RequiresPermission(PermissionCodes.AuctionsManage)]
 public sealed record ChangeAuctionStatusCommand(
     Guid AuctionId, AuctionStatus TargetStatus, string? Reason, DateTime? NewStartAt, DateTime? NewEndAt) : IRequest, IAuctionScopedRequest;
 

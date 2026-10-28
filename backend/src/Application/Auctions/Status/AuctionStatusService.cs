@@ -62,6 +62,12 @@ public sealed class AuctionStatusService
                 ErrorCodes.InvalidStatusTransition);
         }
 
+        // Satınalmacı yalnızca taslağı yayınlayabilir; diğer durum müdahaleleri (başlat, duraklat, bitir, iptal) Admin'dedir.
+        if (!_currentUserService.IsInRole(Common.Security.Roles.Admin) && !IsBuyerTransition(from, to))
+        {
+            throw new ForbiddenAccessException("Bu durum değişikliğini yalnızca Admin yapabilir.");
+        }
+
         if (AuctionStatusMachine.RequiresReason(to) && string.IsNullOrWhiteSpace(reason))
         {
             throw new ConflictException("Bu durum değişikliği için gerekçe zorunludur.");
@@ -73,6 +79,10 @@ public sealed class AuctionStatusService
         switch (to)
         {
             case AuctionStatus.Scheduled:
+                if (from == AuctionStatus.Draft && await RequiresPublishApprovalAsync(auction.OwnerCompanyId, cancellationToken))
+                    throw new ConflictException(
+                        "Bu firmada ihale yayını Admin onayı gerektirir. \"Yayın onayı iste\" ile onaya gönderin.",
+                        ErrorCodes.PublishApprovalRequired);
                 EnsurePublishable(auction);
                 DateTime start = newStartAt ?? auction.StartAt;
                 if (start <= now)
@@ -105,6 +115,13 @@ public sealed class AuctionStatusService
         }
 
         AuctionStatusMachine.Apply(_context, auction, to, now, _currentUserService.UserId, reason, automatic: false, newStartAt, newEndAt);
+        if (from == AuctionStatus.Draft && to == AuctionStatus.Scheduled)
+        {
+            // Yayınlanınca bekleyen/reddedilmiş onay talebi kapanır (Admin talebi onaylamadan doğrudan yayınlamış olabilir).
+            auction.ApprovalRequestedAt = null;
+            auction.ApprovalRequestedByUserId = null;
+            auction.ApprovalRejectReason = null;
+        }
         await _context.SaveChangesAsync(cancellationToken);
 
         await NotifyAsync(auction, from, to, reason, cancellationToken);
@@ -116,7 +133,17 @@ public sealed class AuctionStatusService
         }
     }
 
-    private static void EnsurePublishable(Auction auction)
+    /// <summary>Satınalmacının yapabileceği geçişler: taslağı yayınlamak veya taslağı iptal etmek.</summary>
+    public static bool IsBuyerTransition(AuctionStatus from, AuctionStatus to) =>
+        from == AuctionStatus.Draft && to is AuctionStatus.Scheduled or AuctionStatus.Cancelled;
+
+    /// <summary>Firma yayın onayı istiyorsa satınalmacı taslağı doğrudan yayınlayamaz (Admin onaylar).</summary>
+    public async Task<bool> RequiresPublishApprovalAsync(Guid ownerCompanyId, CancellationToken cancellationToken) =>
+        _currentUserService.IsInRole(Common.Security.Roles.Buyer)
+        && !_currentUserService.IsInRole(Common.Security.Roles.Admin)
+        && await _context.Companies.AnyAsync(c => c.Id == ownerCompanyId && c.RequirePublishApproval, cancellationToken);
+
+    internal static void EnsurePublishable(Auction auction)
     {
         if (auction.Items.Count == 0)
             throw new ConflictException("İhale yayınlanmadan önce en az bir kalem eklenmelidir.");

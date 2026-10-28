@@ -3,4 +3,5 @@ using ProcureLive.Application.Common.Security;
 
 namespace ProcureLive.Application.Rfq.Commands.InviteCompaniesToRfq;
 
+[RequiresPermission(PermissionCodes.RfqManage)]
 public sealed record InviteCompaniesToRfqCommand(Guid RfqProcessId, IReadOnlyCollection<Guid> CompanyIds) : IRequest, IRfqScopedRequest;

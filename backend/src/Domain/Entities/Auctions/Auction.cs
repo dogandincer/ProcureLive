@@ -76,6 +76,13 @@ public class Auction : AuditableEntity
     /// <summary>Plus kullanıcıların aramalarında listelenebilir (sahibi firmanın ListTendersForPlus'ı da açık olmalı).</summary>
     public bool IsListedForPlus { get; set; }
 
+    /// <summary>Yayın onayı istendi (firma onay gerektiriyorsa); onaylanınca planlanır, reddedilince temizlenir.</summary>
+    public DateTime? ApprovalRequestedAt { get; set; }
+
+    public Guid? ApprovalRequestedByUserId { get; set; }
+
+    public string? ApprovalRejectReason { get; set; }
+
     public ICollection<AuctionItem> Items { get; set; } = new List<AuctionItem>();
 
     public ICollection<AuctionInvitation> Invitations { get; set; } = new List<AuctionInvitation>();

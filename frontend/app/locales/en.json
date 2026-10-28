@@ -69,7 +69,9 @@
     "permissions": "Permissions",
     "accountGroup": "Account",
     "settings": "Settings",
-    "profile": "My profile"
+    "profile": "My profile",
+    "orders": "Purchase orders",
+    "myOrders": "My orders"
   },
   "language": {
     "label": "Language",
@@ -409,7 +411,8 @@
         "pause": "Pause",
         "endNow": "End Now",
         "unpublish": "Move to Draft",
-        "cancel": "Cancel Auction"
+        "cancel": "Cancel Auction",
+        "requestApproval": "Request publish approval"
       },
       "effect": {
         "publish": "The auction is scheduled and goes live automatically at its start time.",
@@ -419,7 +422,8 @@
         "pause": "Bidding stops temporarily and the clock is frozen. Suppliers are notified with the reason.",
         "endNow": "The auction closes immediately and moves to bid evaluation.",
         "unpublish": "The auction is unpublished and returns to draft; it can be edited and published again.",
-        "cancel": "The auction is cancelled permanently and this cannot be undone. Suppliers are notified with the reason."
+        "cancel": "The auction is cancelled permanently and this cannot be undone. Suppliers are notified with the reason.",
+        "requestApproval": "Publishing auctions in your company requires Admin approval. It is sent for approval with the dates you choose; once approved the auction is scheduled and suppliers are notified."
       },
       "dialog": {
         "reason": "Reason (optional)",
@@ -437,7 +441,8 @@
         "pause": "Auction paused.",
         "endNow": "Auction ended.",
         "unpublish": "Auction moved to draft.",
-        "cancel": "Auction cancelled."
+        "cancel": "Auction cancelled.",
+        "requestApproval": "Publish approval requested; the Admin was notified."
       },
       "auto": {
         "Live": "Planned start time reached",
@@ -605,6 +610,20 @@
       "normalized": "In base currency",
       "bidTime": "Bid time",
       "status": "Status"
+    },
+    "approval": {
+      "pending": "Awaiting publish approval — requested by {name}, {date}.",
+      "approve": "Approve and publish",
+      "reject": "Reject",
+      "rejectReason": "Rejection reason (shared with the requester)",
+      "approvedToast": "Publishing approved; the auction is scheduled.",
+      "rejectedToast": "The publish request was rejected.",
+      "rejected": "The last publish request was rejected. Reason: {reason}",
+      "waitingActions": "The status cannot change until the approval is decided.",
+      "dashboardTitle": "Auctions awaiting publish approval ({n})",
+      "dashboardHint": "Drafts sent for approval by buyers. Approve them on the detail page or reject them with a reason.",
+      "requestedBy": "{name}, {date}",
+      "plannedStart": "Start: {date}"
     }
   },
   "currencies": {
@@ -1752,14 +1771,16 @@
       "billingPostalCode": "Postal Code",
       "billingAddressLine": "Address",
       "appTitleSuffix": "Application name suffix",
-      "isDefault": "Set this firm as the default"
+      "isDefault": "Set this firm as the default",
+      "requirePublishApproval": "Publishing auctions requires Admin approval"
     },
     "table": {
       "firm": "Firm",
       "contact": "Contact",
       "workspaces": "Workspaces",
       "default": "Default"
-    }
+    },
+    "requirePublishApprovalHint": "When on, buyers cannot publish a draft directly; they send it to the Admin with \"Request publish approval\"."
   },
   "permissions": {
     "title": "Permissions",
@@ -1804,7 +1825,25 @@
     "saved": "Permissions saved.",
     "saveError": "Permissions could not be saved.",
     "loadError": "Failed to load permissions.",
-    "discardConfirm": "There are unsaved changes. Discard them?"
+    "discardConfirm": "There are unsaved changes. Discard them?",
+    "unsaved": "There are unsaved changes.",
+    "role": {
+      "title": "Buyer action permissions",
+      "hint": "Applies to all buyers. A removed action is hidden on screen and also rejected by the server. Company/workspace scope is granted separately below.",
+      "saved": "Role permissions saved."
+    },
+    "codes": {
+      "auctions_manage": "Create, edit, publish auctions and invite",
+      "auctions_award": "Award auction winners",
+      "rfi_manage": "Manage RFI templates and processes",
+      "rfq_manage": "Manage RFQ processes",
+      "rfq_award": "Award RFQ winners",
+      "companies_manage": "Manage supplier cards and documents",
+      "products_manage": "Manage product cards",
+      "catalog_manage": "Categories, sectors, currencies and exchange rates",
+      "orders_manage": "Create and send purchase orders",
+      "qa_answer": "Answer supplier questions and post announcements"
+    }
   },
   "register": {
     "title": "Supplier registration",
@@ -2022,5 +2061,142 @@
     "savePassword": "Change password",
     "passwordChanged": "Your password was changed.",
     "passwordError": "The password could not be changed."
+  },
+  "orders": {
+    "title": "Purchase orders",
+    "intro": "Orders created from awarded auctions and RFQs. A draft order is not visible to the supplier; once sent, the supplier confirms it.",
+    "supplierIntro": "Orders sent to you. When you review and confirm one, the purchasing team is notified.",
+    "loadError": "Orders could not be loaded.",
+    "actionError": "The action could not be completed.",
+    "search": "Search order no., process or supplier",
+    "allStatuses": "All statuses",
+    "status": {
+      "Draft": "Draft",
+      "Sent": "Sent",
+      "Confirmed": "Confirmed",
+      "Cancelled": "Cancelled"
+    },
+    "kind": {
+      "Auction": "Auction",
+      "Rfi": "RFI",
+      "Rfq": "RFQ"
+    },
+    "number": "Order no.",
+    "source": "Source process",
+    "supplier": "Supplier",
+    "buyer": "Buyer company",
+    "total": "Total",
+    "date": "Date",
+    "empty": "No orders yet.",
+    "emptyForSource": "No orders have been created from this process yet.",
+    "saved": "Draft order saved.",
+    "print": "Print",
+    "send": "Send to supplier",
+    "cancel": "Cancel order",
+    "confirm": "Confirm order",
+    "confirmHint": "This order is waiting for your confirmation. You can add your delivery plan as a note.",
+    "parties": "Parties",
+    "timeline": "Timeline",
+    "createdAt": "Created",
+    "sentAt": "Sent",
+    "confirmedAt": "Confirmed",
+    "cancelledAt": "Cancelled",
+    "terms": "Delivery and notes",
+    "deliveryDate": "Requested delivery date",
+    "notes": "Order note",
+    "supplierNote": "Supplier note",
+    "supplierNoteLabel": "Note (optional): delivery plan, shipping details…",
+    "lines": "Order lines",
+    "item": "Item",
+    "quantity": "Quantity",
+    "unitPrice": "Unit price",
+    "lineTotal": "Amount",
+    "cancelReason": "Reason (optional, shared with the supplier)",
+    "done": {
+      "send": "The order was sent to the supplier.",
+      "cancel": "The order was cancelled.",
+      "confirm": "The order was confirmed."
+    },
+    "dialog": {
+      "sendTitle": "Send order",
+      "sendConfirm": "Send",
+      "sendBody": "Order {number} will be sent to {supplier}. It cannot be edited after sending.",
+      "cancelTitle": "Cancel order",
+      "cancelConfirm": "Cancel order",
+      "cancelBody": "Order {number} will be cancelled. If it was sent, the supplier is notified.",
+      "confirmTitle": "Confirm order",
+      "confirmConfirm": "Confirm",
+      "confirmBody": "You confirm that you accept order {number}."
+    },
+    "sectionTitle": "Purchase orders",
+    "sectionHint": "One draft order per supplier is created from the awarded items.",
+    "sectionHintRfq": "A draft order is created from the winning quote.",
+    "createFromAuction": "Create draft orders from winners",
+    "createFromRfq": "Create order from winning quote",
+    "createdToast": "{n} draft order(s) created."
+  },
+  "qa": {
+    "title": "Q&A and announcements",
+    "internalHint": "Answer supplier questions; if you publish an answer, all participants see it (the asking company stays anonymous).",
+    "supplierHint": "Ask your question about this process. If the buyer publishes the answer, other participants will not see your company name.",
+    "openCount": "{n} question(s) awaiting an answer.",
+    "announcementLabel": "Announcement to all participants",
+    "announcementPlaceholder": "e.g. The delivery address was updated…",
+    "announce": "Post announcement",
+    "announced": "Announcement posted; participants were notified.",
+    "askLabel": "Your question",
+    "askPlaceholder": "e.g. Which address should delivery go to?",
+    "ask": "Send question",
+    "asked": "Your question was sent to the purchasing team.",
+    "answered": "Answer saved.",
+    "error": "The action could not be completed.",
+    "empty": "No questions or announcements yet.",
+    "announcement": "Announcement",
+    "mine": "Your question",
+    "public": "Public",
+    "private": "Asking company only",
+    "waiting": "Awaiting answer",
+    "answer": "Answer",
+    "makePublic": "Publish the answer to all participants",
+    "saveAnswer": "Save answer",
+    "editAnswer": "Edit answer",
+    "reply": "Reply"
+  },
+  "documents": {
+    "title": "Documents",
+    "hint": "Documents such as tax certificates, ISO certificates and insurance policies. A notification is sent 30 days before expiry.",
+    "loadError": "Documents could not be loaded.",
+    "saveError": "The document could not be saved.",
+    "added": "Document added.",
+    "deleted": "Document deleted.",
+    "warning": "{n} document(s) have expired or expire within 30 days.",
+    "empty": "No documents yet.",
+    "add": "Add document",
+    "typeLabel": "Document type",
+    "name": "Document name",
+    "validUntil": "Valid until (optional)",
+    "validUntilShort": "Valid until: {date}",
+    "file": "File",
+    "limits": "PDF or image; up to 10 MB.",
+    "delete": "Delete document {name}",
+    "deleteTitle": "Delete document",
+    "deleteBody": "Document “{name}” will be deleted.",
+    "state": {
+      "Valid": "Valid",
+      "ExpiringSoon": "Expiring soon",
+      "Expired": "Expired",
+      "NoExpiry": "No expiry"
+    },
+    "type": {
+      "TaxCertificate": "Tax certificate",
+      "TradeRegistry": "Trade registry gazette",
+      "SignatureCircular": "Signature circular",
+      "Iso9001": "ISO 9001 Quality",
+      "Iso14001": "ISO 14001 Environment",
+      "Iso27001": "ISO 27001 Information Security",
+      "Iso45001": "ISO 45001 OHS",
+      "Insurance": "Insurance policy",
+      "Other": "Other"
+    }
   }
 }

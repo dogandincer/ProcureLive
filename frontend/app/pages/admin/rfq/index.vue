@@ -2,6 +2,7 @@
 import type { CurrencyDto, PagedResult, RfqProcessDto } from "~/types/api";
 
 const api = useApi();
+const { can } = usePermissions();
 const toast = useToast();
 const { t } = useI18n();
 const { selectedFirmId } = useFirm();
@@ -78,7 +79,7 @@ watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-slate-800">{{ $t("rfq.title") }}</h1>
-      <AppButton @click="showForm = !showForm">
+      <AppButton v-if="can('rfq.manage')" @click="showForm = !showForm">
         {{ showForm ? $t("common.cancel") : $t("rfq.new") }}
       </AppButton>
     </div>

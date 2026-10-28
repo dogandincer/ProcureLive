@@ -50,6 +50,8 @@ public sealed class CreateInviteLinkCommandHandler : IRequestHandler<CreateInvit
 
         if (company.CompanyType != CompanyType.Supplier)
             throw new ConflictException("Davet linki yalnızca tedarikçi carilere oluşturulabilir.");
+        if (company.Status == CompanyStatus.Passive)
+            throw new ConflictException("Pasif cariye davet linki oluşturulamaz; önce cariyi aktif edin.");
 
         DateTime now = _dateTime.UtcNow;
         Guid userId = _currentUserService.UserId ?? Guid.Empty;

@@ -77,6 +77,13 @@ public sealed class GetAuctionsListQueryHandler : IRequestHandler<GetAuctionsLis
             query = query.Where(a => a.OwnerCompanyId == firmId);
         }
 
+        // Başlık veya referans kodunda arama (büyük/küçük harf duyarsız).
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            string term = request.Search.Trim().ToLowerInvariant();
+            query = query.Where(x => x.Title.ToLower().Contains(term) || (x.ReferenceCode != null && x.ReferenceCode.ToLower().Contains(term)));
+        }
+
         if (!string.IsNullOrWhiteSpace(request.Status))
         {
             AuctionStatus status;

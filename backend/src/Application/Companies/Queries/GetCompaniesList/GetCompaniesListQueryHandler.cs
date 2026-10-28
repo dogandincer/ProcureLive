@@ -41,8 +41,9 @@ public sealed class GetCompaniesListQueryHandler : IRequestHandler<GetCompaniesL
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            string term = request.SearchTerm.Trim();
-            query = query.Where(c => c.Name.Contains(term) || c.TaxNumber.Contains(term) || (c.Code != null && c.Code.Contains(term)));
+            // Büyük/küçük harf duyarsız (Türkçe I sorununa karşı terim kültürden bağımsız küçültülür).
+            string term = request.SearchTerm.Trim().ToLowerInvariant();
+            query = query.Where(c => c.Name.ToLower().Contains(term) || c.TaxNumber.Contains(term) || (c.Code != null && c.Code.ToLower().Contains(term)));
         }
 
         if (!string.IsNullOrWhiteSpace(request.CompanyType))

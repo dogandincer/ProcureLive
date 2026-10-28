@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import type { CompanyDto, PagedResult, RfiProcessDetailDto, RfiResponseDto, SupplierEvaluationDto } from "~/types/api";
+import type { RfiProcessDetailDto, RfiResponseDto, SupplierEvaluationDto } from "~/types/api";
 
 const route = useRoute();
 const processId = route.params.id as string;
 const api = useApi();
+const accessState = ref<"forbidden" | "notFound" | null>(null);
 const toast = useToast();
 const { t } = useI18n();
 
 const process = ref<RfiProcessDetailDto | null>(null);
-const companies = ref<CompanyDto[]>([]);
 const responses = ref<RfiResponseDto[]>([]);
 const evaluations = ref<SupplierEvaluationDto[]>([]);
-const inviteCompanyId = ref("");
+// Tedarikçi seçimi "sarı alan": tüm cariler içinde aranır; puanlama yalnızca davetliler arasından.
+const inviteCompanyId = ref<string | null>(null);
+const inviteCompanyName = ref<string | null>(null);
+const { loadSupplierRows } = useSupplierLookup();
 const evalForm = reactive({ companyId: "", totalScore: 0, comments: "" });
 const loading = ref(true);
 
@@ -26,16 +29,17 @@ async function runAction(action: () => Promise<void>) {
 async function load() {
   loading.value = true;
   try {
-    const [detail, companyPage, evalList] = await Promise.all([
+    const [detail, evalList] = await Promise.all([
       api.get<RfiProcessDetailDto>(`/api/rfi/processes/${processId}`),
-      api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100, companyType: "Supplier" }),
       api.get<SupplierEvaluationDto[]>(`/api/rfi/processes/${processId}/evaluations`),
     ]);
     process.value = detail;
-    companies.value = companyPage.items;
     evaluations.value = evalList;
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, t("rfi.detail.loadError")));
+    // Yetki yoksa / kayıt yoksa boş sayfa ve kaybolan bildirim yerine açıklayıcı durum gösterilir.
+    const code = error?.response?.status ?? error?.statusCode;
+    if (code === 403 || code === 404) accessState.value = code === 403 ? "forbidden" : "notFound";
+    else toast.error(apiErrorMessage(error, t("rfi.detail.loadError")));
   } finally {
     loading.value = false;
   }
@@ -53,7 +57,8 @@ async function invite() {
   if (!inviteCompanyId.value) return;
   await runAction(async () => {
     await api.post(`/api/rfi/processes/${processId}/invitations`, { companyIds: [inviteCompanyId.value] });
-    inviteCompanyId.value = "";
+    inviteCompanyId.value = null;
+    inviteCompanyName.value = null;
     toast.success(t("rfi.detail.invitedToast"));
     await load();
   });
@@ -88,7 +93,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <LoadingSpinner v-if="loading" />
+  <AccessState v-if="accessState" :kind="accessState" back-to="/admin/rfi" :back-label="$t('nav.rfi')" />
+  <LoadingSpinner v-else-if="loading" />
 
   <div v-else-if="process" class="space-y-6">
     <div class="flex items-center justify-between">
@@ -123,11 +129,17 @@ onMounted(async () => {
         </ul>
         <EmptyState v-else class="mt-3">{{ $t("rfi.detail.emptyInvites") }}</EmptyState>
         <div class="mt-3 flex gap-2">
-          <select v-model="inviteCompanyId" class="flex-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
-            <option value="" disabled>{{ $t("rfi.detail.selectCompany") }}</option>
-            <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
-          <AppButton @click="invite">{{ $t("rfi.detail.invite") }}</AppButton>
+          <LookupField
+            v-model="inviteCompanyId"
+            class="min-w-0 flex-1"
+            :load="loadSupplierRows"
+            :title="$t('rfi.detail.selectCompany')"
+            :display="inviteCompanyName"
+            :placeholder="$t('rfi.detail.selectCompany')"
+            data-testid="invite-company"
+            @select="(r) => (inviteCompanyName = r ? `${r.code} · ${r.name}` : null)"
+          />
+          <AppButton :disabled="!inviteCompanyId" @click="invite">{{ $t("rfi.detail.invite") }}</AppButton>
         </div>
       </AppCard>
 
@@ -169,9 +181,9 @@ onMounted(async () => {
     <AppCard>
       <h3 class="text-sm font-semibold text-slate-700">{{ $t("rfi.detail.scoredEvaluation") }}</h3>
       <div class="mt-3 flex flex-wrap items-end gap-3">
-        <select v-model="evalForm.companyId" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+        <select v-model="evalForm.companyId" :aria-label="$t('rfi.detail.selectCompany')" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
           <option value="" disabled>{{ $t("rfi.detail.selectCompany") }}</option>
-          <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
+          <option v-for="inv in process.invitations" :key="inv.companyId" :value="inv.companyId">{{ inv.companyName }}</option>
         </select>
         <input v-model.number="evalForm.totalScore" type="number" min="0" max="100" step="0.5" :placeholder="$t('rfi.detail.scorePlaceholder')" class="w-32 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
         <input v-model="evalForm.comments" :placeholder="$t('rfi.detail.commentPlaceholder')" class="flex-1 min-w-[200px] rounded-md border border-slate-300 px-2 py-1.5 text-sm" />

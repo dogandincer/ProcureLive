@@ -4,5 +4,5 @@ using ProcureLive.Contracts.Rfq;
 
 namespace ProcureLive.Application.Rfq.Queries.GetRfqProcessesList;
 
-public sealed record GetRfqProcessesListQuery(string? Status, int Page, int PageSize, Guid? FirmId = null, Guid? WorkspaceId = null)
+public sealed record GetRfqProcessesListQuery(string? Status, int Page, int PageSize, Guid? FirmId = null, Guid? WorkspaceId = null, string? Search = null)
     : IRequest<PagedResult<RfqProcessDto>>;

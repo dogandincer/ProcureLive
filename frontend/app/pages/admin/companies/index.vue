@@ -116,18 +116,21 @@ async function importCompanyRow(row: Record<string, string | number | boolean | 
 // Başlıktaki firma/işyeri açılışta art arda kurulur ve her değişim yeniden yükler; geç dönen eski (ör. filtresiz)
 // yanıt yenisinin üzerine yazmasın diye yalnızca son isteğin sonucu uygulanır.
 let loadSeq = 0;
+const { page: listPage, total: listTotal, search: listSearch, pageSize: listPageSize, params: listParams, resetAndLoad } = usePagedList(() => load());
+
 
 async function load() {
   const seq = ++loadSeq;
   loading.value = true;
   try {
-    const params: Record<string, unknown> = { page: 1, pageSize: 100, companyType: "Supplier" };
+    const params: Record<string, unknown> = { ...listParams("searchTerm"), companyType: "Supplier" };
     // "Tüm İşyerleri": başlıktaki firmanın işyerleriyle sınırlı.
     if (selectedWorkspaceId.value) params.workspaceId = selectedWorkspaceId.value;
     else if (selectedFirmId.value) params.firmId = selectedFirmId.value;
     const page = await api.get<PagedResult<CompanyDto>>("/api/companies", params);
     if (seq !== loadSeq) return;
     companies.value = page.items;
+    listTotal.value = page.totalCount;
     for (const c of companies.value) {
       statusDrafts[c.id] = c.status;
     }
@@ -228,7 +231,7 @@ async function loadSectors() {
 
 watch([selectedWorkspaceId, selectedFirmId], () => {
   form.visibleWorkspaceIds = [];
-  load();
+  resetAndLoad();
 });
 onMounted(() => {
   load();
@@ -258,6 +261,7 @@ onMounted(() => {
         <div class="flex gap-2">
           <input
             v-model="lookupValue"
+            :aria-label="$t('companies.lookup.label')"
             :placeholder="$t('companies.lookup.placeholder')"
             inputmode="numeric"
             class="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -318,6 +322,7 @@ onMounted(() => {
     </form>
 
     <AppCard>
+      <input v-model="listSearch" type="search" :placeholder="$t('pager.search.companies')" :aria-label="$t('pager.search.companies')" class="mb-3 w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -352,7 +357,7 @@ onMounted(() => {
               </td>
               <td class="py-2">
                 <div class="flex items-center gap-2">
-                  <select v-model="statusDrafts[c.id]" class="rounded-md border border-slate-300 px-2 py-1 text-xs">
+                  <select v-model="statusDrafts[c.id]" :aria-label="`${$t('common.status')} — ${c.name}`" class="rounded-md border border-slate-300 px-2 py-1 text-xs">
                     <option v-for="s in statuses" :key="s" :value="s">{{ $t(`enums.companyStatus.${s}`) }}</option>
                   </select>
                   <button
@@ -381,6 +386,7 @@ onMounted(() => {
           </tbody>
         </table>
         <EmptyState v-if="companies.length === 0">{{ $t("companies.empty") }}</EmptyState>
+        <ListPager v-model:page="listPage" :total="listTotal" :page-size="listPageSize" />
       </div>
     </AppCard>
   </div>

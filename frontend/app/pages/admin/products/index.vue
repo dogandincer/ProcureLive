@@ -52,12 +52,14 @@ function flattenCategories(list: CategoryDto[]): CategoryDto[] {
 // Başlıktaki firma/işyeri açılışta art arda kurulur ve her değişim yeniden yükler; geç dönen eski (ör. filtresiz)
 // yanıt yenisinin üzerine yazmasın diye yalnızca son isteğin sonucu uygulanır.
 let loadSeq = 0;
+const { page: listPage, total: listTotal, search: listSearch, pageSize: listPageSize, params: listParams, resetAndLoad } = usePagedList(() => load());
+
 
 async function load() {
   const seq = ++loadSeq;
   loading.value = true;
   try {
-    const params: Record<string, unknown> = { page: 1, pageSize: 100 };
+    const params: Record<string, unknown> = { ...listParams("searchTerm") };
     // "Tüm İşyerleri": başlıktaki firmanın işyerleriyle sınırlı.
     if (selectedWorkspaceId.value) params.workspaceId = selectedWorkspaceId.value;
     else if (selectedFirmId.value) params.firmId = selectedFirmId.value;
@@ -67,6 +69,7 @@ async function load() {
     ]);
     if (seq !== loadSeq) return;
     products.value = productPage.items;
+    listTotal.value = productPage.totalCount;
     categories.value = flattenCategories(categoryTree);
     if (!form.categoryId && categories.value.length > 0) {
       form.categoryId = categories.value[0].id;
@@ -121,7 +124,7 @@ async function deleteProduct(p: ProductDto) {
   }
 }
 
-watch([selectedWorkspaceId, selectedFirmId], load);
+watch([selectedWorkspaceId, selectedFirmId], () => resetAndLoad());
 onMounted(load);
 </script>
 
@@ -153,6 +156,7 @@ onMounted(load);
     </form>
 
     <AppCard>
+      <input v-model="listSearch" type="search" :placeholder="$t('pager.search.products')" :aria-label="$t('pager.search.products')" class="mb-3 w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -193,6 +197,7 @@ onMounted(load);
           </tbody>
         </table>
         <EmptyState v-if="products.length === 0">{{ $t("products.empty") }}</EmptyState>
+        <ListPager v-model:page="listPage" :total="listTotal" :page-size="listPageSize" />
       </div>
     </AppCard>
   </div>

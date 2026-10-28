@@ -20,6 +20,11 @@ const auctions = ref<AuctionDto[]>([]);
 const companyCount = ref(0);
 const productCount = ref(0);
 const activeAuctionCount = ref(0);
+const scheduledCount = ref(0);
+// Panel başlıktaki firma/işyeri seçimine uyar (listelerle aynı kapsam).
+const { selectedFirmId } = useFirm();
+const { selectedWorkspaceId } = useWorkspace();
+let loadSeq = 0;
 const loading = ref(true);
 
 const recommendation = ref<AuctionModelRecommendationDto | null>(null);
@@ -28,22 +33,29 @@ const estimatedParticipants = ref(5);
 const estimatedItems = ref(1);
 
 async function load() {
+  const seq = ++loadSeq;
   loading.value = true;
+  const scope = { firmId: selectedFirmId.value ?? undefined, workspaceId: selectedWorkspaceId.value ?? undefined };
+  // Cari ekranıyla aynı kapsam: işyeri seçiliyse o işyeri, değilse firma.
+  const companyScope = selectedWorkspaceId.value ? { workspaceId: selectedWorkspaceId.value } : { firmId: selectedFirmId.value ?? undefined };
   try {
-    const [auctionPage, companyPage, productPage, activePage] = await Promise.all([
-      api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 10 }),
-      api.get<PagedResult<unknown>>("/api/companies", { page: 1, pageSize: 1 }),
-      api.get<PagedResult<unknown>>("/api/products", { page: 1, pageSize: 1 }),
-      api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 1, status: "Live" }),
+    const [auctionPage, companyPage, productPage, activePage, scheduledPage] = await Promise.all([
+      api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 10, ...scope }),
+      api.get<PagedResult<unknown>>("/api/companies", { page: 1, pageSize: 1, companyType: "Supplier", ...companyScope }),
+      api.get<PagedResult<unknown>>("/api/products", { page: 1, pageSize: 1, ...companyScope }),
+      api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 1, status: "Live", ...scope }),
+      api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 1, status: "Scheduled", ...scope }),
     ]);
+    if (seq !== loadSeq) return;
     auctions.value = auctionPage.items;
     companyCount.value = companyPage.totalCount;
     productCount.value = productPage.totalCount;
     activeAuctionCount.value = activePage.totalCount;
+    scheduledCount.value = scheduledPage.totalCount;
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("dashboardAdmin.loadError")));
   } finally {
-    loading.value = false;
+    if (seq === loadSeq) loading.value = false;
   }
 }
 
@@ -74,6 +86,7 @@ const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "ros
 };
 
 onMounted(load);
+watch([selectedFirmId, selectedWorkspaceId], load);
 </script>
 
 <template>
@@ -112,9 +125,9 @@ onMounted(load);
         <template #icon><CubeIcon class="h-5 w-5" /></template>
       </AppStat>
       <AppStat
-        :label="$t('dashboardAdmin.stat.totalAuctions')"
-        :value="loading ? '…' : auctions.length > 0 ? `${auctions.length}+` : '0'"
-        :subtitle="$t('dashboardAdmin.stat.recentSub')"
+        :label="$t('dashboardAdmin.stat.scheduled')"
+        :value="loading ? '…' : scheduledCount"
+        :subtitle="$t('dashboardAdmin.stat.scheduledSub')"
         tone="amber"
       >
         <template #icon><ClipboardDocumentListIcon class="h-5 w-5" /></template>

@@ -37,12 +37,15 @@ const participationTone: Record<string, "slate" | "amber" | "emerald" | "indigo"
   Rejected: "rose",
 };
 
+const { page: listPage, total: listTotal, search: listSearch, pageSize: listPageSize, params: listParams, resetAndLoad } = usePagedList(() => load());
+
 async function load() {
   loading.value = true;
   try {
     // Davet durumum artık liste satırında geliyor (myInvitationStatus) — satır başına detay isteği yok.
-    const page = await api.get<PagedResult<AuctionDto>>("/api/auctions", { page: 1, pageSize: 50 });
+    const page = await api.get<PagedResult<AuctionDto>>("/api/auctions", listParams());
     auctions.value = page.items;
+    listTotal.value = page.totalCount;
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("auctions.supplierList.loadError")));
   } finally {
@@ -146,6 +149,7 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
     </div>
 
     <AppCard>
+      <input v-model="listSearch" type="search" :placeholder="$t('pager.search.auctions')" :aria-label="$t('pager.search.auctions')" class="mb-3 w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -220,6 +224,7 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
           </tbody>
         </table>
         <EmptyState v-if="auctions.length === 0">{{ $t("auctions.supplierList.empty") }}</EmptyState>
+        <ListPager v-model:page="listPage" :total="listTotal" :page-size="listPageSize" />
       </div>
     </AppCard>
   </div>

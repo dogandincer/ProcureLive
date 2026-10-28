@@ -42,11 +42,14 @@ async function importUserRow(row: Record<string, string | number | boolean | nul
   });
 }
 
+const { page: listPage, total: listTotal, search: listSearch, pageSize: listPageSize, params: listParams, resetAndLoad } = usePagedList(() => load());
+
 async function load() {
   loading.value = true;
   try {
-    const page = await api.get<PagedResult<UserDto>>("/api/users", { kind: "internal", page: 1, pageSize: 200 });
+    const page = await api.get<PagedResult<UserDto>>("/api/users", { kind: "internal", ...listParams("searchTerm") });
     users.value = page.items;
+    listTotal.value = page.totalCount;
     for (const u of users.value) roleDrafts[u.id] = u.roles.includes("Admin") ? "Admin" : "Buyer";
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("users.loadError")));
@@ -114,24 +117,24 @@ onMounted(load);
     <AppCard v-if="showForm" :title="$t('users.new')">
       <form class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5" @submit.prevent="create">
         <div>
-          <label class="mb-1 block text-xs font-medium text-slate-600">{{ $t("users.form.firstName") }} *</label>
-          <input v-model="form.firstName" required maxlength="100" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" />
+          <label for="user-firstName" class="mb-1 block text-xs font-medium text-slate-600">{{ $t("users.form.firstName") }} *</label>
+          <input id="user-firstName" v-model="form.firstName" required maxlength="100" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" />
         </div>
         <div>
-          <label class="mb-1 block text-xs font-medium text-slate-600">{{ $t("users.form.lastName") }} *</label>
-          <input v-model="form.lastName" required maxlength="100" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" />
+          <label for="user-lastName" class="mb-1 block text-xs font-medium text-slate-600">{{ $t("users.form.lastName") }} *</label>
+          <input id="user-lastName" v-model="form.lastName" required maxlength="100" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" />
         </div>
         <div>
-          <label class="mb-1 block text-xs font-medium text-slate-600">{{ $t("users.form.email") }} *</label>
-          <input v-model="form.email" type="email" required autocomplete="off" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" />
+          <label for="user-email" class="mb-1 block text-xs font-medium text-slate-600">{{ $t("users.form.email") }} *</label>
+          <input id="user-email" v-model="form.email" type="email" required autocomplete="off" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" />
         </div>
         <div>
-          <label class="mb-1 block text-xs font-medium text-slate-600">{{ $t("users.form.password") }} *</label>
-          <input v-model="form.password" type="password" required minlength="8" autocomplete="new-password" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" />
+          <label for="user-password" class="mb-1 block text-xs font-medium text-slate-600">{{ $t("users.form.password") }} *</label>
+          <input id="user-password" v-model="form.password" type="password" required minlength="8" autocomplete="new-password" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" />
         </div>
         <div>
-          <label class="mb-1 block text-xs font-medium text-slate-600">{{ $t("users.table.role") }} *</label>
-          <select v-model="form.role" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm">
+          <label for="user-role" class="mb-1 block text-xs font-medium text-slate-600">{{ $t("users.table.role") }} *</label>
+          <select id="user-role" v-model="form.role" class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm">
             <option v-for="r in roles" :key="r" :value="r">{{ roleLabel(r) }}</option>
           </select>
         </div>
@@ -142,6 +145,8 @@ onMounted(load);
       </form>
     </AppCard>
 
+    <input v-model="listSearch" type="search" :placeholder="$t('pager.search.users')" :aria-label="$t('pager.search.users')"
+      class="w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
     <AppCard no-padding>
       <LoadingSpinner v-if="loading" />
       <EmptyState v-else-if="users.length === 0">{{ $t("users.empty") }}</EmptyState>
@@ -164,7 +169,7 @@ onMounted(load);
               </td>
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
-                  <select v-model="roleDrafts[u.id]" :disabled="isSelf(u)" class="rounded-md border border-slate-300 px-2 py-1 text-xs disabled:bg-slate-50">
+                  <select v-model="roleDrafts[u.id]" :aria-label="`${$t('users.table.role')} — ${u.email}`" :disabled="isSelf(u)" class="rounded-md border border-slate-300 px-2 py-1 text-xs disabled:bg-slate-50">
                     <option v-for="r in roles" :key="r" :value="r">{{ roleLabel(r) }}</option>
                   </select>
                   <button
@@ -203,5 +208,6 @@ onMounted(load);
         </table>
       </div>
     </AppCard>
+    <ListPager v-model:page="listPage" :total="listTotal" :page-size="listPageSize" />
   </div>
 </template>

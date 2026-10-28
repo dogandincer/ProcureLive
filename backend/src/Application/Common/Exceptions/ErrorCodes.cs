@@ -21,4 +21,6 @@ public static class ErrorCodes
     public const string RequestPending = "RequestPending";
     public const string ProcessClosed = "ProcessClosed";
     public const string RequiredAnswersMissing = "RequiredAnswersMissing";
+    public const string InvalidCredentials = "InvalidCredentials";
+    public const string AccountInactive = "AccountInactive";
 }

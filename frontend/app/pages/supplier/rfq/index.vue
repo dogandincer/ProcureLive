@@ -9,17 +9,22 @@ const { formatDate } = useDateFormat();
 const processes = ref<RfqProcessDto[]>([]);
 const loading = ref(true);
 
-onMounted(async () => {
+const { page: listPage, total: listTotal, search: listSearch, pageSize: listPageSize, params: listParams, resetAndLoad } = usePagedList(() => load());
+
+async function load() {
   loading.value = true;
   try {
-    const page = await api.get<PagedResult<RfqProcessDto>>("/api/rfq/processes", { page: 1, pageSize: 50 });
+    const page = await api.get<PagedResult<RfqProcessDto>>("/api/rfq/processes", listParams());
     processes.value = page.items;
+    listTotal.value = page.totalCount;
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("rfq.supplierList.loadError")));
   } finally {
     loading.value = false;
   }
-});
+}
+
+onMounted(load);
 </script>
 
 <template>
@@ -27,6 +32,7 @@ onMounted(async () => {
     <h1 class="text-xl font-bold text-slate-800">{{ $t("rfq.supplierList.title") }}</h1>
 
     <AppCard>
+      <input v-model="listSearch" type="search" :placeholder="$t('pager.search.rfq')" :aria-label="$t('pager.search.rfq')" class="mb-3 w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -56,13 +62,16 @@ onMounted(async () => {
                     <span class="text-xs text-slate-400">{{ $t("restricted.QuotaExceeded.short") }}</span>
                     <NuxtLink to="/supplier/pricing" class="rounded bg-amber-500 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-600">Plus</NuxtLink>
                   </template>
-                  <NuxtLink :to="`/supplier/rfq/${p.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink>
+                  <!-- Reddedilen davetin içeriği kapanır (sunucu 403 döner): bağlantı yerine durum yazılır -->
+                  <span v-if="p.myInvitationStatus === 'Declined'" class="text-xs text-slate-400">{{ $t("rfx.declinedNoAccess") }}</span>
+                  <NuxtLink v-else :to="`/supplier/rfq/${p.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
         <EmptyState v-if="processes.length === 0">{{ $t("rfq.supplierList.empty") }}</EmptyState>
+        <ListPager v-model:page="listPage" :total="listTotal" :page-size="listPageSize" />
       </div>
     </AppCard>
   </div>

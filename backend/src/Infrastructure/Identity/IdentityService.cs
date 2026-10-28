@@ -206,9 +206,9 @@ public sealed class IdentityService : IIdentityService
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            string term = searchTerm.Trim();
+            string term = searchTerm.Trim().ToLowerInvariant();
             query = query.Where(u =>
-                u.Email!.Contains(term) || u.FirstName.Contains(term) || u.LastName.Contains(term));
+                u.Email!.ToLower().Contains(term) || u.FirstName.ToLower().Contains(term) || u.LastName.ToLower().Contains(term));
         }
 
         if (companyId.HasValue)

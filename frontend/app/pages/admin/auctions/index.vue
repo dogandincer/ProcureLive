@@ -43,6 +43,8 @@ const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "ros
 // Başlıktaki firma/işyeri açılışta art arda kurulur ve her değişim yeniden yükler; geç dönen eski (ör. filtresiz)
 // yanıt yenisinin üzerine yazmasın diye yalnızca son isteğin sonucu uygulanır.
 let loadSeq = 0;
+const { page: listPage, total: listTotal, search: listSearch, pageSize: listPageSize, params: listParams, resetAndLoad } = usePagedList(() => load());
+
 
 async function load() {
   const seq = ++loadSeq;
@@ -51,8 +53,7 @@ async function load() {
     const [auctionPage, currencyList] = await Promise.all([
       // Başlıkta işyeri seçiliyse yalnızca o işyerinin ihaleleri; "Tüm İşyerleri"nde firmanın tümü.
       api.get<PagedResult<AuctionDto>>("/api/auctions", {
-        page: 1,
-        pageSize: 50,
+        ...listParams(),
         firmId: selectedFirmId.value ?? undefined,
         workspaceId: selectedWorkspaceId.value ?? undefined,
       }),
@@ -60,6 +61,7 @@ async function load() {
     ]);
     if (seq !== loadSeq) return;
     auctions.value = auctionPage.items;
+    listTotal.value = auctionPage.totalCount;
     currencies.value = currencyList;
 
     if (!form.currencyId && currencies.value.length > 0) {
@@ -100,7 +102,7 @@ async function createAuction() {
 }
 
 onMounted(load);
-watch([selectedFirmId, selectedWorkspaceId], load);
+watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
 </script>
 
 <template>
@@ -171,6 +173,7 @@ watch([selectedFirmId, selectedWorkspaceId], load);
     </form>
 
     <AppCard>
+      <input v-model="listSearch" type="search" :placeholder="$t('pager.search.auctions')" :aria-label="$t('pager.search.auctions')" class="mb-3 w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -207,6 +210,7 @@ watch([selectedFirmId, selectedWorkspaceId], load);
           </tbody>
         </table>
         <EmptyState v-if="auctions.length === 0">{{ $t("auctions.empty") }}</EmptyState>
+        <ListPager v-model:page="listPage" :total="listTotal" :page-size="listPageSize" />
       </div>
     </AppCard>
   </div>

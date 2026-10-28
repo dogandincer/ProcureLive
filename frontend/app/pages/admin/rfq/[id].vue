@@ -1,21 +1,24 @@
 <script setup lang="ts">
-import type { CompanyDto, PagedResult, RfqAiRecommendationDto, RfqComparisonRowDto, RfqProcessDetailDto, RfqQuoteDto } from "~/types/api";
+import type { RfqAiRecommendationDto, RfqComparisonRowDto, RfqProcessDetailDto, RfqQuoteDto } from "~/types/api";
 import { SparklesIcon } from "@heroicons/vue/24/outline";
 import type { ExcelColumn } from "~/composables/useExcelImport";
 
 const route = useRoute();
 const processId = route.params.id as string;
 const api = useApi();
+const accessState = ref<"forbidden" | "notFound" | null>(null);
 const toast = useToast();
 const { t } = useI18n();
 
 const process = ref<RfqProcessDetailDto | null>(null);
-const companies = ref<CompanyDto[]>([]);
 const matrix = ref<RfqComparisonRowDto[]>([]);
 const quotes = ref<RfqQuoteDto[]>([]);
 const aiRecommendation = ref<RfqAiRecommendationDto | null>(null);
 const aiLoading = ref(false);
-const inviteCompanyId = ref("");
+// Tedarikçi seçimi "sarı alan": tüm cariler içinde aranır (100 kayıtlık açılır liste yerine).
+const inviteCompanyId = ref<string | null>(null);
+const inviteCompanyName = ref<string | null>(null);
+const { loadSupplierRows } = useSupplierLookup();
 const newLine = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece" });
 const loading = ref(true);
 
@@ -43,14 +46,12 @@ async function load() {
   importSortOrderCounter = null;
   loading.value = true;
   try {
-    const [detail, companyPage] = await Promise.all([
-      api.get<RfqProcessDetailDto>(`/api/rfq/processes/${processId}`),
-      api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100, companyType: "Supplier" }),
-    ]);
-    process.value = detail;
-    companies.value = companyPage.items;
+    process.value = await api.get<RfqProcessDetailDto>(`/api/rfq/processes/${processId}`);
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, t("rfq.detail.loadError")));
+    // Yetki yoksa / kayıt yoksa boş sayfa ve kaybolan bildirim yerine açıklayıcı durum gösterilir.
+    const code = error?.response?.status ?? error?.statusCode;
+    if (code === 403 || code === 404) accessState.value = code === 403 ? "forbidden" : "notFound";
+    else toast.error(apiErrorMessage(error, t("rfq.detail.loadError")));
   } finally {
     loading.value = false;
   }
@@ -137,7 +138,8 @@ async function invite() {
   if (!inviteCompanyId.value) return;
   await runAction(async () => {
     await api.post(`/api/rfq/processes/${processId}/invitations`, { companyIds: [inviteCompanyId.value] });
-    inviteCompanyId.value = "";
+    inviteCompanyId.value = null;
+    inviteCompanyName.value = null;
     toast.success(t("rfq.detail.invitedToast"));
     await load();
   });
@@ -168,7 +170,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <LoadingSpinner v-if="loading" />
+  <AccessState v-if="accessState" :kind="accessState" back-to="/admin/rfq" :back-label="$t('nav.rfq')" />
+  <LoadingSpinner v-else-if="loading" />
 
   <div v-else-if="process" class="space-y-6">
     <div class="flex items-center justify-between">
@@ -235,11 +238,17 @@ onMounted(async () => {
         </ul>
         <EmptyState v-else class="mt-3">{{ $t("rfq.detail.emptyInvites") }}</EmptyState>
         <div v-if="['Draft', 'Sent'].includes(process.status)" class="mt-3 flex gap-2">
-          <select v-model="inviteCompanyId" class="flex-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
-            <option value="" disabled>{{ $t("rfq.detail.selectCompany") }}</option>
-            <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
-          <AppButton @click="invite">{{ $t("rfq.detail.invite") }}</AppButton>
+          <LookupField
+            v-model="inviteCompanyId"
+            class="min-w-0 flex-1"
+            :load="loadSupplierRows"
+            :title="$t('rfq.detail.selectCompany')"
+            :display="inviteCompanyName"
+            :placeholder="$t('rfq.detail.selectCompany')"
+            data-testid="invite-company"
+            @select="(r) => (inviteCompanyName = r ? `${r.code} · ${r.name}` : null)"
+          />
+          <AppButton :disabled="!inviteCompanyId" @click="invite">{{ $t("rfq.detail.invite") }}</AppButton>
         </div>
       </AppCard>
     </div>

@@ -24,6 +24,7 @@ const route = useRoute();
 const auctionId = route.params.id as string;
 
 const api = useApi();
+const accessState = ref<"forbidden" | "notFound" | null>(null);
 const toast = useToast();
 const { t } = useI18n();
 const { formatDateTime, formatDuration, formatMoney } = useDateFormat();
@@ -111,7 +112,10 @@ async function load() {
       await loadAllComparisons(detail.items);
     }
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, t("auctions.detail.loadError")));
+    // Yetki yoksa / kayıt yoksa boş sayfa ve kaybolan bildirim yerine açıklayıcı durum gösterilir.
+    const code = error?.response?.status ?? error?.statusCode;
+    if (code === 403 || code === 404) accessState.value = code === 403 ? "forbidden" : "notFound";
+    else toast.error(apiErrorMessage(error, t("auctions.detail.loadError")));
   } finally {
     loading.value = false;
   }
@@ -240,7 +244,8 @@ onBeforeUnmount(() => {
 
 <template>
   <!-- Spinner only on first load: live refreshes (bids, extensions) must not remount the page/panels. -->
-  <LoadingSpinner v-if="loading && !auction" />
+  <AccessState v-if="accessState" :kind="accessState" back-to="/admin/auctions" :back-label="$t('nav.auctions')" />
+  <LoadingSpinner v-else-if="loading && !auction" />
 
   <div v-else-if="auction" class="space-y-6">
     <!-- Page header with breadcrumb -->

@@ -40,11 +40,12 @@ public sealed class RfqController : ControllerBase
         [FromQuery] string? status,
         [FromQuery] Guid? firmId,
         [FromQuery] Guid? workspaceId,
+        [FromQuery] string? search,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        return Ok(await _sender.Send(new GetRfqProcessesListQuery(status, page, pageSize, firmId, workspaceId), cancellationToken));
+        return Ok(await _sender.Send(new GetRfqProcessesListQuery(status, page, pageSize, firmId, workspaceId, search), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]

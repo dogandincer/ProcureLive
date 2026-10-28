@@ -16,6 +16,8 @@ const route = useRoute();
 const router = useRouter();
 const productId = route.params.id as string;
 const api = useApi();
+const show3d = ref(false);
+const accessState = ref<"forbidden" | "notFound" | null>(null);
 const toast = useToast();
 const { t } = useI18n();
 
@@ -106,7 +108,10 @@ async function load() {
     categories.value = flattenCategories(cats);
     productWorkspaceId.value = productData.workspaceId ?? "";
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, t("products.detail.loadError")));
+    // Yetki yoksa / kayıt yoksa boş sayfa ve kaybolan bildirim yerine açıklayıcı durum gösterilir.
+    const code = error?.response?.status ?? error?.statusCode;
+    if (code === 403 || code === 404) accessState.value = code === 403 ? "forbidden" : "notFound";
+    else toast.error(apiErrorMessage(error, t("products.detail.loadError")));
   } finally {
     loading.value = false;
   }
@@ -205,7 +210,8 @@ onMounted(load);
 </script>
 
 <template>
-  <LoadingSpinner v-if="loading" />
+  <AccessState v-if="accessState" :kind="accessState" back-to="/admin/products" :back-label="$t('nav.products')" />
+  <LoadingSpinner v-else-if="loading" />
 
   <div v-else-if="product" class="space-y-6">
     <!-- Header -->
@@ -347,7 +353,19 @@ onMounted(load);
         <!-- Viewer -->
         <div v-if="product.model3dUrl" class="mt-3">
           <div class="overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100">
+            <!-- Model dosyası ancak istenince indirilir: sayfa 3D yüzünden yavaş açılmasın -->
+            <button
+              v-if="!show3d"
+              type="button"
+              class="flex h-[320px] w-full flex-col items-center justify-center gap-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50/50"
+              data-testid="show-3d"
+              @click="show3d = true"
+            >
+              <CubeTransparentIcon class="h-8 w-8" />
+              {{ $t("products.detail.model3d.show") }}
+            </button>
             <model-viewer
+              v-else
               :src="product.model3dUrl"
               camera-controls
               auto-rotate

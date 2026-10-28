@@ -14,17 +14,22 @@ const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "ros
   Cancelled: "rose",
 };
 
-onMounted(async () => {
+const { page: listPage, total: listTotal, pageSize: listPageSize, params: listParams, resetAndLoad } = usePagedList(() => load());
+
+async function load() {
   loading.value = true;
   try {
-    const page = await api.get<PagedResult<AuctionDto>>("/api/auctions/history/mine", { page: 1, pageSize: 50 });
+    const page = await api.get<PagedResult<AuctionDto>>("/api/auctions/history/mine", { page: listPage.value, pageSize: listPageSize });
     auctions.value = page.items;
+    listTotal.value = page.totalCount;
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("auctions.history.loadError")));
   } finally {
     loading.value = false;
   }
-});
+}
+
+onMounted(load);
 </script>
 
 <template>
@@ -55,6 +60,7 @@ onMounted(async () => {
           </tbody>
         </table>
         <EmptyState v-if="auctions.length === 0">{{ $t("auctions.history.empty") }}</EmptyState>
+        <ListPager v-model:page="listPage" :total="listTotal" :page-size="listPageSize" />
       </div>
     </AppCard>
   </div>

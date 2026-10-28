@@ -9,6 +9,7 @@ import {
 } from "@heroicons/vue/24/outline";
 
 const api = useApi();
+const { formatMoney } = useDateFormat();
 const toast = useToast();
 const { t, locale } = useI18n();
 
@@ -247,7 +248,7 @@ onUnmounted(() => {
       <div v-else-if="!stats?.liveAuctions.length" class="p-8">
         <EmptyState>{{ $t("monitoring.liveAuctions.empty") }}</EmptyState>
       </div>
-      <table v-else class="w-full text-sm">
+      <div v-else class="overflow-x-auto"><table class="w-full min-w-[560px] text-sm">
         <thead class="border-b border-slate-100 bg-slate-50">
           <tr>
             <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $t("monitoring.liveAuctions.table.title") }}</th>
@@ -268,7 +269,7 @@ onUnmounted(() => {
             </td>
             <td class="px-4 py-3 text-slate-600">{{ a.leadingCompanyName ?? "—" }}</td>
             <td class="px-4 py-3 text-right font-mono font-semibold text-emerald-700">
-              {{ a.bestBidAmount !== null ? `${a.bestBidAmount.toLocaleString()} ${a.bestBidCurrencyCode}` : "—" }}
+              {{ formatMoney(a.bestBidAmount, a.bestBidCurrencyCode) }}
             </td>
             <td class="px-4 py-3 text-right">
               <span class="rounded-md bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
@@ -282,7 +283,7 @@ onUnmounted(() => {
             </td>
           </tr>
         </tbody>
-      </table>
+      </table></div>
     </AppCard>
 
     <!-- Recent bid activity -->
@@ -291,7 +292,7 @@ onUnmounted(() => {
       <div v-else-if="!stats?.recentBids.length" class="p-8">
         <EmptyState>{{ $t("monitoring.recentBids.empty") }}</EmptyState>
       </div>
-      <table v-else class="w-full text-sm">
+      <div v-else class="overflow-x-auto"><table class="w-full min-w-[560px] text-sm">
         <thead class="border-b border-slate-100 bg-slate-50">
           <tr>
             <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $t("monitoring.recentBids.table.company") }}</th>
@@ -305,12 +306,12 @@ onUnmounted(() => {
             <td class="px-4 py-2.5 font-medium text-slate-700">{{ b.companyName }}</td>
             <td class="px-4 py-2.5 text-slate-500 max-w-[180px] truncate">{{ b.auctionTitle }}</td>
             <td class="px-4 py-2.5 text-right font-mono font-semibold text-slate-800">
-              {{ b.amount.toLocaleString() }} {{ b.currencyCode }}
+              {{ formatMoney(b.amount, b.currencyCode) }}
             </td>
             <td class="px-4 py-2.5 text-right text-slate-400 text-xs">{{ timeSince(b.bidTime) }}</td>
           </tr>
         </tbody>
-      </table>
+      </table></div>
     </AppCard>
   </div>
 </template>

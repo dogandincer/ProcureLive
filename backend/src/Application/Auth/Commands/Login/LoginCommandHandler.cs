@@ -33,9 +33,12 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResu
     {
         ApplicationUserInfo? user = await _identityService.FindByEmailAsync(request.Email, cancellationToken);
 
+        // Genel mesaj hesabın varlığını ele vermez; kilit kuralını baştan söyler.
+        const string invalidCredentials = "E-posta veya şifre hatalı. Art arda 3'ten fazla hatalı denemede hesap kilitlenir.";
+
         if (user is null)
         {
-            throw new ForbiddenAccessException("E-posta veya şifre hatalı.");
+            throw new ForbiddenAccessException(invalidCredentials, ErrorCodes.InvalidCredentials);
         }
 
         bool passwordValid = await _identityService.CheckPasswordAsync(user.Id, request.Password, cancellationToken);
@@ -49,7 +52,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResu
                 await _identityService.RegisterFailedLoginAsync(user.Id, _dateTime.UtcNow, MaxFailedAttempts, cancellationToken);
             }
 
-            throw new ForbiddenAccessException("E-posta veya şifre hatalı.");
+            throw new ForbiddenAccessException(invalidCredentials, ErrorCodes.InvalidCredentials);
         }
 
         if (!user.IsActive)
@@ -61,7 +64,8 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResu
                     ErrorCodes.AccountLocked);
             }
 
-            throw new ForbiddenAccessException("E-posta veya şifre hatalı.");
+            // Şifre doğru ama hesap yönetici tarafından pasife alınmış: kullanıcı ne yapacağını bilsin.
+            throw new ForbiddenAccessException("Hesabınız pasif durumda. Yeniden açılması için yöneticinize başvurun.", ErrorCodes.AccountInactive);
         }
 
         await _identityService.ResetFailedLoginsAsync(user.Id, cancellationToken);

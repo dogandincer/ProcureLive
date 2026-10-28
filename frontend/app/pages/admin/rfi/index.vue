@@ -36,6 +36,8 @@ const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "ros
 
 // Başlıktaki firma/işyeri art arda kurulur; geç dönen eski yanıt yenisinin üzerine yazmasın (yalnızca son istek uygulanır).
 let loadSeq = 0;
+const { page: listPage, total: listTotal, search: listSearch, pageSize: listPageSize, params: listParams, resetAndLoad } = usePagedList(() => load());
+
 
 async function load() {
   const seq = ++loadSeq;
@@ -43,8 +45,7 @@ async function load() {
   try {
     const [processPage, templateList] = await Promise.all([
       api.get<PagedResult<RfiProcessDto>>("/api/rfi/processes", {
-        page: 1,
-        pageSize: 50,
+        ...listParams(),
         firmId: selectedFirmId.value ?? undefined,
         workspaceId: selectedWorkspaceId.value ?? undefined,
       }),
@@ -52,6 +53,7 @@ async function load() {
     ]);
     if (seq !== loadSeq) return;
     processes.value = processPage.items;
+    listTotal.value = processPage.totalCount;
     templates.value = templateList;
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("rfi.loadError")));
@@ -114,7 +116,7 @@ async function createProcess() {
 }
 
 onMounted(load);
-watch([selectedFirmId, selectedWorkspaceId], load);
+watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
 </script>
 
 <template>
@@ -197,6 +199,7 @@ watch([selectedFirmId, selectedWorkspaceId], load);
     </form>
 
     <AppCard>
+      <input v-model="listSearch" type="search" :placeholder="$t('pager.search.rfi')" :aria-label="$t('pager.search.rfi')" class="mb-3 w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -225,6 +228,7 @@ watch([selectedFirmId, selectedWorkspaceId], load);
           </tbody>
         </table>
         <EmptyState v-if="processes.length === 0">{{ $t("rfi.empty") }}</EmptyState>
+        <ListPager v-model:page="listPage" :total="listTotal" :page-size="listPageSize" />
       </div>
     </AppCard>
   </div>

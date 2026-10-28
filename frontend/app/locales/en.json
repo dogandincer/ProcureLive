@@ -140,13 +140,15 @@
     "recentAuctionsSub": "Last 10 auctions",
     "stat": {
       "companies": "Companies",
-      "companiesSub": "Suppliers & buyers",
+      "companiesSub": "Supplier records",
       "products": "Catalog Products",
       "productsSub": "Active stock items",
       "totalAuctions": "Recent Auctions",
       "recentSub": "Last 10 records",
       "liveAuctions": "Live Auctions",
-      "liveSub": "Currently active"
+      "liveSub": "Currently active",
+      "scheduled": "Scheduled auctions",
+      "scheduledSub": "Waiting to start"
     },
     "table": {
       "title": "Title",
@@ -266,6 +268,10 @@
       "CompanyApproved": "Supplier approved",
       "Accepted": "Accepted",
       "Rejected": "Rejected"
+    },
+    "companyType": {
+      "Internal": "Firm",
+      "Supplier": "Supplier"
     }
   },
   "auctions": {
@@ -689,7 +695,8 @@
         "generateError": "Failed to generate 3D model.",
         "needImages": "Add at least one product photo first.",
         "uploadTitle": "Enter a 3D model URL directly",
-        "uploadLabel": "3D model URL (.glb or .gltf)"
+        "uploadLabel": "3D model URL (.glb or .gltf)",
+        "show": "Show 3D model"
       }
     }
   },
@@ -1129,7 +1136,17 @@
       "endsAt": "Ends At"
     },
     "emptyInvites": "No invites",
-    "loadError": "Failed to load dashboard data."
+    "loadError": "Failed to load dashboard data.",
+    "pending": {
+      "title": "Your supplier record is awaiting approval",
+      "body": "Buyers will review and approve your registration; you will be notified when it is approved. After approval, the auctions, RFIs and RFQs you are invited to appear here.",
+      "passiveTitle": "Your supplier record is inactive",
+      "passiveBody": "Your company cannot be invited to new processes right now. Contact the purchasing team to reactivate it.",
+      "stepSettings": "Complete your company settings and contact preferences.",
+      "stepPlus": "With Plus you can search publicly listed auctions and send participation requests with preliminary offers.",
+      "stepSearchPlus": "Use Plus search to find listed auctions and send participation requests with preliminary offers.",
+      "stepInvite": "If a buyer invites you directly, the invitation appears here."
+    }
   },
   "monitoring": {
     "title": "Monitoring Dashboard",
@@ -1821,7 +1838,8 @@
     "submittedPlusQuote": "Your quote was submitted. As a Plus member you can revise it while the process is open.",
     "revise": "Update Response",
     "reviseQuote": "Update Quote",
-    "standardOnce": "With a Standard membership, changes are not possible after submitting."
+    "standardOnce": "With a Standard membership, changes are not possible after submitting.",
+    "declinedNoAccess": "Declined"
   },
   "processWorkspace": {
     "owner": "Owner firm",
@@ -1834,5 +1852,29 @@
     "daysHoursMinutes": "{d} d {h} h {m} min",
     "hoursMinutes": "{h} h {m} min",
     "minutesSeconds": "{m} min {s} s"
+  },
+  "pager": {
+    "label": "Pages",
+    "range": "{from}–{to} of {total}",
+    "prev": "Previous page",
+    "next": "Next page",
+    "search": {
+      "auctions": "Search auction name or reference…",
+      "rfi": "Search RFI name…",
+      "rfq": "Search RFQ name…",
+      "companies": "Search supplier name, code or tax no…",
+      "products": "Search product name or SKU…",
+      "users": "Search name or email…"
+    }
+  },
+  "accessState": {
+    "forbidden": {
+      "title": "You don't have access to this record",
+      "body": "The record belongs to a firm or workspace you are not authorized for. Ask your system administrator for workspace access if you need it."
+    },
+    "notFound": {
+      "title": "Record not found",
+      "body": "The record may have been deleted or the link is wrong."
+    }
   }
 }

@@ -6,6 +6,7 @@ const route = useRoute();
 const router = useRouter();
 const companyId = route.params.id as string;
 const api = useApi();
+const accessState = ref<"forbidden" | "notFound" | null>(null);
 const toast = useToast();
 const { t } = useI18n();
 
@@ -101,7 +102,10 @@ async function load() {
     visibleWorkspaceIds.value = [...companyData.visibleWorkspaceIds];
     selectedSectorIds.value = new Set(companyData.sectors.map((s) => s.id));
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, t("companies.detail.loadError")));
+    // Yetki yoksa / kayıt yoksa boş sayfa ve kaybolan bildirim yerine açıklayıcı durum gösterilir.
+    const code = error?.response?.status ?? error?.statusCode;
+    if (code === 403 || code === 404) accessState.value = code === 403 ? "forbidden" : "notFound";
+    else toast.error(apiErrorMessage(error, t("companies.detail.loadError")));
   } finally {
     loading.value = false;
   }
@@ -265,7 +269,8 @@ onMounted(load);
 </script>
 
 <template>
-  <LoadingSpinner v-if="loading" />
+  <AccessState v-if="accessState" :kind="accessState" back-to="/admin/companies" :back-label="$t('nav.companies')" />
+  <LoadingSpinner v-else-if="loading" />
 
   <div v-else-if="company" class="space-y-6">
     <div>
@@ -276,7 +281,7 @@ onMounted(load);
             <span v-if="company.code" class="mr-1 font-mono text-base font-semibold text-slate-400">{{ company.code }}</span>{{ company.name }}
           </h1>
           <p class="text-sm text-slate-500">
-            {{ company.taxNumber }} · {{ company.taxOffice }} · {{ company.companyType }} · {{ $t(`enums.companyStatus.${company.status}`) }}
+            {{ company.taxNumber }} · {{ company.taxOffice }} · {{ $t(`enums.companyType.${company.companyType}`) }} · {{ $t(`enums.companyStatus.${company.status}`) }}
           </p>
         </div>
         <div class="flex items-center gap-2">

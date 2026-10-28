@@ -2,7 +2,6 @@
 definePageMeta({ layout: false });
 
 const { login, homePathForRole } = useAuth();
-const toast = useToast();
 const { t } = useI18n();
 // Varsayılan firmanın markası: logo + "{Kısa Ad} e-İhale Yönetim Sistemi" (yoksa "Kuzey e-İhale Yönetimi").
 const { branding, logoSrc, initials, load: loadBranding } = useBranding();
@@ -11,15 +10,18 @@ onMounted(() => loadBranding());
 const email = ref("admin@procurelive.local");
 const password = ref("");
 const loading = ref(false);
+// Hata formun içinde kalıcı gösterilir (köşedeki bildirim birkaç saniyede kayboluyordu).
+const errorMessage = ref("");
 
 async function submit() {
   loading.value = true;
+  errorMessage.value = "";
 
   try {
     await login(email.value, password.value);
     await navigateTo(homePathForRole());
   } catch (error: any) {
-    toast.error(apiErrorMessage(error, t("login.defaultError")));
+    errorMessage.value = apiErrorMessage(error, t("login.defaultError"));
   } finally {
     loading.value = false;
   }
@@ -44,24 +46,32 @@ async function submit() {
 
       <div class="mt-6 space-y-4">
         <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("login.email") }}</label>
+          <label for="login-email" class="mb-1 block text-sm font-medium text-slate-700">{{ $t("login.email") }}</label>
           <input
+            id="login-email"
             v-model="email"
             type="email"
+            autocomplete="username"
             required
             class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
           />
         </div>
 
         <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("login.password") }}</label>
+          <label for="login-password" class="mb-1 block text-sm font-medium text-slate-700">{{ $t("login.password") }}</label>
           <input
+            id="login-password"
             v-model="password"
             type="password"
+            autocomplete="current-password"
             required
             class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
           />
         </div>
+
+        <p v-if="errorMessage" role="alert" class="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700" data-testid="login-error">
+          {{ errorMessage }}
+        </p>
 
         <AppButton type="submit" class="w-full" :loading="loading">
           {{ loading ? $t("login.submitting") : $t("login.submit") }}

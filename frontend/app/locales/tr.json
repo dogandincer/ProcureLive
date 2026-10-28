@@ -140,13 +140,15 @@
     "recentAuctionsSub": "Son 10 ihale",
     "stat": {
       "companies": "Kayıtlı Cari",
-      "companiesSub": "Tedarikçi ve alıcı",
+      "companiesSub": "Tedarikçi cariler",
       "products": "Katalog Ürünü",
       "productsSub": "Aktif stok kalemleri",
       "totalAuctions": "Son İhaleler",
       "recentSub": "Son 10 kayıt",
       "liveAuctions": "Canlı İhale",
-      "liveSub": "Şu an aktif"
+      "liveSub": "Şu an aktif",
+      "scheduled": "Planlanan ihale",
+      "scheduledSub": "Başlamayı bekleyen"
     },
     "table": {
       "title": "Başlık",
@@ -266,6 +268,10 @@
       "CompanyApproved": "Cari onaylandı",
       "Accepted": "Kabul edildi",
       "Rejected": "Reddedildi"
+    },
+    "companyType": {
+      "Internal": "Firma",
+      "Supplier": "Tedarikçi"
     }
   },
   "auctions": {
@@ -689,7 +695,8 @@
         "generateError": "3D model oluşturulamadı.",
         "needImages": "Önce en az bir ürün fotoğrafı ekleyin.",
         "uploadTitle": "Doğrudan 3D model adresi gir",
-        "uploadLabel": "3D model adresi (.glb veya .gltf)"
+        "uploadLabel": "3D model adresi (.glb veya .gltf)",
+        "show": "3D modeli göster"
       }
     }
   },
@@ -1129,7 +1136,17 @@
       "endsAt": "Bitiş"
     },
     "emptyInvites": "Davet yok",
-    "loadError": "Panel verileri yüklenemedi."
+    "loadError": "Panel verileri yüklenemedi.",
+    "pending": {
+      "title": "Cari kaydınız onay bekliyor",
+      "body": "Kuzey firmalarının satınalmacıları kaydınızı inceleyip onaylayacak; onaylandığında bildirim alırsınız. Onaydan sonra davet edildiğiniz ihaleler, RFI ve RFQ'lar burada görünür.",
+      "passiveTitle": "Cari kaydınız pasif",
+      "passiveBody": "Firmanız şu an yeni süreçlere davet edilemiyor. Yeniden aktif edilmesi için satınalma birimiyle iletişime geçin.",
+      "stepSettings": "Firma ayarlarınızı ve iletişim tercihlerinizi tamamlayın.",
+      "stepPlus": "Plus'a geçerseniz herkese açık listelenen ihaleleri arayıp katılım talebi ve ön teklif gönderebilirsiniz.",
+      "stepSearchPlus": "Plus aramasından listelenen ihaleleri bulup katılım talebi ve ön teklif gönderebilirsiniz.",
+      "stepInvite": "Bir satınalmacı sizi doğrudan davet ederse davet burada görünür."
+    }
   },
   "monitoring": {
     "title": "İzleme Paneli",
@@ -1821,7 +1838,8 @@
     "submittedPlusQuote": "Teklifiniz gönderildi. Plus üyesi olarak süreç açık kaldıkça revize edebilirsiniz.",
     "revise": "Yanıtı Güncelle",
     "reviseQuote": "Teklifi Güncelle",
-    "standardOnce": "Standart üyelikte gönderdikten sonra değişiklik yapılamaz."
+    "standardOnce": "Standart üyelikte gönderdikten sonra değişiklik yapılamaz.",
+    "declinedNoAccess": "Reddettiniz"
   },
   "processWorkspace": {
     "owner": "Sahip firma",
@@ -1834,5 +1852,29 @@
     "daysHoursMinutes": "{d} gün {h} sa {m} dk",
     "hoursMinutes": "{h} sa {m} dk",
     "minutesSeconds": "{m} dk {s} sn"
+  },
+  "pager": {
+    "label": "Sayfalar",
+    "range": "{from}–{to} / {total} kayıt",
+    "prev": "Önceki sayfa",
+    "next": "Sonraki sayfa",
+    "search": {
+      "auctions": "İhale adı veya referans kodu ara…",
+      "rfi": "RFI adı ara…",
+      "rfq": "RFQ adı ara…",
+      "companies": "Cari adı, kodu veya vergi no ara…",
+      "products": "Ürün adı veya stok kodu ara…",
+      "users": "Ad, soyad veya e-posta ara…"
+    }
+  },
+  "accessState": {
+    "forbidden": {
+      "title": "Bu kayda erişim yetkiniz yok",
+      "body": "Kayıt, yetkili olduğunuz firma veya işyerlerine ait değil. Erişim gerekiyorsa sistem yöneticinizden işyeri yetkisi isteyin."
+    },
+    "notFound": {
+      "title": "Kayıt bulunamadı",
+      "body": "Kayıt silinmiş ya da bağlantı hatalı olabilir."
+    }
   }
 }

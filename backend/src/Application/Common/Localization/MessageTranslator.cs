@@ -197,6 +197,9 @@ public static class MessageTranslator
         // RFI/RFQ işyeri, ön teklif → ilk teklif
         ["Seçilen işyeri sahip firmaya ait değil."] = "The selected workspace does not belong to the owner firm.",
         ["Kapanmış sürecin işyeri değiştirilemez."] = "The workspace of a closed process cannot be changed.",
+        ["E-posta veya şifre hatalı. Art arda 3'ten fazla hatalı denemede hesap kilitlenir."] = "Incorrect email or password. The account is locked after more than 3 failed attempts in a row.",
+        ["Hesabınız pasif durumda. Yeniden açılması için yöneticinize başvurun."] = "Your account is inactive. Contact your administrator to reactivate it.",
+        ["Pasif cariye davet linki oluşturulamaz; önce cariyi aktif edin."] = "An invite link cannot be created for an inactive supplier; activate the supplier first.",
         ["Süreç sahibi bir firma olmalıdır; tedarikçi cari sahip seçilemez."] = "The process owner must be a firm; a supplier cannot be the owner.",
         ["Ön Teklifiniz İşlendi"] = "Your Preliminary Offer Was Applied",
         ["Ön Teklifler İşlendi"] = "Preliminary Offers Applied",

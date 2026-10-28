@@ -4,5 +4,5 @@ using ProcureLive.Contracts.Common;
 
 namespace ProcureLive.Application.Auctions.Queries.GetAuctionsList;
 
-public sealed record GetAuctionsListQuery(string? Status, int Page, int PageSize, Guid? FirmId = null, Guid? WorkspaceId = null)
+public sealed record GetAuctionsListQuery(string? Status, int Page, int PageSize, Guid? FirmId = null, Guid? WorkspaceId = null, string? Search = null)
     : IRequest<PagedResult<AuctionDto>>;

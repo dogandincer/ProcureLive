@@ -36,8 +36,8 @@ public sealed class GetProductsListQueryHandler : IRequestHandler<GetProductsLis
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            string term = request.SearchTerm.Trim();
-            query = query.Where(p => p.Name.Contains(term) || p.Sku.Contains(term));
+            string term = request.SearchTerm.Trim().ToLowerInvariant();
+            query = query.Where(p => p.Name.ToLower().Contains(term) || p.Sku.ToLower().Contains(term));
         }
 
         if (request.CategoryId.HasValue)

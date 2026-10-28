@@ -46,12 +46,13 @@ public sealed class AuctionsController : ControllerBase
         [FromQuery] string? status,
         [FromQuery] Guid? firmId,
         [FromQuery] Guid? workspaceId,
+        [FromQuery] string? search,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
         PagedResult<AuctionDto> result = await _sender.Send(
-            new GetAuctionsListQuery(status, page, pageSize, firmId, workspaceId), cancellationToken);
+            new GetAuctionsListQuery(status, page, pageSize, firmId, workspaceId, search), cancellationToken);
         return Ok(result);
     }
 

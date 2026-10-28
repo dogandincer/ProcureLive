@@ -49,10 +49,29 @@ public sealed class SubmitRfiResponsesCommandHandler : IRequestHandler<SubmitRfi
             throw new ConflictException(ProcessParticipationRules.ClosedMessage, ErrorCodes.ProcessClosed);
         }
 
-        List<Guid> validQuestionIds = await _context.RfiQuestions
+        var questions = await _context.RfiQuestions
             .Where(q => q.RfiTemplateId == _context.RfiProcesses.Where(p => p.Id == request.RfiProcessId).Select(p => p.RfiTemplateId).FirstOrDefault())
-            .Select(q => q.Id)
+            .Select(q => new { q.Id, q.IsRequired, q.QuestionType, q.QuestionText })
             .ToListAsync(cancellationToken);
+        List<Guid> validQuestionIds = questions.Select(q => q.Id).ToList();
+
+        // Zorunlu sorular boş geçilemez (soru tipine göre ilgili alan dolu olmalı).
+        List<string> missing = questions.Where(q => q.IsRequired).Where(q =>
+        {
+            var a = request.Answers.FirstOrDefault(x => x.RfiQuestionId == q.Id);
+            return a is null || q.QuestionType switch
+            {
+                RfiQuestionType.Number => a.AnswerNumber is null,
+                RfiQuestionType.Boolean => a.AnswerBool is null,
+                RfiQuestionType.MultipleChoice => a.SelectedOptionId is null,
+                RfiQuestionType.FileUpload => string.IsNullOrWhiteSpace(a.AttachmentUrl),
+                _ => string.IsNullOrWhiteSpace(a.AnswerText),
+            };
+        }).Select(q => q.QuestionText).ToList();
+        if (missing.Count > 0)
+        {
+            throw new ConflictException($"Zorunlu sorular yanıtlanmadı: {string.Join(", ", missing)}", ErrorCodes.RequiredAnswersMissing);
+        }
 
         List<RfiResponse> existingResponses = await _context.RfiResponses
             .Where(r => r.RfiProcessId == request.RfiProcessId && r.CompanyId == companyId.Value)
@@ -100,6 +119,13 @@ public sealed class SubmitRfiResponsesCommandHandler : IRequestHandler<SubmitRfi
         if (invitation!.Status == InvitationStatus.Accepted)
         {
             invitation.Status = InvitationStatus.Participating;
+        }
+
+        // İlk cevap gelince süreç "Devam ediyor"a geçer.
+        if (status == ProcessStatus.Sent)
+        {
+            RfiProcess process = await _context.RfiProcesses.FirstAsync(p => p.Id == request.RfiProcessId, cancellationToken);
+            process.Status = ProcessStatus.InProgress;
         }
 
         await _context.SaveChangesAsync(cancellationToken);

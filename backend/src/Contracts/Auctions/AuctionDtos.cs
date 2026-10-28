@@ -78,7 +78,11 @@ public sealed record AuctionItemDto(
     string? Specification,
     int SortOrder,
     decimal? CurrentBestAmount,
-    int BidCount);
+    int BidCount,
+    // Tedarikçiye özel: kendi en iyi birim fiyatı; açık ihalede sırası (1 = lider) ve teklif veren firma sayısı.
+    decimal? MyBestAmount = null,
+    int? MyRank = null,
+    int? CompetitorCount = null);
 
 public sealed record AuctionAttachmentDto(
     Guid Id,
@@ -115,7 +119,19 @@ public sealed record BidComparisonDto(
     string CurrencyCode,
     decimal NormalizedAmountInBaseCurrency,
     DateTime BidTime,
-    string Status);
+    string Status,
+    bool IsAwarded = false);
+
+/// <summary>Canlı akışın açılışta doldurulan geçmişi. Tedarikçi rakibin adını hiç, kapalı zarfta tutarını da görmez.</summary>
+public sealed record AuctionFeedEntryDto(
+    Guid BidId,
+    Guid AuctionItemId,
+    string ItemDescription,
+    string? CompanyName,
+    decimal? Amount,
+    string CurrencyCode,
+    bool IsMine,
+    DateTime BidTime);
 
 public sealed record CreateAuctionRequest(
     string Title,

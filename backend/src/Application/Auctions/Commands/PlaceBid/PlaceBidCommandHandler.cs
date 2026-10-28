@@ -165,18 +165,20 @@ public sealed class PlaceBidCommandHandler : IRequestHandler<PlaceBidCommand, Bi
 
         await _cacheService.SetBestAmountAsync(item.Id, normalizedNewAmount, cancellationToken);
 
+        string companyName = await _context.Companies.Where(c => c.Id == bid.CompanyId).Select(c => c.Name).FirstAsync(cancellationToken);
         var bidDto = new BidDto(
             bid.Id,
             bid.AuctionItemId,
             bid.CompanyId,
-            string.Empty,
+            companyName,
             bid.Amount.Amount,
             bid.Amount.CurrencyId,
             bid.BidTime,
             bid.Status.ToString(),
             IsMine: true);
 
-        await _notificationService.BidPlacedAsync(auction.Id, bidDto, cancellationToken);
+        await _notificationService.BidPlacedAsync(
+            auction.Id, bidDto, auction.AuctionType is AuctionType.SealedBid or AuctionType.ReverseSealed, cancellationToken);
 
         if (newEndAt.HasValue)
         {

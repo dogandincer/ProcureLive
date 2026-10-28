@@ -359,10 +359,13 @@
         "started": "İhale canlıya geçti",
         "ended": "İhale sona erdi",
         "awarded": "Bir kalem için kazanan seçildi",
-        "statusChanged": "Durum değişti: {status}"
+        "statusChanged": "Durum değişti: {status}",
+        "newBidFrom": "{company}: {item} için {amount}"
       },
       "workspace": "İşyeri",
-      "responsible": "Sorumlu satınalmacı"
+      "responsible": "Sorumlu satınalmacı",
+      "startsIn": "{time} sonra başlar",
+      "currentBestUnit": "Güncel en iyi (birim)"
     },
     "status": {
       "title": "Durum Yönetimi",
@@ -441,7 +444,14 @@
       "winner": "Kazanan",
       "selectWinner": "Kazanan Seç",
       "unitPrice": "Birim Fiyat",
-      "normalized": "Normalize"
+      "normalized": "Normalize",
+      "targetUnit": "Hedef birim fiyat",
+      "companiesBids": "{companies} firma · {bids} teklif",
+      "vsTarget": "Hedef fiyata göre",
+      "lineTotal": "Toplam",
+      "confirmTitle": "Kazananı onaylayın",
+      "confirmBody": "“{item}” kalemi için “{company}” kazanan olarak seçilecek.",
+      "confirmIrreversible": "Bu işlem geri alınamaz; tedarikçilere sonuç bildirimi gider."
     },
     "live": {
       "accessDenied": "Bu ihaleye erişiminiz yok. Daveti reddetmiş olabilirsiniz.",
@@ -482,8 +492,21 @@
         "statusChanged": "ℹ️ İhale durumu: {status}",
         "statusChangedReason": "ℹ️ İhale durumu: {status} — {reason}",
         "wonItem": "🎉 Bir kalemi kazandınız!",
-        "itemAwarded": "Bir kalem için kazanan belirlendi."
-      }
+        "itemAwarded": "Bir kalem için kazanan belirlendi.",
+        "myBid": "Teklifiniz: {item} — {amount}",
+        "otherBid": "Bir tedarikçi teklif verdi: {item} — {amount}",
+        "otherBidSealed": "Yeni bir kapalı teklif geldi: {item}"
+      },
+      "startsIn": "Başlamasına kalan süre",
+      "endedAt": "Bitiş zamanı",
+      "youLead": "Lidersiniz",
+      "yourRank": "Sıranız: {rank} / {total}",
+      "currentBestUnit": "Güncel en iyi birim fiyat",
+      "yourBest": "Sizin en iyi teklifiniz (birim)",
+      "unitPriceLabel": "Birim fiyat ({currency})",
+      "higherHint": "Güncel en iyiden yüksek",
+      "lowerHint": "Güncel en iyiden düşük",
+      "sealedNote": "Kapalı zarf ihale: diğer tedarikçilerin teklifleri ve sıralama ihale bitene kadar gizlidir. Yalnızca kendi teklifinizi görürsünüz."
     },
     "supplierList": {
       "title": "İhale Davetlerim",
@@ -520,6 +543,23 @@
       "saveError": "Atama kaydedilemedi.",
       "candidatesError": "Sorumlu adayları yüklenemedi.",
       "workspaceLocked": "İhale planlanmış aşamayı geçtiği için işyeri değiştirilemez; yalnızca sorumlu değişebilir."
+    },
+    "terms": {
+      "title": "Şartlar ve ekler",
+      "startAt": "Başlangıç",
+      "endAt": "Bitiş",
+      "paymentTerm": "Ödeme vadesi",
+      "deliveryTerm": "Teslim şekli",
+      "notSpecified": "Belirtilmedi",
+      "partial": "Kısmi teklif",
+      "partialYes": "Kalemlerin bir kısmına teklif verilebilir",
+      "partialNo": "Tüm kalemlere teklif verilmeli",
+      "alternatives": "Muadil ürün teklif edilebilir",
+      "reserve": "Rezerv fiyat (yalnız iç kullanıcı)",
+      "attachments": "Ekler",
+      "noAttachments": "Bu ihalede ek yok.",
+      "requestedDelivery": "İstenen teslim",
+      "specification": "Şartname"
     }
   },
   "currencies": {
@@ -947,7 +987,12 @@
       "actionError": "İşlem gerçekleştirilemedi.",
       "acceptedToast": "Davet kabul edildi.",
       "declinedToast": "Davet reddedildi.",
-      "answersSavedToast": "Yanıtlarınız kaydedildi."
+      "answersSavedToast": "Yanıtlarınız kaydedildi.",
+      "requiredMissing": "{n} zorunlu soru boş. Kırmızı işaretli soruları yanıtlayın.",
+      "required": "Zorunlu",
+      "requiredField": "Bu soru zorunlu.",
+      "requiredLegend": "Zorunlu soru",
+      "fileUrlPlaceholder": "Dosya bağlantısı (https://...)"
     }
   },
   "rfq": {
@@ -1121,7 +1166,7 @@
         "title": "İhale Başlığı",
         "bids": "Teklif",
         "leading": "Lider Tedarikçi",
-        "bestBid": "En İyi Teklif",
+        "bestBid": "Güncel toplam (liderler)",
         "endsIn": "Kalan"
       }
     },
@@ -1783,5 +1828,11 @@
     "workspace": "İşyeri",
     "saved": "İşyeri güncellendi.",
     "saveError": "İşyeri güncellenemedi."
+  },
+  "time": {
+    "expired": "Süre doldu",
+    "daysHoursMinutes": "{d} gün {h} sa {m} dk",
+    "hoursMinutes": "{h} sa {m} dk",
+    "minutesSeconds": "{m} dk {s} sn"
   }
 }

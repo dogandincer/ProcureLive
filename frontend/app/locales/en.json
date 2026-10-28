@@ -359,10 +359,13 @@
         "started": "Auction went live",
         "ended": "Auction ended",
         "awarded": "A winner was selected for an item",
-        "statusChanged": "Status changed: {status}"
+        "statusChanged": "Status changed: {status}",
+        "newBidFrom": "{company}: {amount} for {item}"
       },
       "workspace": "Workspace",
-      "responsible": "Responsible buyer"
+      "responsible": "Responsible buyer",
+      "startsIn": "Starts in {time}",
+      "currentBestUnit": "Current best (unit)"
     },
     "status": {
       "title": "Status Management",
@@ -441,7 +444,14 @@
       "winner": "Winner",
       "selectWinner": "Select Winner",
       "unitPrice": "Unit Price",
-      "normalized": "Normalized"
+      "normalized": "Normalized",
+      "targetUnit": "Target unit price",
+      "companiesBids": "{companies} companies · {bids} bids",
+      "vsTarget": "Versus target price",
+      "lineTotal": "Total",
+      "confirmTitle": "Confirm the winner",
+      "confirmBody": "“{company}” will be selected as the winner for “{item}”.",
+      "confirmIrreversible": "This cannot be undone; suppliers are notified of the result."
     },
     "live": {
       "accessDenied": "You don't have access to this auction. You may have declined the invitation.",
@@ -482,8 +492,21 @@
         "statusChanged": "ℹ️ Auction status: {status}",
         "statusChangedReason": "ℹ️ Auction status: {status} — {reason}",
         "wonItem": "🎉 You won an item!",
-        "itemAwarded": "A winner was selected for an item."
-      }
+        "itemAwarded": "A winner was selected for an item.",
+        "myBid": "Your bid: {item} — {amount}",
+        "otherBid": "A supplier placed a bid: {item} — {amount}",
+        "otherBidSealed": "A new sealed bid arrived: {item}"
+      },
+      "startsIn": "Time until start",
+      "endedAt": "Ended at",
+      "youLead": "You are leading",
+      "yourRank": "Your rank: {rank} / {total}",
+      "currentBestUnit": "Current best unit price",
+      "yourBest": "Your best bid (unit)",
+      "unitPriceLabel": "Unit price ({currency})",
+      "higherHint": "Higher than current best",
+      "lowerHint": "Lower than current best",
+      "sealedNote": "Sealed-bid auction: other suppliers' bids and the ranking stay hidden until the auction ends. You only see your own bid."
     },
     "supplierList": {
       "title": "My Auction Invites",
@@ -520,6 +543,23 @@
       "saveError": "The assignment could not be saved.",
       "candidatesError": "Responsible candidates could not be loaded.",
       "workspaceLocked": "The auction is past the scheduled stage, so its workspace cannot change; only the responsible buyer can."
+    },
+    "terms": {
+      "title": "Terms and attachments",
+      "startAt": "Start",
+      "endAt": "End",
+      "paymentTerm": "Payment term",
+      "deliveryTerm": "Delivery term",
+      "notSpecified": "Not specified",
+      "partial": "Partial bids",
+      "partialYes": "Bids on some of the items are allowed",
+      "partialNo": "All items must be bid",
+      "alternatives": "Alternative products allowed",
+      "reserve": "Reserve price (internal only)",
+      "attachments": "Attachments",
+      "noAttachments": "This auction has no attachments.",
+      "requestedDelivery": "Requested delivery",
+      "specification": "Specification"
     }
   },
   "currencies": {
@@ -947,7 +987,12 @@
       "actionError": "The action could not be completed.",
       "acceptedToast": "Invitation accepted.",
       "declinedToast": "Invitation declined.",
-      "answersSavedToast": "Your answers were saved."
+      "answersSavedToast": "Your answers were saved.",
+      "requiredMissing": "{n} required questions are empty. Answer the questions marked in red.",
+      "required": "Required",
+      "requiredField": "This question is required.",
+      "requiredLegend": "Required question",
+      "fileUrlPlaceholder": "File link (https://...)"
     }
   },
   "rfq": {
@@ -1121,7 +1166,7 @@
         "title": "Auction Title",
         "bids": "Bids",
         "leading": "Leading Supplier",
-        "bestBid": "Best Bid",
+        "bestBid": "Current total (leaders)",
         "endsIn": "Ends In"
       }
     },
@@ -1783,5 +1828,11 @@
     "workspace": "Workspace",
     "saved": "Workspace updated.",
     "saveError": "The workspace could not be updated."
+  },
+  "time": {
+    "expired": "Time is up",
+    "daysHoursMinutes": "{d} d {h} h {m} min",
+    "hoursMinutes": "{h} h {m} min",
+    "minutesSeconds": "{m} min {s} s"
   }
 }

@@ -72,13 +72,20 @@ public sealed class AuctionHub : Hub
             }
         }
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(auctionId));
+        await Groups.AddToGroupAsync(Context.ConnectionId, isInternalUser ? InternalGroupName(auctionId) : GroupName(auctionId));
     }
 
     public async Task LeaveAuctionGroup(Guid auctionId)
     {
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupName(auctionId));
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, InternalGroupName(auctionId));
     }
 
+    /// <summary>Tedarikçi bağlantıları (teklifler anonim gelir).</summary>
     public static string GroupName(Guid auctionId) => $"auction:{auctionId}";
+
+    /// <summary>İç kullanıcı bağlantıları (teklifler firma adıyla gelir).</summary>
+    public static string InternalGroupName(Guid auctionId) => $"auction:{auctionId}:internal";
+
+    public static IReadOnlyList<string> AllGroups(Guid auctionId) => [GroupName(auctionId), InternalGroupName(auctionId)];
 }

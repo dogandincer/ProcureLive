@@ -14,7 +14,7 @@ const process = ref<RfiProcessDetailDto | null>(null);
 const loading = ref(true);
 const declineReason = ref("");
 const showDecline = ref(false);
-const answers = reactive<Record<string, { text: string; number: number | null; bool: boolean | null; optionId: string | null }>>({});
+const answers = reactive<Record<string, { text: string; number: number | null; bool: boolean | null; optionId: string | null; attachmentUrl: string }>>({});
 const submitting = ref(false);
 const accessDenied = ref(false);
 
@@ -40,6 +40,7 @@ async function load() {
         number: a?.answerNumber ?? null,
         bool: a?.answerBool ?? null,
         optionId: a?.selectedOptionId ?? null,
+        attachmentUrl: a?.attachmentUrl ?? "",
       };
     }
   } catch (error: any) {
@@ -80,8 +81,26 @@ async function decline() {
   }
 }
 
+// Zorunlu sorular boş geçilemez (sunucu da aynı kuralı uygular).
+const missingRequired = ref<string[]>([]);
+function isAnswered(q: { id: string; questionType: string }) {
+  const a = answers[q.id];
+  switch (q.questionType) {
+    case "Number": return a.number !== null && a.number !== undefined && (a.number as any) !== "";
+    case "Boolean": return a.bool === true || a.bool === false;
+    case "MultipleChoice": return !!a.optionId;
+    case "FileUpload": return !!a.attachmentUrl?.trim();
+    default: return !!a.text?.trim();
+  }
+}
+
 async function submitAnswers() {
   if (!process.value) return;
+  missingRequired.value = process.value.questions.filter((q) => q.isRequired && !isAnswered(q)).map((q) => q.id);
+  if (missingRequired.value.length) {
+    toast.error(t("rfi.answer.requiredMissing", { n: missingRequired.value.length }));
+    return;
+  }
   submitting.value = true;
   try {
     await api.post(`/api/rfi/processes/${processId}/responses`, {
@@ -91,7 +110,7 @@ async function submitAnswers() {
         answerNumber: q.questionType === "Number" ? answers[q.id].number : null,
         answerBool: q.questionType === "Boolean" ? answers[q.id].bool : null,
         selectedOptionId: q.questionType === "MultipleChoice" ? answers[q.id].optionId : null,
-        attachmentUrl: null,
+        attachmentUrl: q.questionType === "FileUpload" ? answers[q.id].attachmentUrl?.trim() || null : null,
       })),
     });
     toast.success(t("rfi.answer.answersSavedToast"));
@@ -166,7 +185,9 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
 
       <fieldset :disabled="!canSubmit" class="space-y-4 disabled:opacity-80">
         <div v-for="q in process.questions" :key="q.id">
-          <label :for="`q-${q.id}`" class="mb-1 block text-sm font-medium text-slate-700">{{ q.questionText }}</label>
+          <label :for="`q-${q.id}`" class="mb-1 block text-sm font-medium text-slate-700">
+            {{ q.questionText }}<span v-if="q.isRequired" class="ml-0.5 text-rose-600" :title="$t('rfi.answer.required')">*</span>
+          </label>
 
           <input v-if="q.questionType === 'Text'" :id="`q-${q.id}`" v-model="answers[q.id].text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50" />
           <input v-else-if="q.questionType === 'Number'" :id="`q-${q.id}`" v-model.number="answers[q.id].number" type="number" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50" />
@@ -177,8 +198,10 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
           <select v-else-if="q.questionType === 'MultipleChoice'" :id="`q-${q.id}`" v-model="answers[q.id].optionId" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50">
             <option v-for="o in q.options" :key="o.id" :value="o.id">{{ o.optionText }}</option>
           </select>
-          <p v-else class="text-xs text-slate-400">{{ $t("rfi.answer.fileUploadUnsupported") }}</p>
+          <input v-else :id="`q-${q.id}`" v-model="answers[q.id].attachmentUrl" type="url" :placeholder="$t('rfi.answer.fileUrlPlaceholder')" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50" />
+          <p v-if="missingRequired.includes(q.id)" class="mt-1 text-xs text-rose-600">{{ $t("rfi.answer.requiredField") }}</p>
         </div>
+        <p class="text-[11px] text-slate-400"><span class="text-rose-600">*</span> {{ $t("rfi.answer.requiredLegend") }}</p>
       </fieldset>
 
       <AppButton v-if="canSubmit" type="submit" :loading="submitting">

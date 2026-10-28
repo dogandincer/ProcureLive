@@ -79,7 +79,7 @@ public sealed class GetRfiProcessByIdQueryHandler : IRequestHandler<GetRfiProces
 
         List<RfiMyAnswerDto> myAnswers = await _context.RfiResponses
             .Where(r => r.RfiProcessId == process.Id && r.CompanyId == companyId)
-            .Select(r => new RfiMyAnswerDto(r.RfiQuestionId, r.AnswerText, r.AnswerNumber, r.AnswerBool, r.SelectedOptionId))
+            .Select(r => new RfiMyAnswerDto(r.RfiQuestionId, r.AnswerText, r.AnswerNumber, r.AnswerBool, r.SelectedOptionId, r.AttachmentUrl))
             .ToListAsync(cancellationToken);
         bool hasSubmitted = myAnswers.Count > 0;
 

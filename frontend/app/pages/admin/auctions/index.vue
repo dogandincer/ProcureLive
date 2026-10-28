@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AuctionDto, CompanyDto, CurrencyDto, PagedResult } from "~/types/api";
+import type { AuctionDto, CurrencyDto, PagedResult } from "~/types/api";
 
 const api = useApi();
 const toast = useToast();
@@ -7,7 +7,6 @@ const { t } = useI18n();
 const { formatDateTime } = useDateFormat();
 
 const auctions = ref<AuctionDto[]>([]);
-const companies = ref<CompanyDto[]>([]);
 const currencies = ref<CurrencyDto[]>([]);
 const showForm = ref(false);
 const submitting = ref(false);
@@ -21,6 +20,7 @@ const form = reactive({
   description: "",
   auctionType: "English",
   ownerCompanyId: "",
+  workspaceId: "",
   currencyId: "",
   startAt: "",
   endAt: "",
@@ -48,7 +48,7 @@ async function load() {
   const seq = ++loadSeq;
   loading.value = true;
   try {
-    const [auctionPage, companyPage, currencyList] = await Promise.all([
+    const [auctionPage, currencyList] = await Promise.all([
       // Başlıkta işyeri seçiliyse yalnızca o işyerinin ihaleleri; "Tüm İşyerleri"nde firmanın tümü.
       api.get<PagedResult<AuctionDto>>("/api/auctions", {
         page: 1,
@@ -56,17 +56,12 @@ async function load() {
         firmId: selectedFirmId.value ?? undefined,
         workspaceId: selectedWorkspaceId.value ?? undefined,
       }),
-      api.get<PagedResult<CompanyDto>>("/api/companies", { page: 1, pageSize: 100 }),
       api.get<CurrencyDto[]>("/api/currencies"),
     ]);
     if (seq !== loadSeq) return;
     auctions.value = auctionPage.items;
-    companies.value = companyPage.items;
     currencies.value = currencyList;
 
-    if (!form.ownerCompanyId && companies.value.length > 0) {
-      form.ownerCompanyId = companies.value.find((c) => c.companyType === "Internal")?.id ?? companies.value[0].id;
-    }
     if (!form.currencyId && currencies.value.length > 0) {
       form.currencyId = currencies.value.find((c) => c.isBaseCurrency)?.id ?? currencies.value[0].id;
     }
@@ -93,6 +88,7 @@ async function createAuction() {
       minDecrementPercentage: null,
       extensionRuleMinutes: form.extensionRuleMinutes,
       isListedForPlus: form.isListedForPlus,
+      workspaceId: form.workspaceId || null,
     });
     toast.success(t("auctions.createdToast"));
     await navigateTo(`/admin/auctions/${id}`);
@@ -141,11 +137,9 @@ watch([selectedFirmId, selectedWorkspaceId], load);
           <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.extensionMinutes") }}</label>
           <input v-model.number="form.extensionRuleMinutes" type="number" min="0" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
         </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.ownerCompany") }}</label>
-          <select v-model="form.ownerCompanyId" required class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
-            <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
+        <!-- Sahip yalnızca firma olabilir (tedarikçi cari seçilemez); işyeri başlıktaki seçimle dolar -->
+        <div class="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-2">
+          <FirmWorkspaceSelect v-model:owner="form.ownerCompanyId" v-model:workspace="form.workspaceId" />
         </div>
         <div>
           <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.currency") }}</label>

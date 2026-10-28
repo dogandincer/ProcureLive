@@ -83,15 +83,24 @@ public sealed class AwardAuctionItemCommandHandler : IRequestHandler<AwardAuctio
             Notes = request.Notes
         });
 
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Yalnızca ihaleye katılmış davetler sonuçlanır (reddeden/yanıtsız davet "Kaybetti" sayılıp kota harcamasın).
+        // Birden çok kalemde, herhangi bir kalemi kazanan firma "Kazandı" kalır.
+        HashSet<Guid> winners = (await _context.AuctionAwards
+            .Where(a => a.AuctionId == auction.Id)
+            .Select(a => a.AwardedCompanyId)
+            .ToListAsync(cancellationToken)).ToHashSet();
+
         List<AuctionInvitation> invitations = await _context.AuctionInvitations
-            .Where(i => i.AuctionId == auction.Id)
+            .Where(i => i.AuctionId == auction.Id
+                && (i.Status == InvitationStatus.Accepted || i.Status == InvitationStatus.Participating
+                    || i.Status == InvitationStatus.Won || i.Status == InvitationStatus.Lost))
             .ToListAsync(cancellationToken);
 
         foreach (AuctionInvitation invitation in invitations)
         {
-            invitation.Status = invitation.CompanyId == winningBid.CompanyId
-                ? InvitationStatus.Won
-                : InvitationStatus.Lost;
+            invitation.Status = winners.Contains(invitation.CompanyId) ? InvitationStatus.Won : InvitationStatus.Lost;
         }
 
         await _context.SaveChangesAsync(cancellationToken);

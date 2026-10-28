@@ -27,6 +27,11 @@ public sealed class GetItemBidsForComparisonQueryHandler
             .OrderByDescending(b => b.BidTime)
             .ToListAsync(cancellationToken);
 
+        HashSet<Guid> awardedBidIds = (await _context.AuctionAwards
+            .Where(a => a.AuctionItemId == request.AuctionItemId)
+            .Select(a => a.WinningBidId)
+            .ToListAsync(cancellationToken)).ToHashSet();
+
         var result = new List<BidComparisonDto>();
 
         foreach (Bid bid in bids)
@@ -47,7 +52,8 @@ public sealed class GetItemBidsForComparisonQueryHandler
                 currencyCode,
                 normalized,
                 bid.BidTime,
-                bid.Status.ToString()));
+                bid.Status.ToString(),
+                awardedBidIds.Contains(bid.Id)));
         }
 
         return result;

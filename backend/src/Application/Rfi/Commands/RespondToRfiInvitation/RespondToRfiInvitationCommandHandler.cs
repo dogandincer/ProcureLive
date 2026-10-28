@@ -17,14 +17,17 @@ public sealed class RespondToRfiInvitationCommandHandler : IRequestHandler<Respo
     private readonly IDateTime _dateTime;
     private readonly INotificationRealtimeService _notificationRealtimeService;
     private readonly ISupplierAccessService _accessService;
+    private readonly InternalNotificationAudience _audience;
 
     public RespondToRfiInvitationCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
         IDateTime dateTime,
         INotificationRealtimeService notificationRealtimeService,
-        ISupplierAccessService accessService)
+        ISupplierAccessService accessService,
+        InternalNotificationAudience audience)
     {
+        _audience = audience;
         _accessService = accessService;
         _context = context;
         _currentUserService = currentUserService;
@@ -100,8 +103,10 @@ public sealed class RespondToRfiInvitationCommandHandler : IRequestHandler<Respo
             body += $" Gerekçe: {request.DeclineReason}";
         }
 
+        IReadOnlyList<Guid> audience = await _audience.ForScopeAsync(
+            process.WorkspaceId, process.OwnerCompanyId, null, process.CreatedBy, cancellationToken);
         await NotificationCreator.CreateForInternalUsersAsync(
-            _context, _notificationRealtimeService, _dateTime,
+            _context, _notificationRealtimeService, _dateTime, audience,
             NotificationType.InvitationResponded,
             "Davet Yanıtlandı",
             body,

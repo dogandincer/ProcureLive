@@ -20,4 +20,5 @@ public static class ErrorCodes
     public const string ApprovalRequired = "ApprovalRequired";
     public const string RequestPending = "RequestPending";
     public const string ProcessClosed = "ProcessClosed";
+    public const string RequiredAnswersMissing = "RequiredAnswersMissing";
 }

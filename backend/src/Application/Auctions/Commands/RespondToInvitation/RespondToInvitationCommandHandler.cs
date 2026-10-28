@@ -17,14 +17,17 @@ public sealed class RespondToInvitationCommandHandler : IRequestHandler<RespondT
     private readonly IDateTime _dateTime;
     private readonly INotificationRealtimeService _notificationRealtimeService;
     private readonly ISupplierAccessService _accessService;
+    private readonly InternalNotificationAudience _audience;
 
     public RespondToInvitationCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
         IDateTime dateTime,
         INotificationRealtimeService notificationRealtimeService,
-        ISupplierAccessService accessService)
+        ISupplierAccessService accessService,
+        InternalNotificationAudience audience)
     {
+        _audience = audience;
         _context = context;
         _currentUserService = currentUserService;
         _dateTime = dateTime;
@@ -105,8 +108,10 @@ public sealed class RespondToInvitationCommandHandler : IRequestHandler<RespondT
             body += $" Gerekçe: {request.DeclineReason}";
         }
 
+        IReadOnlyList<Guid> audience = await _audience.ForScopeAsync(
+            auction.WorkspaceId, auction.OwnerCompanyId, auction.ResponsibleUserId, auction.CreatedBy, cancellationToken);
         await NotificationCreator.CreateForInternalUsersAsync(
-            _context, _notificationRealtimeService, _dateTime,
+            _context, _notificationRealtimeService, _dateTime, audience,
             NotificationType.InvitationResponded,
             "Davet Yanıtlandı",
             body,

@@ -70,7 +70,8 @@ public sealed record RfiMyAnswerDto(
     string? AnswerText,
     decimal? AnswerNumber,
     bool? AnswerBool,
-    Guid? SelectedOptionId);
+    Guid? SelectedOptionId,
+    string? AttachmentUrl = null);
 
 public sealed record RfiInvitationDto(
     Guid Id,

@@ -8,7 +8,11 @@ namespace ProcureLive.Application.Common.Interfaces;
 /// </summary>
 public interface IAuctionNotificationService
 {
-    Task BidPlacedAsync(Guid auctionId, BidDto bid, CancellationToken cancellationToken);
+    /// <summary>
+    /// İç kullanıcılar teklifi tam görür; tedarikçilere firma bilgisi olmadan gider, <paramref name="hideAmountFromSuppliers"/>
+    /// ise (kapalı zarf) tutar da gitmez.
+    /// </summary>
+    Task BidPlacedAsync(Guid auctionId, BidDto bid, bool hideAmountFromSuppliers, CancellationToken cancellationToken);
 
     Task AuctionExtendedAsync(Guid auctionId, DateTime newEndAt, string reason, CancellationToken cancellationToken);
 

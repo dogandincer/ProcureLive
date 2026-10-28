@@ -17,14 +17,17 @@ public sealed class JoinAuctionCommandHandler : IRequestHandler<JoinAuctionComma
     private readonly IDateTime _dateTime;
     private readonly ISupplierAccessService _accessService;
     private readonly INotificationRealtimeService _notificationRealtimeService;
+    private readonly InternalNotificationAudience _audience;
 
     public JoinAuctionCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
         IDateTime dateTime,
         ISupplierAccessService accessService,
-        INotificationRealtimeService notificationRealtimeService)
+        INotificationRealtimeService notificationRealtimeService,
+        InternalNotificationAudience audience)
     {
+        _audience = audience;
         _context = context;
         _currentUserService = currentUserService;
         _dateTime = dateTime;
@@ -122,8 +125,10 @@ public sealed class JoinAuctionCommandHandler : IRequestHandler<JoinAuctionComma
         string? companyName = await _context.Companies
             .Where(c => c.Id == companyId).Select(c => c.Name).FirstOrDefaultAsync(cancellationToken);
 
+        IReadOnlyList<Guid> audience = await _audience.ForScopeAsync(
+            auction.WorkspaceId, auction.OwnerCompanyId, auction.ResponsibleUserId, auction.CreatedBy, cancellationToken);
         await NotificationCreator.CreateForInternalUsersAsync(
-            _context, _notificationRealtimeService, _dateTime,
+            _context, _notificationRealtimeService, _dateTime, audience,
             NotificationType.InvitationResponded,
             "İhaleye Katılım",
             $"\"{companyName}\" \"{auction.Title}\" ihalesine katıldı.",

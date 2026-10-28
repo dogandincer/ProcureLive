@@ -197,6 +197,7 @@ public static class MessageTranslator
         // RFI/RFQ işyeri, ön teklif → ilk teklif
         ["Seçilen işyeri sahip firmaya ait değil."] = "The selected workspace does not belong to the owner firm.",
         ["Kapanmış sürecin işyeri değiştirilemez."] = "The workspace of a closed process cannot be changed.",
+        ["Süreç sahibi bir firma olmalıdır; tedarikçi cari sahip seçilemez."] = "The process owner must be a firm; a supplier cannot be the owner.",
         ["Ön Teklifiniz İşlendi"] = "Your Preliminary Offer Was Applied",
         ["Ön Teklifler İşlendi"] = "Preliminary Offers Applied",
 
@@ -391,6 +392,8 @@ public static class MessageTranslator
             m => WithReason($"The participation request of \"{m.Groups[1].Value}\" for \"{m.Groups[2].Value}\" was rejected.", m.Groups[3])),
         (new Regex(@"^""([^""]+)"" kendi kaydını oluşturdu \(onay bekliyor\)\.$"),
             m => $"\"{m.Groups[1].Value}\" registered on its own (pending approval)."),
+        (new Regex(@"^Zorunlu sorular yanıtlanmadı: (.+)$"),
+            m => $"Required questions were not answered: {m.Groups[1].Value}"),
     ];
 
     private static string RenderInvitationResponse(Match m, string processNoun)

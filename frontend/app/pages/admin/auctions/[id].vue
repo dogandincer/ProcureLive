@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type {
   AuctionDetailDto,
+  AuctionFeedEntryDto,
   AuctionItemDto,
   BidComparisonDto,
   BidDto,
@@ -25,7 +26,7 @@ const auctionId = route.params.id as string;
 const api = useApi();
 const toast = useToast();
 const { t } = useI18n();
-const { formatDateTime } = useDateFormat();
+const { formatDateTime, formatDuration, formatMoney } = useDateFormat();
 const { connectAndJoin, disconnect } = useAuctionHub();
 const { isAdminRole } = useAuth();
 
@@ -40,8 +41,9 @@ const inviteCompanyName = ref<string | null>(null);
 const { loadSupplierRows } = useSupplierLookup();
 const newItem = reactive({ description: "", quantity: 1, unitOfMeasure: "Piece", targetPrice: null as number | null });
 
-// Track which item's award map (itemId -> bidId) to show awarded state inline
-const awardedBidPerItem = reactive<Record<string, string>>({});
+// Kazanan seçimi geri alınamaz: önce onay penceresi.
+const pendingAward = ref<{ item: AuctionItemDto; bid: BidComparisonDto } | null>(null);
+const awarding = ref(false);
 
 async function runAction(action: () => Promise<void>) {
   try {
@@ -82,15 +84,8 @@ const workflowStep = computed(() => {
 const unitOfMeasures = ["Piece", "Kilogram", "Gram", "Liter", "Meter", "SquareMeter", "CubicMeter", "Box", "Pallet", "Hour", "Service"];
 const unitLabel = (u: string) => t(`enums.unitOfMeasure.${u}`);
 
-const timeLeftLabel = computed(() => {
-  if (!auction.value) return "";
-  const diffMs = new Date(auction.value.endAt).getTime() - now.value;
-  if (diffMs <= 0) return t("auctions.detail.timeExpired");
-  const totalSeconds = Math.floor(diffMs / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return t("auctions.detail.timeLeftFormat", { minutes, seconds });
-});
+const timeLeftLabel = computed(() => (auction.value ? formatDuration(new Date(auction.value.endAt).getTime() - now.value) : ""));
+const startsInLabel = computed(() => (auction.value ? formatDuration(new Date(auction.value.startAt).getTime() - now.value) : ""));
 
 // Whether this auction is in the "evaluate" stage
 const isEvaluationStage = computed(() =>
@@ -101,7 +96,7 @@ const evaluationSummary = computed(() => {
   if (!isEvaluationStage.value || !auction.value) return null;
   const items = auction.value.items;
   const total = items.length;
-  const awarded = items.filter((it) => awardedBidPerItem[it.id] || (comparisons[it.id] && comparisons[it.id].some((b) => b.status === "Winning"))).length;
+  const awarded = items.filter((it) => comparisons[it.id]?.some((b) => b.isAwarded)).length;
   return { total, awarded };
 });
 
@@ -156,20 +151,39 @@ async function invite() {
 async function loadComparison(itemId: string) {
   await runAction(async () => {
     comparisons[itemId] = await api.get<BidComparisonDto[]>(`/api/auctions/${auctionId}/items/${itemId}/bids/compare`);
-    // Detect any already-winning bids
-    const winner = comparisons[itemId].find((b) => b.status === "Winning");
-    if (winner) awardedBidPerItem[itemId] = winner.bidId;
   });
 }
 
-async function award(itemId: string, bidId: string) {
+async function confirmAward() {
+  const p = pendingAward.value;
+  if (!p) return;
+  awarding.value = true;
   await runAction(async () => {
-    await api.post(`/api/auctions/${auctionId}/items/${itemId}/award`, { winningBidId: bidId, notes: null });
-    awardedBidPerItem[itemId] = bidId;
+    await api.post(`/api/auctions/${auctionId}/items/${p.item.id}/award`, { winningBidId: p.bid.bidId, notes: null });
     toast.success(t("auctions.detail.winnerSelectedToast"));
+    pendingAward.value = null;
     await load();
-    await loadComparison(itemId);
+    await loadComparison(p.item.id);
   });
+  awarding.value = false;
+}
+
+// Canlı akış sayfa açılınca son tekliflerle dolar; sonrası SignalR ile gelir.
+function feedLine(company: string | null, amount: number | null, item: string) {
+  return t("auctions.detail.log.newBidFrom", {
+    company: company || t("auctions.live.feed.someone"),
+    amount: formatMoney(amount, auction.value?.currencyCode),
+    item,
+  });
+}
+
+async function loadFeed() {
+  try {
+    const rows = await api.get<AuctionFeedEntryDto[]>(`/api/auctions/${auctionId}/feed`);
+    liveLog.value = rows.map((r) => `${formatDateTime(r.bidTime)} · ${feedLine(r.companyName, r.amount, r.itemDescription)}`);
+  } catch {
+    // akış geçmişi yardımcı bilgidir; hata sayfayı bozmasın
+  }
 }
 
 let ticker: ReturnType<typeof setInterval> | null = null;
@@ -177,6 +191,7 @@ let ticker: ReturnType<typeof setInterval> | null = null;
 onMounted(async () => {
   await load();
   if (!auction.value) return;
+  await loadFeed();
 
   ticker = setInterval(() => {
     now.value = Date.now();
@@ -185,7 +200,8 @@ onMounted(async () => {
   const conn = await connectAndJoin(auctionId);
 
   conn.on("BidPlaced", (bid: BidDto) => {
-    liveLog.value = [t("auctions.detail.log.newBid", { amount: bid.amount, status: bid.status }), ...liveLog.value].slice(0, 20);
+    const item = auction.value?.items.find((i) => i.id === bid.auctionItemId)?.description ?? "";
+    liveLog.value = [`${formatDateTime(bid.bidTime)} · ${feedLine(bid.companyName, bid.amount, item)}`, ...liveLog.value].slice(0, 30);
     load();
   });
 
@@ -268,7 +284,7 @@ onBeforeUnmount(() => {
           {{ $t("auctions.detail.timeLeft") }}
         </div>
         <div class="mt-1 font-mono font-semibold" :class="auction.status === 'Live' ? 'text-emerald-600' : auction.status === 'Paused' ? 'text-amber-600' : 'text-slate-500'">
-          {{ auction.status === "Live" ? timeLeftLabel : auction.status === "Paused" ? $t("enums.auctionStatus.Paused") : formatDateTime(auction.endAt) }}
+          {{ auction.status === "Live" ? timeLeftLabel : auction.status === "Paused" ? $t("enums.auctionStatus.Paused") : auction.status === "Scheduled" ? $t("auctions.detail.startsIn", { time: startsInLabel }) : formatDateTime(auction.endAt) }}
         </div>
       </div>
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -279,6 +295,8 @@ onBeforeUnmount(() => {
         <div class="mt-1 font-semibold text-slate-800">{{ auction.extensionRuleMinutes }} {{ $t("auctions.detail.minutesShort") }}</div>
       </div>
     </div>
+
+    <AuctionTermsCard :auction="auction" internal />
 
     <!-- Durum yönetimi: yayınla / başlat / duraklat / devam / bitir / yeniden aç / iptal + süre uzatma + geçmiş -->
     <AuctionStatusPanel :auction-id="auctionId" :status="auction.status" :can-manage="isAdminRole()" @changed="load" />
@@ -309,11 +327,29 @@ onBeforeUnmount(() => {
           :item="item"
           :bids="comparisons[item.id] ?? []"
           :auction-status="auction.status"
+          :auction-type="auction.auctionType"
           :currency-code="auction.currencyCode"
-          :awarded-bid-id="awardedBidPerItem[item.id] ?? null"
-          @award="(bidId) => award(item.id, bidId)"
+          @award="(bid) => (pendingAward = { item, bid })"
         />
       </div>
+
+      <ConfirmDialog
+        :open="!!pendingAward"
+        :title="$t('auctions.evaluation.confirmTitle')"
+        :confirm-label="$t('auctions.evaluation.selectWinner')"
+        :loading="awarding"
+        @confirm="confirmAward"
+        @cancel="pendingAward = null"
+      >
+        <template v-if="pendingAward">
+          <p>{{ $t("auctions.evaluation.confirmBody", { company: pendingAward.bid.companyName, item: pendingAward.item.description }) }}</p>
+          <p class="mt-2 font-mono text-slate-800">
+            {{ formatMoney(pendingAward.bid.amount, pendingAward.bid.currencyCode) }} × {{ pendingAward.item.quantity.toLocaleString() }}
+            = {{ formatMoney(pendingAward.bid.amount * pendingAward.item.quantity, pendingAward.bid.currencyCode) }}
+          </p>
+          <p class="mt-2 text-xs text-amber-700">{{ $t("auctions.evaluation.confirmIrreversible") }}</p>
+        </template>
+      </ConfirmDialog>
     </template>
 
     <!-- ============================================================ -->
@@ -331,13 +367,21 @@ onBeforeUnmount(() => {
               <div class="min-w-0">
                 <div class="font-semibold text-slate-800">{{ item.description }}</div>
                 <div class="mt-0.5 text-xs text-slate-500">
-                  {{ item.quantity }} {{ unitLabel(item.unitOfMeasure) }} · {{ item.bidCount }} {{ $t("auctions.detail.bidCount") }}
+                  {{ item.quantity.toLocaleString() }} {{ unitLabel(item.unitOfMeasure) }} · {{ item.bidCount }} {{ $t("auctions.detail.bidCount") }}
+                  <template v-if="item.targetPrice"> · {{ $t("auctions.evaluation.targetUnit") }}: {{ formatMoney(item.targetPrice, auction.currencyCode) }}</template>
+                </div>
+                <div v-if="item.requestedDeliveryDate || item.specification" class="mt-1 space-y-0.5 text-xs text-slate-500">
+                  <div v-if="item.requestedDeliveryDate">{{ $t("auctions.terms.requestedDelivery") }}: {{ formatDateTime(item.requestedDeliveryDate) }}</div>
+                  <div v-if="item.specification" class="whitespace-pre-line">{{ $t("auctions.terms.specification") }}: {{ item.specification }}</div>
                 </div>
               </div>
               <div class="text-right shrink-0">
-                <div class="text-xs text-slate-500">{{ $t("auctions.detail.currentBest") }}</div>
+                <div class="text-xs text-slate-500">{{ $t("auctions.detail.currentBestUnit") }}</div>
                 <div class="font-mono text-lg font-bold text-emerald-600">
-                  {{ item.currentBestAmount != null ? item.currentBestAmount.toLocaleString() : "—" }}
+                  {{ item.currentBestAmount != null ? formatMoney(item.currentBestAmount, auction.currencyCode) : "—" }}
+                </div>
+                <div v-if="item.currentBestAmount != null" class="text-[11px] text-slate-400">
+                  {{ $t("auctions.evaluation.lineTotal") }}: {{ formatMoney(item.currentBestAmount * item.quantity, auction.currencyCode) }}
                 </div>
               </div>
             </div>
@@ -363,8 +407,8 @@ onBeforeUnmount(() => {
                 <tbody>
                   <tr v-for="b in comparisons[item.id]" :key="b.bidId" class="border-b border-slate-50">
                     <td class="py-1.5">{{ b.companyName }}</td>
-                    <td class="py-1.5 font-mono">{{ b.amount }} {{ b.currencyCode }}</td>
-                    <td class="py-1.5 font-mono">{{ b.normalizedAmountInBaseCurrency.toFixed(2) }}</td>
+                    <td class="py-1.5 font-mono">{{ formatMoney(b.amount, b.currencyCode) }}</td>
+                    <td class="py-1.5 font-mono">{{ formatMoney(b.normalizedAmountInBaseCurrency) }}</td>
                     <td class="py-1.5">
                       <AppBadge tone="slate">{{ $t(`enums.bidStatus.${b.status}`) }}</AppBadge>
                     </td>

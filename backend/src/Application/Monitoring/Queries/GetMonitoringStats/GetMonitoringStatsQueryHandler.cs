@@ -75,12 +75,17 @@ public sealed class GetMonitoringStatsQueryHandler
 
         var liveSummaries = liveAuctions.Select(a =>
         {
-            // Find leading bid: lowest amount active bid across all items
-            Bid? bestBid = a.Items
-                .SelectMany(i => i.Bids)
-                .Where(b => b.Status == BidStatus.Active)
-                .OrderBy(b => b.Amount.Amount)
+            // Kalem liderleri (Winning): en çok kalemde önde olan firma lider; tutar = liderlerin birim fiyat × miktar toplamı.
+            var leaders = a.Items
+                .Select(i => new { Item = i, Bid = i.Bids.FirstOrDefault(b => b.Status == BidStatus.Winning) })
+                .Where(x => x.Bid is not null)
+                .ToList();
+            string? leadingCompany = leaders
+                .GroupBy(x => x.Bid!.Company.Name)
+                .OrderByDescending(g => g.Count()).ThenBy(g => g.Min(x => x.Bid!.BidTime))
+                .Select(g => g.Key)
                 .FirstOrDefault();
+            decimal? bestTotal = leaders.Count == 0 ? null : leaders.Sum(x => x.Bid!.Amount.Amount * x.Item.Quantity);
 
             int bidCount = a.Items.SelectMany(i => i.Bids).Count();
 
@@ -88,9 +93,9 @@ public sealed class GetMonitoringStatsQueryHandler
                 a.Id,
                 a.Title,
                 bidCount,
-                bestBid?.Amount.Amount,
+                bestTotal,
                 a.Currency.Code,
-                bestBid?.Company.Name,
+                leadingCompany,
                 a.EndAt);
         }).ToList();
 

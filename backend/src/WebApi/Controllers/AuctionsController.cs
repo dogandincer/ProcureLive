@@ -331,6 +331,11 @@ public sealed class AuctionsController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>Canlı akışın son teklifleri; tedarikçiye anonim ve kapalı zarfta tutarsız döner.</summary>
+    [HttpGet("{id:guid}/feed")]
+    public async Task<ActionResult<IReadOnlyList<AuctionFeedEntryDto>>> GetFeed(Guid id, CancellationToken cancellationToken) =>
+        Ok(await _sender.Send(new ProcureLive.Application.Auctions.Queries.GetAuctionFeed.GetAuctionFeedQuery(id), cancellationToken));
+
     [HttpGet("{id:guid}/items/{itemId:guid}/bids/compare")]
     [Authorize(Policy = Policies.RequireInternalUser)]
     public async Task<ActionResult<IReadOnlyCollection<BidComparisonDto>>> CompareBids(

@@ -36,6 +36,7 @@ public sealed class PurchaseSubscriptionCommandHandler : IRequestHandler<Purchas
     private readonly IPaymentGateway _paymentGateway;
     private readonly INotificationRealtimeService _notificationRealtimeService;
     private readonly IDateTime _dateTime;
+    private readonly InternalNotificationAudience _audience;
 
     public PurchaseSubscriptionCommandHandler(
         IApplicationDbContext context,
@@ -44,8 +45,10 @@ public sealed class PurchaseSubscriptionCommandHandler : IRequestHandler<Purchas
         IIdentityService identityService,
         IPaymentGateway paymentGateway,
         INotificationRealtimeService notificationRealtimeService,
-        IDateTime dateTime)
+        IDateTime dateTime,
+        InternalNotificationAudience audience)
     {
+        _audience = audience;
         _context = context;
         _currentUserService = currentUserService;
         _subscriptionService = subscriptionService;
@@ -115,7 +118,7 @@ public sealed class PurchaseSubscriptionCommandHandler : IRequestHandler<Purchas
         await _context.SaveChangesAsync(cancellationToken);
 
         await NotificationCreator.CreateForInternalUsersAsync(
-            _context, _notificationRealtimeService, _dateTime,
+            _context, _notificationRealtimeService, _dateTime, await _audience.AdminsAsync(cancellationToken),
             NotificationType.System,
             "Plus Abonelik",
             $"\"{company.Name}\" Plus üyeliğe geçti.",

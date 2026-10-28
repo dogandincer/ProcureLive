@@ -143,9 +143,10 @@ public sealed class PreOfferBidService
 
         foreach ((Bid bid, _) in created)
         {
+            string companyName = await _context.Companies.Where(c => c.Id == bid.CompanyId).Select(c => c.Name).FirstAsync(ct);
             await _auctionNotifications.BidPlacedAsync(auctionId, new BidDto(
-                bid.Id, bid.AuctionItemId, bid.CompanyId, string.Empty, bid.Amount.Amount, bid.Amount.CurrencyId,
-                bid.BidTime, bid.Status.ToString(), IsMine: false), ct);
+                bid.Id, bid.AuctionItemId, bid.CompanyId, companyName, bid.Amount.Amount, bid.Amount.CurrencyId,
+                bid.BidTime, bid.Status.ToString(), IsMine: false), auction.AuctionType is AuctionType.SealedBid or AuctionType.ReverseSealed, ct);
         }
 
         Dictionary<Guid, string> itemNames = await _context.AuctionItems.Where(i => itemIds.Contains(i.Id))

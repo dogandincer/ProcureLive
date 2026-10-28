@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AuctionDetailDto, AuctionItemDto, BidDto } from "~/types/api";
+import type { AuctionDetailDto, AuctionFeedEntryDto, AuctionItemDto, BidDto } from "~/types/api";
 
 const route = useRoute();
 const auctionId = route.params.id as string;
@@ -10,7 +10,7 @@ const { t } = useI18n();
 const { connectAndJoin, disconnect } = useAuctionHub();
 const { currentUser } = useAuth();
 const { subscription, isPlus, refresh: refreshSubscription } = useSubscription();
-const { formatDateTime } = useDateFormat();
+const { formatDateTime, formatDuration, formatMoney } = useDateFormat();
 
 const auction = ref<AuctionDetailDto | null>(null);
 const loading = ref(true);
@@ -18,7 +18,9 @@ const now = ref(Date.now());
 const bidAmounts = reactive<Record<string, number | null>>({});
 const bidErrors = reactive<Record<string, string>>({});
 const placingBid = reactive<Record<string, boolean>>({});
-const feed = ref<{ text: string; time: number }[]>([]);
+// bidId ile tutulur: kendi teklifimizin anonim yayını gelirse "siz" satırıyla değiştirilir (çift satır olmaz).
+const feed = ref<{ id: string | null; text: string; time: number }[]>([]);
+const myBidIds = new Set<string>();
 const declineReason = ref("");
 const showDecline = ref(false);
 const flashItem = ref<string | null>(null);
@@ -30,6 +32,9 @@ const myInvitation = computed(() =>
 );
 
 const canBid = computed(() => myInvitation.value && ["Accepted", "Participating"].includes(myInvitation.value.status));
+// Kapalı zarf: rakiplerin tutarı ve sıralama gösterilmez (sunucu da göndermez).
+const sealed = computed(() => !!auction.value && ["SealedBid", "ReverseSealed"].includes(auction.value.auctionType));
+const higherIsBetter = computed(() => auction.value?.auctionType === "English");
 
 // Kısıtlı görünüm: sunucu kalem/fiyat/ek/şart verisini hiç göndermedi; sayfa yalnızca vitrin + bulanık iskelet gösterir.
 const restricted = computed(() => !!auction.value && auction.value.accessLevel !== "Full");
@@ -41,20 +46,30 @@ const showParticipation = computed(() => {
   return a.requiresApproval || (!!a.myParticipationRequest && a.myParticipationRequest.status !== "Accepted");
 });
 
-const timeLeftLabel = computed(() => {
-  if (!auction.value) return "";
-  const diffMs = new Date(auction.value.endAt).getTime() - now.value;
-  if (diffMs <= 0) return t("auctions.detail.timeExpired");
-  const totalSeconds = Math.floor(diffMs / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return t("auctions.detail.timeLeftFormat", { minutes, seconds });
+// Planlı ihalede başlangıca, canlıda bitişe kalan süre.
+const countdown = computed(() => {
+  const a = auction.value;
+  if (!a) return { label: "", value: "" };
+  if (a.status === "Scheduled") {
+    return { label: t("auctions.live.startsIn"), value: formatDuration(new Date(a.startAt).getTime() - now.value), sub: formatDateTime(a.startAt) };
+  }
+  if (["Ended", "Awarded", "Cancelled"].includes(a.status)) {
+    return { label: t("auctions.live.endedAt"), value: formatDateTime(a.actualEndAt ?? a.endAt) };
+  }
+  return { label: t("auctions.live.timeLeft"), value: formatDuration(new Date(a.endAt).getTime() - now.value), sub: formatDateTime(a.endAt) };
 });
 
 const isUrgent = computed(() => {
-  if (!auction.value) return false;
+  if (!auction.value || auction.value.status !== "Live") return false;
   return new Date(auction.value.endAt).getTime() - now.value <= auction.value.extensionRuleMinutes * 60_000;
 });
+
+function rankLabel(item: AuctionItemDto): string {
+  if (item.myRank == null) return "";
+  return item.myRank === 1
+    ? t("auctions.live.youLead")
+    : t("auctions.live.yourRank", { rank: item.myRank, total: item.competitorCount ?? item.myRank });
+}
 
 async function load() {
   loading.value = true;
@@ -68,6 +83,30 @@ async function load() {
     }
   } finally {
     loading.value = false;
+  }
+}
+
+function itemName(itemId: string) {
+  return auction.value?.items.find((i) => i.id === itemId)?.description ?? "";
+}
+
+function feedText(entry: { isMine: boolean; amount: number | null; item: string }) {
+  const amount = entry.amount != null && entry.amount > 0 ? formatMoney(entry.amount, auction.value?.currencyCode) : null;
+  if (entry.isMine) return t("auctions.live.feed.myBid", { item: entry.item, amount: amount ?? "" });
+  return amount ? t("auctions.live.feed.otherBid", { item: entry.item, amount }) : t("auctions.live.feed.otherBidSealed", { item: entry.item });
+}
+
+async function loadFeed() {
+  try {
+    const rows = await api.get<AuctionFeedEntryDto[]>(`/api/auctions/${auctionId}/feed`);
+    rows.filter((r) => r.isMine).forEach((r) => myBidIds.add(r.bidId));
+    feed.value = rows.map((r) => ({
+      id: r.bidId,
+      time: new Date(r.bidTime).getTime(),
+      text: feedText({ isMine: r.isMine, amount: r.amount, item: r.itemDescription }),
+    }));
+  } catch {
+    // akış geçmişi yardımcı bilgidir
   }
 }
 
@@ -128,15 +167,17 @@ async function placeBid(item: AuctionItemDto) {
   placingBid[item.id] = true;
 
   try {
-    await api.post(`/api/auctions/${auctionId}/items/${item.id}/bids`, {
+    const bid = await api.post<BidDto>(`/api/auctions/${auctionId}/items/${item.id}/bids`, {
       amount,
       currencyId: auction.value.currencyId,
     });
     bidAmounts[item.id] = null;
+    myBidIds.add(bid.id);
+    feed.value = [{ id: bid.id, time: Date.now(), text: feedText({ isMine: true, amount, item: item.description }) },
+      ...feed.value.filter((f) => f.id !== bid.id)].slice(0, 30);
     // Don't rely solely on the SignalR echo for the bidder's own UI — refresh directly so the new
     // best-amount/bid-count shows immediately even if the realtime connection is slow or not yet up.
     await load();
-    pushFeed(t("auctions.live.feed.bidSubmitted", { amount, currency: auction.value.currencyCode }));
   } catch (error: any) {
     bidErrors[item.id] = apiErrorMessage(error, t("auctions.live.bidError"));
   } finally {
@@ -144,15 +185,15 @@ async function placeBid(item: AuctionItemDto) {
   }
 }
 
-function pushFeed(text: string) {
-  feed.value = [{ text, time: Date.now() }, ...feed.value].slice(0, 30);
+function pushFeed(text: string, id: string | null = null) {
+  feed.value = [{ id, text, time: Date.now() }, ...feed.value].slice(0, 30);
 }
 
 // Satınalmacı talebi onayladı / kabul etti / reddetti → sayfa yenilenmeden yansır.
 const lastNotification = useLastNotification();
 watch(lastNotification, (n) => {
   if (n?.type === "ParticipationRequest" && n.relatedEntityId === auctionId) {
-    Promise.all([load(), refreshSubscription()]);
+    Promise.all([load(), refreshSubscription(), loadFeed()]);
   }
 });
 
@@ -168,14 +209,17 @@ onMounted(async () => {
 
   // Restricted view: no live group (the hub would refuse it anyway — same access rule server-side).
   if (restricted.value) return;
+  await loadFeed();
 
   // Connect regardless of invitation status: even before accepting, the supplier should see the
   // countdown/start/end/extension events live. Bidding itself stays gated separately (canBid + backend).
   const conn = await connectAndJoin(auctionId);
 
+  // Sunucu teklifleri tedarikçiye anonim (kapalı zarfta tutarsız) yollar; kendi teklifimiz zaten akışta.
   conn.on("BidPlaced", (bid: BidDto) => {
-    const who = bid.isMine ? t("auctions.live.feed.you") : bid.companyName || t("auctions.live.feed.someone");
-    pushFeed(t("auctions.live.feed.bidPlaced", { who, amount: bid.amount }));
+    if (!myBidIds.has(bid.id)) {
+      pushFeed(feedText({ isMine: false, amount: bid.amount, item: itemName(bid.auctionItemId) }), bid.id);
+    }
     flashItem.value = bid.auctionItemId;
     setTimeout(() => (flashItem.value = null), 1500);
     load();
@@ -203,6 +247,7 @@ onMounted(async () => {
       ? t("auctions.live.feed.statusChangedReason", { status, reason: payload.reason })
       : t("auctions.live.feed.statusChanged", { status }));
     load();
+    loadFeed();
   });
 
   conn.on("ItemAwarded", (payload: { auctionItemId: string; winningCompanyId: string }) => {
@@ -221,6 +266,7 @@ onBeforeUnmount(() => {
 <template>
   <div v-if="accessDenied" class="rounded-xl border border-slate-200 bg-slate-50 p-5">
     <p class="text-sm font-medium text-slate-600">{{ $t("auctions.live.accessDenied") }}</p>
+    <NuxtLink to="/supplier/auctions" class="mt-2 inline-block text-xs font-medium text-indigo-600 hover:underline">← {{ $t("restricted.backToList") }}</NuxtLink>
   </div>
 
   <LoadingSpinner v-else-if="loading && !auction" />
@@ -267,10 +313,14 @@ onBeforeUnmount(() => {
   </div>
 
   <div v-else-if="auction" class="space-y-6">
-    <div class="flex items-start justify-between">
-      <div>
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div class="min-w-0">
         <h1 class="text-xl font-bold text-slate-800">{{ auction.title }}</h1>
-        <p class="mt-1 text-sm text-slate-500">{{ auction.description }}</p>
+        <p class="mt-1 text-sm text-slate-500">
+          {{ auction.ownerCompanyName }} · {{ $t(`enums.auctionType.${auction.auctionType}`) }}
+          <span v-if="auction.referenceCode" class="font-mono text-xs text-slate-400">· {{ auction.referenceCode }}</span>
+        </p>
+        <p v-if="auction.description" class="mt-1 text-sm text-slate-500">{{ auction.description }}</p>
       </div>
       <div class="text-right">
         <div class="text-xs text-slate-500">{{ $t("auctions.live.status") }}</div>
@@ -289,13 +339,15 @@ onBeforeUnmount(() => {
     <div
       v-else
       class="rounded-xl border p-5 text-center"
-      :class="isUrgent && auction.status === 'Live' ? 'border-rose-300 bg-rose-50' : 'border-slate-200 bg-white'"
+      :class="isUrgent ? 'border-rose-300 bg-rose-50' : 'border-slate-200 bg-white'"
+      data-testid="countdown"
     >
-      <div class="text-xs uppercase tracking-wide text-slate-500">{{ $t("auctions.live.timeLeft") }}</div>
-      <div class="mt-1 font-mono text-3xl font-bold" :class="isUrgent ? 'text-rose-600' : 'text-slate-800'">
-        {{ timeLeftLabel }}
+      <div class="text-xs uppercase tracking-wide text-slate-500">{{ countdown.label }}</div>
+      <div class="mt-1 text-3xl font-bold tabular-nums" :class="isUrgent ? 'text-rose-600' : 'text-slate-800'">
+        {{ countdown.value }}
       </div>
-      <div v-if="isUrgent && auction.status === 'Live'" class="mt-1 text-xs text-rose-600">
+      <div v-if="countdown.sub" class="mt-0.5 text-xs text-slate-400">{{ countdown.sub }}</div>
+      <div v-if="isUrgent" class="mt-1 text-xs text-rose-600">
         {{ $t("auctions.live.antiSniping") }}
       </div>
     </div>
@@ -307,7 +359,7 @@ onBeforeUnmount(() => {
         <AppButton variant="danger" @click="showDecline = true">{{ $t("common.decline") }}</AppButton>
       </div>
       <div v-if="showDecline" class="mt-3 flex gap-2">
-        <input v-model="declineReason" :placeholder="$t('auctions.live.declineReasonRequired')" class="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
+        <input v-model="declineReason" :placeholder="$t('auctions.live.declineReasonRequired')" :aria-label="$t('auctions.live.declineReasonRequired')" class="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
         <AppButton variant="danger" @click="decline">{{ $t("common.confirm") }}</AppButton>
       </div>
     </div>
@@ -330,41 +382,62 @@ onBeforeUnmount(() => {
     <!-- Onaylı cari değil: katılım talebi + ön teklif, ardından talep adımlarının durumu -->
     <ParticipationRequestCard v-if="showParticipation" :auction="auction" @changed="load" />
 
+    <AuctionTermsCard :auction="auction" />
+
+    <p v-if="sealed" class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-500">{{ $t("auctions.live.sealedNote") }}</p>
+
     <div class="space-y-4">
       <div
         v-for="item in auction.items"
         :key="item.id"
         class="rounded-xl border bg-white p-5 transition-colors"
         :class="flashItem === item.id ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200'"
+        data-testid="supplier-item"
       >
-        <div class="flex items-center justify-between">
-          <div>
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0">
             <div class="font-semibold text-slate-800">{{ item.description }}</div>
-            <div class="text-xs text-slate-500">{{ item.quantity }} {{ $t(`enums.unitOfMeasure.${item.unitOfMeasure}`) }} · {{ item.bidCount }} {{ $t("auctions.live.bidCount") }}</div>
-          </div>
-          <div class="text-right">
-            <div class="text-xs text-slate-500">{{ $t("auctions.live.currentBest") }}</div>
-            <div class="font-mono text-2xl font-bold text-emerald-700">
-              {{ item.currentBestAmount ?? "-" }} <span class="text-sm">{{ auction.currencyCode }}</span>
+            <div class="text-xs text-slate-500">{{ item.quantity.toLocaleString() }} {{ $t(`enums.unitOfMeasure.${item.unitOfMeasure}`) }} · {{ item.bidCount }} {{ $t("auctions.live.bidCount") }}</div>
+            <div v-if="item.requestedDeliveryDate || item.specification" class="mt-1 space-y-0.5 text-xs text-slate-500">
+              <div v-if="item.requestedDeliveryDate">{{ $t("auctions.terms.requestedDelivery") }}: {{ formatDateTime(item.requestedDeliveryDate) }}</div>
+              <div v-if="item.specification" class="whitespace-pre-line">{{ $t("auctions.terms.specification") }}: {{ item.specification }}</div>
             </div>
+          </div>
+          <div v-if="!sealed" class="text-right">
+            <div class="text-xs text-slate-500">{{ $t("auctions.live.currentBestUnit") }}</div>
+            <div class="font-mono text-2xl font-bold text-emerald-700">{{ item.currentBestAmount != null ? formatMoney(item.currentBestAmount) : "—" }} <span class="text-sm">{{ auction.currencyCode }}</span></div>
           </div>
         </div>
 
-        <div v-if="canBid && auction.status === 'Live'" class="mt-4 flex items-center gap-2">
-          <input
-            v-model.number="bidAmounts[item.id]"
-            type="number"
-            step="0.01"
-            :placeholder="$t('auctions.live.yourBidPlaceholder', { currency: auction.currencyCode })"
-            class="w-48 rounded-md border border-slate-300 px-3 py-2 text-sm"
-          />
+        <!-- Kendi teklifim ve sıram (kapalı zarfta yalnızca kendi teklifim) -->
+        <div v-if="item.myBestAmount != null" class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-slate-50 px-3 py-2 text-sm" data-testid="my-bid">
+          <span class="text-slate-600">{{ $t("auctions.live.yourBest") }}: <b class="font-mono text-slate-800">{{ formatMoney(item.myBestAmount, auction.currencyCode) }}</b></span>
+          <span class="text-xs text-slate-500">{{ $t("auctions.evaluation.lineTotal") }}: {{ formatMoney(item.myBestAmount * item.quantity, auction.currencyCode) }}</span>
+          <AppBadge v-if="item.myRank != null" :tone="item.myRank === 1 ? 'emerald' : 'amber'">{{ rankLabel(item) }}</AppBadge>
+        </div>
+
+        <div v-if="canBid && auction.status === 'Live'" class="mt-4 flex flex-wrap items-end gap-2">
+          <label class="flex flex-col gap-1 text-xs font-medium text-slate-600">
+            {{ $t("auctions.live.unitPriceLabel", { currency: auction.currencyCode }) }}
+            <input
+              v-model.number="bidAmounts[item.id]"
+              type="number"
+              step="0.01"
+              min="0"
+              :placeholder="higherIsBetter ? $t('auctions.live.higherHint') : $t('auctions.live.lowerHint')"
+              class="w-56 rounded-md border border-slate-300 px-3 py-2 text-sm font-normal"
+            />
+          </label>
           <button
             class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-            :disabled="placingBid[item.id]"
+            :disabled="placingBid[item.id] || !bidAmounts[item.id]"
             @click="placeBid(item)"
           >
             {{ placingBid[item.id] ? $t("auctions.live.submitting") : $t("auctions.live.placeBid") }}
           </button>
+          <span v-if="bidAmounts[item.id]" class="pb-2 text-xs text-slate-500">
+            {{ $t("auctions.evaluation.lineTotal") }}: {{ formatMoney((bidAmounts[item.id] ?? 0) * item.quantity, auction.currencyCode) }}
+          </span>
         </div>
         <p v-if="bidErrors[item.id]" class="mt-2 text-sm text-rose-600">{{ bidErrors[item.id] }}</p>
         <p v-if="!canBid" class="mt-3 text-xs text-slate-400">
@@ -376,8 +449,10 @@ onBeforeUnmount(() => {
 
     <AppCard>
       <h3 class="text-sm font-semibold text-slate-700">{{ $t("auctions.live.liveFeed") }}</h3>
-      <ul v-if="feed.length > 0" class="mt-3 space-y-1 text-sm text-slate-600">
-        <li v-for="(entry, i) in feed" :key="i">{{ entry.text }}</li>
+      <ul v-if="feed.length > 0" class="mt-3 space-y-1 text-sm text-slate-600" data-testid="live-feed">
+        <li v-for="(entry, i) in feed" :key="entry.id ?? i">
+          <span class="mr-2 text-xs text-slate-400">{{ formatDateTime(new Date(entry.time)) }}</span>{{ entry.text }}
+        </li>
       </ul>
       <EmptyState v-else class="mt-3">{{ $t("auctions.live.emptyFeed") }}</EmptyState>
     </AppCard>

@@ -73,23 +73,26 @@ public static class NotificationCreator
     }
 
     /// <summary>
-    /// Same as <see cref="CreateForCompanyAsync"/> but for the internal (Admin/Buyer) side rather than
-    /// a specific Cari - CompanyId stays null (GetMyNotificationsQueryHandler/GetUnreadNotificationCountQueryHandler
-    /// filter on that for internal users) and the push goes to the "internal" SignalR group instead of a
-    /// per-company group. No Email channel log is queued: there's no single recipient contact person for
-    /// "every internal user", so email notification for this case is intentionally out of scope for now.
+    /// İç kullanıcılara kişi başı bildirim (alıcılar <see cref="InternalNotificationAudience"/> ile seçilir). Her alıcıya ayrı satır
+    /// yazılır: okundu bilgisi kişiye özeldir ve kapsam dışı kullanıcı bildirimi hiç görmez.
     /// </summary>
-    public static Task CreateForInternalUsersAsync(
+    public static async Task CreateForInternalUsersAsync(
         IApplicationDbContext context,
         INotificationRealtimeService realtimeService,
         IDateTime dateTime,
+        IEnumerable<Guid> userIds,
         NotificationType type,
         string title,
         string body,
         string? relatedEntityType,
         Guid? relatedEntityId,
-        CancellationToken cancellationToken) =>
-        CreateForInternalUserAsync(context, realtimeService, dateTime, null, type, title, body, relatedEntityType, relatedEntityId, cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        foreach (Guid userId in userIds.Distinct())
+        {
+            await CreateForInternalUserAsync(context, realtimeService, dateTime, userId, type, title, body, relatedEntityType, relatedEntityId, cancellationToken);
+        }
+    }
 
     /// <summary>
     /// <paramref name="userId"/> verilirse bildirim yalnızca o iç kullanıcıya düşer (ör. ihalenin sorumlu satınalmacısı);

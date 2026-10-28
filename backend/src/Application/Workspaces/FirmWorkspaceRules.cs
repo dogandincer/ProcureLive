@@ -15,6 +15,12 @@ public static class FirmWorkspaceRules
     public static async Task<Guid?> ResolveAsync(
         IApplicationDbContext context, Guid ownerFirmId, Guid? requested, DataScope scope, CancellationToken ct)
     {
+        // Süreç sahibi her zaman bir firma (Internal) olmalı; tedarikçi carisi sahip seçilemez.
+        bool isFirm = await context.Companies.AnyAsync(
+            c => c.Id == ownerFirmId && c.CompanyType == ProcureLive.Domain.Enums.CompanyType.Internal, ct);
+        if (!isFirm)
+            throw new ConflictException("Süreç sahibi bir firma olmalıdır; tedarikçi cari sahip seçilemez.");
+
         if (requested is Guid id)
         {
             bool belongs = await context.Workspaces.AnyAsync(w => w.Id == id && w.FirmId == ownerFirmId, ct);

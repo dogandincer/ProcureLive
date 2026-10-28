@@ -111,24 +111,41 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
             .GroupBy(b => b.AuctionItemId)
             .ToDictionary(g => g.Key, g => g.ToList());
 
+        // Kapalı zarfta tedarikçi rakiplerin tutarını ve sırasını görmez; hedef fiyat iç bilgidir.
+        bool sealedType = auction.AuctionType is AuctionType.SealedBid or AuctionType.ReverseSealed;
+        bool higherIsBetter = auction.AuctionType == AuctionType.English;
+
         List<AuctionItemDto> itemDtos = auction.Items
             .OrderBy(i => i.SortOrder)
             .Select(item =>
             {
                 List<Bid> bids = bidsByItem.TryGetValue(item.Id, out List<Bid>? b) ? b : new List<Bid>();
                 Bid? best = bids.FirstOrDefault(x => x.Status == BidStatus.Winning);
+                if (isInternalUser)
+                {
+                    return new AuctionItemDto(
+                        item.Id, item.ProductId, item.Description, item.Quantity, item.UnitOfMeasure.ToString(),
+                        item.TargetPrice, item.RequestedDeliveryDate, item.Specification, item.SortOrder,
+                        best?.Amount.Amount, bids.Count);
+                }
+
+                // Firma başına en iyi birim fiyat → kendi en iyisi ve sırası.
+                List<(Guid CompanyId, decimal Amount)> bestPerCompany = bids
+                    .GroupBy(x => x.CompanyId)
+                    .Select(g => (g.Key, higherIsBetter ? g.Max(x => x.Amount.Amount) : g.Min(x => x.Amount.Amount)))
+                    .ToList();
+                decimal? mine = bestPerCompany.Where(x => x.CompanyId == viewerCompanyId).Select(x => (decimal?)x.Amount).FirstOrDefault();
+                int? rank = null;
+                if (mine is decimal m && !sealedType)
+                {
+                    rank = 1 + bestPerCompany.Count(x => x.CompanyId != viewerCompanyId && (higherIsBetter ? x.Amount > m : x.Amount < m));
+                }
+
                 return new AuctionItemDto(
-                    item.Id,
-                    item.ProductId,
-                    item.Description,
-                    item.Quantity,
-                    item.UnitOfMeasure.ToString(),
-                    item.TargetPrice,
-                    item.RequestedDeliveryDate,
-                    item.Specification,
-                    item.SortOrder,
-                    best?.Amount.Amount,
-                    bids.Count);
+                    item.Id, item.ProductId, item.Description, item.Quantity, item.UnitOfMeasure.ToString(),
+                    null, item.RequestedDeliveryDate, item.Specification, item.SortOrder,
+                    sealedType ? null : best?.Amount.Amount, bids.Count,
+                    mine, rank, sealedType ? null : bestPerCompany.Count);
             })
             .ToList();
 
@@ -158,7 +175,7 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
             auction.EndAt,
             auction.ActualStartAt,
             auction.ActualEndAt,
-            auction.ReservePrice,
+            isInternalUser ? auction.ReservePrice : null,
             auction.MinDecrementAmount,
             auction.MinDecrementPercentage,
             auction.ExtensionRuleMinutes,

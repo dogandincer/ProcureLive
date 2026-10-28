@@ -315,6 +315,10 @@ export interface AuctionItemDto {
   sortOrder: number;
   currentBestAmount: number | null;
   bidCount: number;
+  /** Tedarikçiye özel: kendi en iyi birim fiyatı, açık ihalede sırası ve teklif veren firma sayısı. */
+  myBestAmount?: number | null;
+  myRank?: number | null;
+  competitorCount?: number | null;
 }
 
 export interface AuctionAttachmentDto {
@@ -653,6 +657,19 @@ export interface BidComparisonDto {
   normalizedAmountInBaseCurrency: number;
   bidTime: string;
   status: string;
+  /** Sunucudaki ödül kaydı: kazanan seçildi mi (canlıdaki "Winning" durumu ödül değildir). */
+  isAwarded: boolean;
+}
+
+export interface AuctionFeedEntryDto {
+  bidId: string;
+  auctionItemId: string;
+  itemDescription: string;
+  companyName: string | null;
+  amount: number | null;
+  currencyCode: string;
+  isMine: boolean;
+  bidTime: string;
 }
 
 export interface NotificationDto {
@@ -717,6 +734,7 @@ export interface RfiMyAnswerDto {
   answerNumber: number | null;
   answerBool: boolean | null;
   selectedOptionId: string | null;
+  attachmentUrl?: string | null;
 }
 
 export interface RfiProcessDetailDto {

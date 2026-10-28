@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<Common.Interfaces.ISupplierAccessService, Common.Security.SupplierAccessService>();
         services.AddScoped<Auctions.Status.AuctionStatusService>();
         services.AddScoped<Auctions.Participation.PreOfferBidService>();
+        services.AddScoped<Common.Notifications.InternalNotificationAudience>();
         services.AddScoped<Common.Security.IDataScopeService, Common.Security.DataScopeService>();
 
         return services;

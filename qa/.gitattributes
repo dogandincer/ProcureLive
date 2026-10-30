@@ -1,0 +1,2 @@
+# Betikler bash ile koşar; Windows checkout'unda CRLF'e dönmesin.
+*.sh text eol=lf

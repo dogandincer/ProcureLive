@@ -173,7 +173,9 @@ public sealed class AuctionStatusService
             AuctionStatus.Ended => ("İhale Sona Erdi", $"\"{title}\" ihalesi sona erdi."),
             AuctionStatus.Cancelled => ("İhale İptal Edildi", WithReason($"\"{title}\" ihalesi iptal edildi.", reason)),
             AuctionStatus.Draft => ("İhale Yayından Kaldırıldı", $"\"{title}\" ihalesi yayından kaldırıldı."),
-            _ => null, // Yayınlama: tedarikçi davet anında zaten bilgilendirildi.
+            // Yayınlama: taslağa yapılan davetler (sihirbaz dahil) tedarikçiye ilk kez bu anda duyurulur.
+            AuctionStatus.Scheduled when from == AuctionStatus.Draft => ("Yeni İhale Daveti", $"\"{title}\" ihalesine davet edildiniz."),
+            _ => null,
         };
 
         if (message is null)
@@ -191,7 +193,7 @@ public sealed class AuctionStatusService
         {
             await NotificationCreator.CreateForCompanyAsync(
                 _context, _notificationRealtimeService, _dateTime, companyId,
-                NotificationType.AuctionStatusChanged,
+                from == AuctionStatus.Draft && to == AuctionStatus.Scheduled ? NotificationType.AuctionInvitation : NotificationType.AuctionStatusChanged,
                 message.Value.Title,
                 message.Value.Body,
                 nameof(Auction), auction.Id, ct);

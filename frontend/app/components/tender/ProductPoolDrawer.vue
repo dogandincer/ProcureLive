@@ -64,7 +64,15 @@ const rowVirtualizer = useVirtualizer(
 const virtualRows = computed(() => rowVirtualizer.value.getVirtualItems());
 const totalSize = computed(() => rowVirtualizer.value.getTotalSize());
 
-onMounted(() => runSearch(""));
+// Esc ile kapanır (diğer pencerelerle aynı davranış).
+function onKey(e: KeyboardEvent) {
+  if (e.key === "Escape") emit("close");
+}
+onMounted(() => {
+  runSearch("");
+  document.addEventListener("keydown", onKey);
+});
+onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
 </script>
 
 <template>
@@ -75,7 +83,7 @@ onMounted(() => runSearch(""));
       <!-- Header -->
       <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3">
         <h3 class="text-sm font-semibold text-slate-800">{{ $t("tender.pool.title") }}</h3>
-        <button class="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700" @click="emit('close')">
+        <button type="button" class="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700" :aria-label="$t('common.close')" @click="emit('close')">
           <XMarkIcon class="h-5 w-5" />
         </button>
       </div>

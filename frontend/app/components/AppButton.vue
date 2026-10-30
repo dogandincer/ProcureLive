@@ -1,7 +1,8 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    variant?: "primary" | "secondary" | "danger" | "success" | "ghost";
+    // danger-outline: onay penceresi açan ilk yıkıcı düğme; son onay düğmesi dolu "danger" kalır.
+    variant?: "primary" | "secondary" | "danger" | "danger-outline" | "success" | "ghost";
     type?: "button" | "submit";
     loading?: boolean;
     disabled?: boolean;
@@ -13,6 +14,7 @@ const variantClasses: Record<string, string> = {
   primary: "bg-indigo-600 text-white hover:bg-indigo-700 disabled:hover:bg-indigo-600",
   secondary: "border border-slate-300 bg-surface text-slate-700 hover:bg-slate-50",
   danger: "bg-rose-600 text-white hover:bg-rose-700 disabled:hover:bg-rose-600",
+  "danger-outline": "border border-rose-300 bg-surface text-rose-600 hover:bg-rose-50",
   success: "bg-emerald-600 text-white hover:bg-emerald-700 disabled:hover:bg-emerald-600",
   ghost: "text-indigo-600 hover:underline",
 };

@@ -11,6 +11,11 @@ const processes = ref<RfqProcessDto[]>([]);
 const currencies = ref<CurrencyDto[]>([]);
 const showForm = ref(false);
 const loading = ref(true);
+const route = useRoute();
+const status = ref(typeof route.query.status === "string" ? route.query.status : "");
+const statusOptions = computed(() =>
+  ["Draft", "Sent", "InProgress", "Closed", "Evaluated", "Awarded", "Cancelled"].map((s) => ({ value: s, label: t(`enums.processStatus.${s}`) })),
+);
 
 const form = reactive({ title: "", ownerCompanyId: "", workspaceId: "", currencyId: "", dueDate: "" });
 
@@ -34,6 +39,7 @@ async function load() {
     const [processPage, currencyList] = await Promise.all([
       api.get<PagedResult<RfqProcessDto>>("/api/rfq/processes", {
         ...listParams(),
+        status: status.value || undefined,
         firmId: selectedFirmId.value ?? undefined,
         workspaceId: selectedWorkspaceId.value ?? undefined,
       }),
@@ -72,7 +78,8 @@ async function create() {
 }
 
 onMounted(load);
-watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
+watch([selectedFirmId, selectedWorkspaceId, status], () => resetAndLoad());
+watch(() => route.query.status, (v) => { status.value = typeof v === "string" ? v : ""; });
 </script>
 
 <template>
@@ -100,7 +107,10 @@ watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
     </form>
 
     <AppCard>
-      <input v-model="listSearch" type="search" :placeholder="$t('pager.search.rfq')" :aria-label="$t('pager.search.rfq')" class="mb-3 w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <input v-model="listSearch" type="search" :placeholder="$t('pager.search.rfq')" :aria-label="$t('pager.search.rfq')" class="w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
+        <StatusFilter v-model="status" :options="statusOptions" />
+      </div>
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -116,7 +126,7 @@ watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
           </thead>
           <tbody>
             <tr v-for="p in processes" :key="p.id" class="border-b border-slate-50">
-              <td class="py-2 font-medium text-slate-700">{{ p.title }}</td>
+              <td class="py-2"><NuxtLink :to="`/admin/rfq/${p.id}`" class="font-medium text-slate-800 hover:text-indigo-600 hover:underline">{{ p.title }}</NuxtLink></td>
               <td class="py-2 text-slate-500">
                 {{ p.ownerCompanyName }}
                 <span v-if="p.workspaceName" class="block text-[11px] text-slate-400">{{ p.workspaceName }}</span>

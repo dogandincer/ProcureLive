@@ -1,0 +1,6 @@
+# Test çıktıları ve yerel veri (veritabanı anlık görüntüsü, ekran görüntüleri)
+node_modules/
+data/
+out/
+report/prev/
+report/out/

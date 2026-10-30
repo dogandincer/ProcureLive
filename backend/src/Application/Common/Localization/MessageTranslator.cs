@@ -197,6 +197,7 @@ public static class MessageTranslator
         // RFI/RFQ işyeri, ön teklif → ilk teklif
         ["Seçilen işyeri sahip firmaya ait değil."] = "The selected workspace does not belong to the owner firm.",
         ["Kapanmış sürecin işyeri değiştirilemez."] = "The workspace of a closed process cannot be changed.",
+        ["Cari kaydınız onaylandı. Davet edildiğiniz ihalelere katılabilir, açık ihaleler için talep gönderebilirsiniz."] = "Your supplier record was approved. You can join auctions you are invited to and request to join open auctions.",
         ["Bilinmeyen yetki kodu."] = "Unknown permission code.",
         ["Bu firmada ihale yayını Admin onayı gerektirir. \"Yayın onayı iste\" ile onaya gönderin."] = "Publishing auctions in this company requires Admin approval. Use \"Request publish approval\".",
         ["Bu firmada ihale yayını Admin onayı gerektirir."] = "Publishing auctions in this company requires Admin approval.",

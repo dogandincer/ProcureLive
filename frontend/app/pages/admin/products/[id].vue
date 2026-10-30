@@ -16,6 +16,7 @@ const route = useRoute();
 const router = useRouter();
 const productId = route.params.id as string;
 const api = useApi();
+const { ask } = useConfirm();
 const show3d = ref(false);
 const assetUrl = useAssetUrl();
 // Yüklenen görsel doğrudan ürüne eklenir (URL ile ekleme de sürer).
@@ -77,7 +78,7 @@ async function saveEdit() {
 }
 
 async function deleteProduct() {
-  if (!product.value || !confirm(t("products.deleteConfirm", { name: product.value.name }))) return;
+  if (!product.value || !(await ask({ title: t("products.deleteConfirm", { name: product.value.name }), tone: "danger", confirmLabel: t("common.delete") }))) return;
   deletingProduct.value = true;
   try {
     await api.delete(`/api/products/${productId}`);
@@ -159,7 +160,7 @@ async function addImage() {
 }
 
 async function removeImage(imageId: string) {
-  if (!confirm(t("products.detail.imageRemoveConfirm"))) return;
+  if (!(await ask({ title: t("products.detail.imageRemoveConfirm"), tone: "danger", confirmLabel: t("common.delete") }))) return;
   try {
     await api.delete(`/api/products/${productId}/images/${imageId}`);
     toast.success(t("products.detail.imageRemoved"));
@@ -200,7 +201,7 @@ async function generateModel() {
 }
 
 async function removeModel() {
-  if (!confirm(t("products.detail.model3d.removeConfirm"))) return;
+  if (!(await ask({ title: t("products.detail.model3d.removeConfirm"), tone: "danger", confirmLabel: t("common.delete") }))) return;
   try {
     await api.delete(`/api/products/${productId}/model-3d`);
     toast.success(t("products.detail.model3d.removed"));

@@ -1,0 +1,11 @@
+{
+  "name": "procurelive-qa",
+  "private": true,
+  "description": "Süreç (uçtan uca) testleri ve kullanıcı testi raporu araçları",
+  "scripts": {
+    "scenarios": "node e2e/scenarios.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.57.0"
+  }
+}

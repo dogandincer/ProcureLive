@@ -4,6 +4,7 @@ import type { ExcelColumn } from "~/composables/useExcelImport";
 import { CubeTransparentIcon, TrashIcon } from "@heroicons/vue/24/outline";
 
 const api = useApi();
+const { ask } = useConfirm();
 const { can } = usePermissions();
 const toast = useToast();
 const { t } = useI18n();
@@ -15,7 +16,9 @@ const showForm = ref(false);
 const submitting = ref(false);
 const loading = ref(true);
 
-const form = reactive({ sku: "", name: "", categoryId: "", unitOfMeasure: "Piece", brand: "" });
+const form = reactive({ sku: "", name: "", categoryId: "", unitOfMeasure: "Piece", brand: "", workspaceId: "" });
+// Excel aktarımındaki satırların açılacağı işyeri (aktarım penceresinde seçilir).
+const importWorkspaceId = ref("");
 const unitOfMeasures = ["Piece", "Kilogram", "Gram", "Liter", "Meter", "SquareMeter", "CubicMeter", "Box", "Pallet", "Hour", "Service"];
 const unitLabel = (u: string) => t(`enums.unitOfMeasure.${u}`);
 
@@ -43,6 +46,7 @@ async function importProductRow(row: Record<string, string | number | boolean | 
     unitOfMeasure: unitOfMeasures.includes(String(row.unitOfMeasure)) ? row.unitOfMeasure : "Piece",
     brand: row.brand || null,
     defaultCurrencyId: null,
+    workspaceId: importWorkspaceId.value || null,
   });
 }
 
@@ -83,13 +87,9 @@ async function load() {
 }
 
 async function create() {
-  if (!selectedWorkspaceId.value) {
-    toast.error(t("workspaceGate.selectFirst"));
-    return;
-  }
   submitting.value = true;
   try {
-    await api.post("/api/products", {
+    const id = await api.post<string>("/api/products", {
       sku: form.sku,
       name: form.name,
       description: null,
@@ -97,12 +97,13 @@ async function create() {
       unitOfMeasure: form.unitOfMeasure,
       brand: form.brand || null,
       defaultCurrencyId: null,
-      workspaceId: selectedWorkspaceId.value || null,
+      workspaceId: form.workspaceId || null,
     });
     Object.assign(form, { sku: "", name: "", brand: "" });
     showForm.value = false;
-    toast.success(t("toast.productCreated"));
-    await load();
+    // Görsel, 3D model ve teknik bilgiler detayda eklenir; kullanıcı yeni kaydı listede aramak zorunda kalmasın.
+    toast.success(t("products.createdGoDetail"));
+    await navigateTo(`/admin/products/${id}`);
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("products.createError")));
   } finally {
@@ -112,7 +113,7 @@ async function create() {
 
 const deleting = ref<string | null>(null);
 async function deleteProduct(p: ProductDto) {
-  if (!confirm(t("products.deleteConfirm", { name: p.name }))) return;
+  if (!(await ask({ title: t("products.deleteConfirm", { name: p.name }), tone: "danger", confirmLabel: t("common.delete") }))) return;
   deleting.value = p.id;
   try {
     await api.delete(`/api/products/${p.id}`);
@@ -134,26 +135,42 @@ onMounted(load);
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-slate-800">{{ $t("products.title") }}</h1>
       <div class="flex gap-2">
-        <ExcelImportButton :columns="importColumns" template-filename="urunler-sablon.xlsx" :import-row="importProductRow" @imported="load" />
+        <ExcelImportButton :columns="importColumns" template-filename="urunler-sablon.xlsx" :import-row="importProductRow" @imported="load">
+          <template #options><WorkspaceField v-model="importWorkspaceId" :label="$t('excelImport.targetWorkspace')" /></template>
+        </ExcelImportButton>
         <AppButton v-if="can('products.manage')" @click="showForm = !showForm">
           {{ showForm ? $t("common.cancel") : $t("products.new") }}
         </AppButton>
       </div>
     </div>
 
-    <form v-if="showForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-surface p-5 sm:grid-cols-2" @submit.prevent="create">
-      <input v-model="form.sku" :placeholder="$t('products.form.sku')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-      <input v-model="form.name" :placeholder="$t('products.form.name')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-      <select v-model="form.categoryId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm">
-        <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
-      </select>
-      <select v-model="form.unitOfMeasure" class="rounded-md border border-slate-300 px-3 py-2 text-sm">
-        <option v-for="u in unitOfMeasures" :key="u" :value="u">{{ unitLabel(u) }}</option>
-      </select>
-      <input v-model="form.brand" :placeholder="$t('products.form.brand')" class="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
-      <AppButton type="submit" class="sm:col-span-2" :loading="submitting">
-        {{ submitting ? $t("common.saving") : $t("common.save") }}
-      </AppButton>
+    <form v-if="showForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-surface p-5 sm:grid-cols-2" data-testid="product-form" @submit.prevent="create">
+      <FormField :label="$t('products.form.sku')" required>
+        <input v-model="form.sku" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      </FormField>
+      <FormField :label="$t('products.form.name')" required>
+        <input v-model="form.name" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      </FormField>
+      <FormField :label="$t('products.form.category')" required>
+        <select v-model="form.categoryId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm">
+          <option value="" disabled>{{ $t("products.form.categoryPick") }}</option>
+          <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
+        </select>
+      </FormField>
+      <FormField :label="$t('products.form.unit')">
+        <select v-model="form.unitOfMeasure" class="rounded-md border border-slate-300 px-3 py-2 text-sm">
+          <option v-for="u in unitOfMeasures" :key="u" :value="u">{{ unitLabel(u) }}</option>
+        </select>
+      </FormField>
+      <FormField :label="$t('products.form.brand')">
+        <input v-model="form.brand" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      </FormField>
+      <WorkspaceField v-model="form.workspaceId" />
+      <div class="flex justify-end sm:col-span-2">
+        <AppButton type="submit" :loading="submitting">
+          {{ submitting ? $t("common.saving") : $t("common.save") }}
+        </AppButton>
+      </div>
     </form>
 
     <AppCard>
@@ -175,7 +192,7 @@ onMounted(load);
             <tr v-for="p in products" :key="p.id" class="border-b border-slate-50">
               <td class="py-2 font-mono text-xs text-slate-500">{{ p.sku }}</td>
               <td class="py-2 font-medium text-slate-700">
-                {{ p.name }}
+                <NuxtLink :to="`/admin/products/${p.id}`" class="text-slate-800 hover:text-indigo-600 hover:underline">{{ p.name }}</NuxtLink>
                 <CubeTransparentIcon v-if="p.model3dUrl" class="ml-1 inline h-3.5 w-3.5 text-indigo-400" :title="$t('products.detail.model3d.title')" />
               </td>
               <td class="py-2 text-slate-500">{{ p.categoryName }}</td>

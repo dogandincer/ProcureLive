@@ -22,6 +22,11 @@ public sealed class UnhandledExceptionBehavior<TRequest, TResponse> : IPipelineB
         {
             return await next();
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // İstemci isteği bıraktı (sayfadan ayrıldı vb.); hata değil, yeniden fırlat ve sessiz geç.
+            throw;
+        }
         catch (Exception ex)
         {
             string requestName = typeof(TRequest).Name;

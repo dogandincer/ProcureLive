@@ -5,6 +5,7 @@ import { StarIcon as StarSolid } from "@heroicons/vue/24/solid";
 
 /** Firma Tanımı (yalnızca Admin). Firma, işyerlerinin üst ebeveynidir; varsayılan firmanın markası uygulama adını belirler. */
 const api = useApi();
+const { ask } = useConfirm();
 const toast = useToast();
 const { t } = useI18n();
 const assetUrl = useAssetUrl();
@@ -141,7 +142,7 @@ async function makeDefault(f: FirmDto) {
 }
 
 async function remove(f: FirmDto) {
-  if (!confirm(t("firms.deleteConfirm", { name: f.name }))) return;
+  if (!(await ask({ title: t("firms.deleteConfirm", { name: f.name }), tone: "danger", confirmLabel: t("common.delete") }))) return;
   try {
     await api.delete(`/api/firms/${f.id}`);
     toast.success(t("firms.deleted"));

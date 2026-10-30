@@ -34,6 +34,8 @@ const steps = [
 const currencies = ref<CurrencyDto[]>([]);
 const ownerCompanies = ref<CompanyDto[]>([]);
 
+const { selectedFirmId, firms } = useFirm();
+
 async function loadReference() {
   try {
     const [curr, owners] = await Promise.all([
@@ -43,7 +45,13 @@ async function loadReference() {
     currencies.value = curr;
     ownerCompanies.value = owners.items;
     if (!master.currencyId && curr.length) master.currencyId = (curr.find((c) => c.isBaseCurrency) ?? curr[0]).id;
-    if (!master.ownerCompanyId && owners.items.length === 1) master.ownerCompanyId = owners.items[0].id;
+    // Açan birim: başlıkta seçili firma, yoksa varsayılan firma (tek firma varsa o).
+    if (!master.ownerCompanyId) {
+      const preferred = owners.items.find((o) => o.id === selectedFirmId.value)
+        ?? owners.items.find((o) => firms.value.some((f) => f.id === o.id && f.isDefault))
+        ?? (owners.items.length === 1 ? owners.items[0] : undefined);
+      if (preferred) master.ownerCompanyId = preferred.id;
+    }
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("tender.wizard.refError")));
   }

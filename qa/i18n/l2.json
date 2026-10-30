@@ -1,0 +1,18 @@
+{
+  "tr": {
+    "products": { "form": { "category": "Kategori", "categoryPick": "Kategori seçin", "unit": "Birim" } },
+    "excelImport": { "targetWorkspace": "Kayıtların açılacağı işyeri" },
+    "companies": {
+      "form": { "primaryWorkspace": "Birincil işyeri" },
+      "import": { "workspaceHint": "Şablondaki \"İşyerleri\" sütunu bu işyerinin firmasındaki ek görünür işyerleridir." }
+    }
+  },
+  "en": {
+    "products": { "form": { "category": "Category", "categoryPick": "Choose a category", "unit": "Unit" } },
+    "excelImport": { "targetWorkspace": "Workspace for the imported records" },
+    "companies": {
+      "form": { "primaryWorkspace": "Primary workspace" },
+      "import": { "workspaceHint": "The template's \"Workspaces\" column lists extra visible workspaces in this workspace's firm." }
+    }
+  }
+}

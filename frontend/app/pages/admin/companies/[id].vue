@@ -6,6 +6,7 @@ const route = useRoute();
 const router = useRouter();
 const companyId = route.params.id as string;
 const api = useApi();
+const { ask } = useConfirm();
 const accessState = ref<"forbidden" | "notFound" | null>(null);
 const toast = useToast();
 const { t } = useI18n();
@@ -33,7 +34,7 @@ const { selectedFirmId } = useFirm();
 const visibleOptions = computed(() =>
   workspaces.value
     .filter((w) => w.id !== companyWorkspaceId.value)
-    .filter((w) => w.firmId === selectedFirmId.value || (company.value?.visibleWorkspaceIds ?? []).includes(w.id))
+    .filter((w) => !selectedFirmId.value || w.firmId === selectedFirmId.value || (company.value?.visibleWorkspaceIds ?? []).includes(w.id))
     .map((w) => ({ value: w.id, label: w.firmCode ? `${w.firmCode} · ${w.name}` : w.name })),
 );
 const visibleDirty = computed(() => {
@@ -225,6 +226,27 @@ function openEdit() {
   showEditForm.value = true;
 }
 
+// Kendi kaydıyla gelen (onay bekleyen) tedarikçiyi tek adımda aktifleştir; diğer alanlar korunur.
+const approving = ref(false);
+async function approvePending() {
+  if (!company.value) return;
+  approving.value = true;
+  try {
+    const c = company.value;
+    await api.put(`/api/companies/${companyId}`, {
+      code: c.code ?? null, name: c.name, taxOffice: c.taxOffice, status: "Active", website: c.website ?? null,
+      tradeName: c.tradeName ?? null, mersisNo: c.mersisNo ?? null, phone: c.phone ?? null, email: c.email ?? null,
+      foundationYear: c.foundationYear ?? null, employeeCount: c.employeeCount ?? null, description: c.description ?? null,
+    });
+    toast.success(t("companies.detail.approved"));
+    await load();
+  } catch (error: any) {
+    toast.error(apiErrorMessage(error, t("companies.detail.updateError")));
+  } finally {
+    approving.value = false;
+  }
+}
+
 async function saveEdit() {
   savingEdit.value = true;
   try {
@@ -254,7 +276,7 @@ async function saveEdit() {
 
 const deletingCompany = ref(false);
 async function deleteCompany() {
-  if (!company.value || !confirm(t("companies.deleteConfirm", { name: company.value.name }))) return;
+  if (!company.value || !(await ask({ title: t("companies.deleteConfirm", { name: company.value.name }), tone: "danger", confirmLabel: t("common.delete") }))) return;
   deletingCompany.value = true;
   try {
     await api.delete(`/api/companies/${companyId}`);
@@ -278,8 +300,9 @@ onMounted(load);
       <NuxtLink to="/admin/companies" class="text-xs text-indigo-600 hover:underline">← {{ $t("companies.title") }}</NuxtLink>
       <div class="mt-1 flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h1 class="text-xl font-bold text-slate-800">
-            <span v-if="company.code" class="mr-1 font-mono text-base font-semibold text-slate-400">{{ company.code }}</span>{{ company.name }}
+          <h1 class="flex flex-wrap items-center gap-2 text-xl font-bold text-slate-800">
+            <span><span v-if="company.code" class="mr-1 font-mono text-base font-semibold text-slate-400">{{ company.code }}</span>{{ company.name }}</span>
+            <AppBadge :tone="company.status === 'Active' ? 'emerald' : company.status === 'PendingApproval' ? 'amber' : 'slate'">{{ $t(`enums.companyStatus.${company.status}`) }}</AppBadge>
           </h1>
           <p class="text-sm text-slate-500">
             {{ company.taxNumber }} · {{ company.taxOffice }} · {{ $t(`enums.companyType.${company.companyType}`) }} · {{ $t(`enums.companyStatus.${company.status}`) }}
@@ -306,6 +329,16 @@ onMounted(load);
           <option value="">{{ $t("workspaces.unassigned") }}</option>
           <option v-for="w in workspaces" :key="w.id" :value="w.id">{{ w.name }}</option>
         </select>
+      </div>
+      <div
+        v-if="company.companyType !== 'Internal' && company.status === 'PendingApproval'"
+        class="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+        data-testid="pending-company"
+      >
+        <p class="min-w-0 flex-1">{{ companyWorkspaceId ? $t("companies.detail.pendingHint") : $t("companies.detail.pendingNeedsWorkspace") }}</p>
+        <AppButton variant="success" :loading="approving" :disabled="!companyWorkspaceId" data-testid="approve-company" @click="approvePending">
+          {{ $t("companies.detail.approve") }}
+        </AppButton>
       </div>
       <div v-if="company.companyType !== 'Internal'" class="mt-3 rounded-lg border border-slate-200 bg-surface p-3">
         <ChipMultiSelect

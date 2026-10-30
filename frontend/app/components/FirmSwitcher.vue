@@ -5,12 +5,12 @@ import { BuildingOffice2Icon, ChevronDownIcon, StarIcon } from "@heroicons/vue/2
 const props = withDefaults(defineProps<{ block?: boolean }>(), { block: false });
 
 // Firma seçimi — "Tüm firmalar" seçeneği bilinçli olarak yok; listeler her zaman tek firma bağlamında çalışır.
-const { firms, selectedFirmId, selectedFirm, setFirm } = useFirm();
+const { firms, selectedFirmId, selectedFirm, allowAll, setFirm } = useFirm();
 const { reconcile } = useWorkspace();
 const open = ref(false);
 const el = ref<HTMLElement | null>(null);
 
-function select(id: string) {
+function select(id: string | null) {
   setFirm(id);
   reconcile(id);
   open.value = false;
@@ -27,7 +27,7 @@ onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside))
 </script>
 
 <template>
-  <div v-if="selectedFirm" ref="el" class="relative" :class="{ 'w-full': props.block }">
+  <div v-if="selectedFirm || allowAll" ref="el" class="relative" :class="{ 'w-full': props.block }">
     <button
       class="flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors"
       :class="{ 'w-full': props.block }"
@@ -35,7 +35,7 @@ onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside))
       @click="open = !open"
     >
       <BuildingOffice2Icon class="h-3.5 w-3.5 shrink-0" />
-      <span class="max-w-[140px] truncate">{{ selectedFirm.shortName || selectedFirm.name }}</span>
+      <span class="max-w-[140px] truncate">{{ selectedFirm ? selectedFirm.shortName || selectedFirm.name : $t("firms.allFirms") }}</span>
       <ChevronDownIcon class="h-3 w-3 shrink-0" :class="{ 'rotate-180': open }" />
     </button>
 
@@ -44,6 +44,15 @@ onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside))
       class="absolute z-30 mt-1.5 min-w-[220px] rounded-xl border border-slate-200 bg-surface py-1 shadow-lg"
       :class="props.block ? 'left-0 right-0' : 'right-0'"
     >
+      <button
+        v-if="allowAll"
+        class="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-slate-50"
+        :class="!selectedFirmId ? 'font-semibold text-indigo-600' : 'text-slate-600'"
+        @click="select(null)"
+      >
+        {{ $t("firms.allFirms") }}
+      </button>
+      <div v-if="allowAll" class="my-1 border-t border-slate-100" />
       <button
         v-for="f in firms"
         :key="f.id"

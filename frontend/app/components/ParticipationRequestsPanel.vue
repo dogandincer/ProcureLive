@@ -157,7 +157,7 @@ defineExpose({ load });
             <AppButton v-else :loading="busy === r.id" @click="act(r, 'accept')">
               2 · {{ $t("participation.panel.accept") }}
             </AppButton>
-            <AppButton variant="danger" :disabled="busy === r.id" @click="rejectFor = rejectFor === r.id ? null : r.id">
+            <AppButton variant="danger-outline" :disabled="busy === r.id" @click="rejectFor = rejectFor === r.id ? null : r.id">
               {{ $t("participation.panel.reject") }}
             </AppButton>
           </div>

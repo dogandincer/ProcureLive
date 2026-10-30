@@ -1,0 +1,370 @@
+[
+ {
+  "id": "Y-01",
+  "role": "Admin",
+  "account": "admin@procurelive.local",
+  "title": "Firma Tanım ve marka",
+  "steps": "Firma Tanım → yeni firma ekle, logo yükle, “Varsayılan yap”. Çıkış yapıp giriş ekranına bak.",
+  "expect": "Giriş ekranı ve sekme başlığı yeni firmanın kısa adı + logosuyla görünür."
+ },
+ {
+  "id": "Y-02",
+  "role": "Admin",
+  "account": "admin@procurelive.local",
+  "title": "İşyeri tanımı",
+  "steps": "İşyeri → Kuzey Gıda'ya “Ankara Depo” ekle; varsayılan yap; “Eski Bursa İrtibat Ofisi”ni aktif et.",
+  "expect": "Başlıktaki işyeri seçicide yeni işyeri görünür; pasif işyeri listede ayırt edilir."
+ },
+ {
+  "id": "Y-03",
+  "role": "Admin",
+  "account": "admin@procurelive.local",
+  "title": "Kilit açma ve pasif kullanıcı",
+  "steps": "Kullanıcı Tanım → Gizem Polat “Kilitli” rozetini gör, “Kilidi Aç”. Eski Personel'i aktif et.",
+  "expect": "İki kullanıcı da Test1234! ile giriş yapabilir."
+ },
+ {
+  "id": "Y-04",
+  "role": "Admin",
+  "account": "admin@procurelive.local",
+  "title": "İşyeri yetkisi",
+  "steps": "Yetkiler → Ahmet Yılmaz'a “Konya Üretim Tesisi” yetkisi ver. Ahmet ile giriş yap.",
+  "expect": "Ahmet'in ihale listesine Konya ihaleleri (Un ve Şeker, Ambalaj) eklenir."
+ },
+ {
+  "id": "Y-05",
+  "role": "Admin",
+  "account": "admin@procurelive.local",
+  "title": "Onay bekleyen cari",
+  "steps": "Cari listesi → “Yeni Ufuk Teknoloji” kartını aç, işyeri ata, durumu Aktif yap.",
+  "expect": "Cari aktif olur; tedarikçiye “Cari kaydınız onaylandı” bildirimi gider."
+ },
+ {
+  "id": "Y-06",
+  "role": "Admin",
+  "account": "admin@procurelive.local",
+  "title": "Cari Excel içe aktarma",
+  "steps": "Cari listesi → Excel şablonunu indir, 2 satır doldur, içe aktar.",
+  "expect": "Cariler kod, sektör ve kullanıcılarıyla açılır; hatalı satır açıklamalı raporlanır."
+ },
+ {
+  "id": "Y-07",
+  "role": "Admin",
+  "account": "admin@procurelive.local",
+  "title": "Ürün, görsel ve 3D",
+  "steps": "Ürünler → yeni ürün, görsel URL'si, 3D model (.glb) ekle; başka üründe “AI ile 3D üret”.",
+  "expect": "Ürün detayında görsel galerisi ve döndürülebilir 3D model görünür."
+ },
+ {
+  "id": "Y-08",
+  "role": "Admin",
+  "account": "admin@procurelive.local",
+  "title": "Tanım ekranları",
+  "steps": "Kategori (alt kategoriyle), Sektör ve Para birimi + kur ekle.",
+  "expect": "Kayıtlar listede görünür ve ihale/ürün formlarında seçilebilir."
+ },
+ {
+  "id": "Y-09",
+  "role": "Admin",
+  "account": "admin@procurelive.local",
+  "title": "İhale durum yönetimi",
+  "steps": "“Kartal Şantiyesi Hazır Beton” (Duraklatıldı) → Devam ettir. “Aliağa Santrali Kablo ve Pano” → Şimdi Başlat.",
+  "expect": "Aliağa canlıya geçince Çınar Yapı'nın ön teklifi ilk teklif olarak görünür; durum geçmişi tutulur."
+ },
+ {
+  "id": "Y-10",
+  "role": "Admin",
+  "account": "admin@procurelive.local",
+  "title": "Denetim kayıtları ve izleme",
+  "steps": "Denetim kayıtlarında kullanıcı/işlem filtresi kullan; İzleme panelini aç.",
+  "expect": "Son işlemler kimin yaptığıyla listelenir; izleme grafikleri gerçek sayıları gösterir."
+ },
+ {
+  "id": "S-01",
+  "role": "Satınalmacı",
+  "account": "ahmet.yilmaz@kuzey.local",
+  "title": "Veri kapsamı",
+  "steps": "İhale, RFI ve RFQ listelerini aç; başlıkta işyerini “Ankara Bölge” yap.",
+  "expect": "Yalnızca Kuzey Holding (GM + Ankara) kayıtları görünür; Ankara seçilince liste daralır."
+ },
+ {
+  "id": "S-02",
+  "role": "Satınalmacı",
+  "account": "ahmet.yilmaz@kuzey.local",
+  "title": "Sihirbazla ihale açma",
+  "steps": "Yeni İhale sihirbazı: başlık, tarih, 2 tedarikçi, ürün havuzundan 3 kalem, ek, Plus listeleme → oluştur → yayınla.",
+  "expect": "İhale “Planlandı” olur; davet edilen tedarikçilere bildirim düşer."
+ },
+ {
+  "id": "S-03",
+  "role": "Satınalmacı",
+  "account": "selin.demir@kuzey.local",
+  "title": "Katılım talepleri",
+  "steps": "“Aliağa Santrali Kablo ve Pano” → Katılım talepleri: Toros'un carisini onayla, ön teklifini kabul et; Pamukkale'yi kabul et.",
+  "expect": "Talepler “Kabul edildi” olur; tedarikçilere her adımda bildirim gider."
+ },
+ {
+  "id": "S-04",
+  "role": "Satınalmacı",
+  "account": "ahmet.yilmaz@kuzey.local",
+  "title": "Canlı ihaleyi izleme",
+  "steps": "“Genel Müdürlük BT Donanım Yenileme”yi aç; başka tarayıcıda Ege Bilişim ile teklif ver.",
+  "expect": "Yeni teklif sayfa yenilenmeden akışa düşer, en iyi teklif güncellenir."
+ },
+ {
+  "id": "S-05",
+  "role": "Satınalmacı",
+  "account": "burak.celik@kuzey.local",
+  "title": "Kazanan seçme",
+  "steps": "“Manisa Depo Raf Sistemi” (Sona erdi) → her kalemde “Kazanan Seç”.",
+  "expect": "Tüm kalemler seçilince ihale “Sonuçlandı” olur; kazanan/kaybeden tedarikçilere bildirim."
+ },
+ {
+  "id": "S-06",
+  "role": "Satınalmacı",
+  "account": "burak.celik@kuzey.local",
+  "title": "Canlıyken ön teklif kabulü",
+  "steps": "“Konya Tesisi Un ve Şeker” → Mavi Deniz Gıda talebi: cariyi onayla → ön teklifi kabul et.",
+  "expect": "En iyiyi geçen kalemler anında teklif olur, geçmeyenler “Atlandı” görünür."
+ },
+ {
+  "id": "S-07",
+  "role": "Satınalmacı",
+  "account": "ece.koc@kuzey.local",
+  "title": "RFQ değerlendirme",
+  "steps": "“Gebze Forklift Bakım” (Kapalı) → karşılaştırma matrisi ve AI önerisi → kazanan seç.",
+  "expect": "Öneri gerekçesiyle gösterilir; süreç “Sonuçlandı” olur."
+ },
+ {
+  "id": "S-08",
+  "role": "Satınalmacı",
+  "account": "ece.koc@kuzey.local",
+  "title": "RFI oluşturma",
+  "steps": "Yeni RFI (Lojistik Kapasite Anketi şablonu), işyeri Mersin, 2 tedarikçi davet et.",
+  "expect": "RFI “Gönderildi” olur; tedarikçiler RFI davetlerinde görür."
+ },
+ {
+  "id": "S-09",
+  "role": "Satınalmacı",
+  "account": "deniz.arslan@kuzey.local",
+  "title": "RFQ kapatma",
+  "steps": "“Kartal Şantiyesi Demir” RFQ'sunda revize teklifi gör, süreci kapat, kazanan seç.",
+  "expect": "Toros'un revize teklifi son hâliyle görünür; süreç sonuçlanır."
+ },
+ {
+  "id": "S-10",
+  "role": "Satınalmacı",
+  "account": "ahmet.yilmaz@kuzey.local",
+  "title": "Sorumlu değiştirme ve davet linki",
+  "steps": "“Ankara Bölge Kırtasiye” → sorumlu satınalmacıyı Emre Aksoy yap; bir cari için davet linki oluştur.",
+  "expect": "Emre'ye “İhale Sorumluluğu” bildirimi gider; link kopyalanabilir."
+ },
+ {
+  "id": "S-11",
+  "role": "Satınalmacı",
+  "account": "yeni.alici@kuzey.local",
+  "title": "Yetkisiz kullanıcı deneyimi",
+  "steps": "Hiç işyeri yetkisi olmayan kullanıcıyla tüm menüleri gez.",
+  "expect": "Ekranlar boş; kullanıcıya ne yapması gerektiği (yöneticiden yetki istemesi) açıkça söylenir."
+ },
+ {
+  "id": "T-01",
+  "role": "Tedarikçi",
+  "account": "teklif@egebilisim.example",
+  "title": "Canlı teklif",
+  "steps": "“Genel Müdürlük BT Donanım Yenileme” → bir kaleme en iyiden düşük birim fiyat gir.",
+  "expect": "Teklif kabul edilir, sıralama güncellenir; yüksek teklif açık bir hata mesajıyla reddedilir."
+ },
+ {
+  "id": "T-02",
+  "role": "Tedarikçi",
+  "account": "teklif@egebilisim.example",
+  "title": "Son katılım hakkı",
+  "steps": "“Aliağa Santrali Kablo ve Pano” davetini kabul et; ardından İhaleler listesine dön.",
+  "expect": "Kalan hak 0 olur; yeni davetlerde “Plus'a geç” uyarısı görünür."
+ },
+ {
+  "id": "T-03",
+  "role": "Tedarikçi",
+  "account": "satis@anadoluofis.example",
+  "title": "Kota dolu → Plus",
+  "steps": "“Ankara Bölge Kırtasiye” ve RFI davetini aç; Plus satın al (kart sonu 0002 → red, 4242 → onay).",
+  "expect": "İçerik bulanık/kısıtlı görünür; 0002 reddedilir, 4242 ile Plus açılır ve kısıt kalkar."
+ },
+ {
+  "id": "T-04",
+  "role": "Tedarikçi",
+  "account": "teklif@egebilisim.example",
+  "title": "RFQ teklif ve sonuç",
+  "steps": "“Aliağa Santrali Yedek Parça” RFQ'sunu kabul et, birim fiyat + termin gir; “Genel Müdürlük Monitör” sonucuna bak.",
+  "expect": "Teklif gönderilir (Standart revize edemez); kaybedilen RFQ'da sonuç anlaşılır."
+ },
+ {
+  "id": "T-05",
+  "role": "Tedarikçi",
+  "account": "teklif@egebilisim.example",
+  "title": "Firma ayarları ve KVKK",
+  "steps": "Firma ayarları → “İletişim bilgilerim görünsün” kapat; Plus arama yapan biri seni arasın.",
+  "expect": "Arama sonucunda e-posta/telefon maskeli görünür."
+ },
+ {
+  "id": "P-01",
+  "role": "Tedarikçi Plus",
+  "account": "kurumsal@bogazicitek.example",
+  "title": "Plus arama",
+  "steps": "Plus Arama → “kablo”, “Aliağa”, “Toros” ara; ihale sahibine göre süz.",
+  "expect": "Plus'ta listelenen ihaleler ve cariler gelir; Kuzey İnşaat ihaleleri gelmez (listelemiyor)."
+ },
+ {
+  "id": "P-02",
+  "role": "Tedarikçi Plus",
+  "account": "kurumsal@bogazicitek.example",
+  "title": "Katılım talebi + ön teklif",
+  "steps": "“Aliağa Santrali Kablo ve Pano” → Katılım talebi: 2 kaleme birim fiyat gir, not ekle, gönder.",
+  "expect": "Talep “Cari onayı bekleniyor” görünür; Selin Demir'e bildirim gider."
+ },
+ {
+  "id": "P-03",
+  "role": "Tedarikçi Plus",
+  "account": "kurumsal@bogazicitek.example",
+  "title": "RFI cevap ve revizyon",
+  "steps": "“BT Tedarikçileri Bilgi Güvenliği” RFI'ını kabul et, cevapla; sonra bir cevabı değiştirip tekrar gönder.",
+  "expect": "Plus olduğu için süreç açıkken revize edebilir; son cevaplar formda dolu gelir."
+ },
+ {
+  "id": "P-04",
+  "role": "Tedarikçi Plus",
+  "account": "satis@kapadokyaenerji.example",
+  "title": "Ön teklifin ilk teklif olması",
+  "steps": "“Genel Müdürlük BT Donanım Yenileme”yi aç.",
+  "expect": "Dizüstü kaleminde ön teklifi lider teklif; monitör kaleminde “atlandı” bilgisi görünür."
+ },
+ {
+  "id": "K-01",
+  "role": "Ziyaretçi",
+  "account": "—",
+  "title": "Kendi kaydı",
+  "steps": "Girişte “Tedarikçi olarak kaydolun” → formu doldur (KVKK onayı).",
+  "expect": "Hesap açılır, “onay bekliyor” bilgisi görünür; Admin'e bildirim gider."
+ },
+ {
+  "id": "K-02",
+  "role": "Ziyaretçi",
+  "account": "—",
+  "title": "Davet linki ile kayıt",
+  "steps": "Raporun “Hesaplar” bölümündeki Ege Etiket davet linkini aç, kayıt ol.",
+  "expect": "Kayıt sonrası ilgili ihale açılır ve davet görünür."
+ },
+ {
+  "id": "K-03",
+  "role": "Ziyaretçi",
+  "account": "—",
+  "title": "Hatalı şifre kilidi",
+  "steps": "Bir satınalmacı hesabıyla 4 kez yanlış şifre gir.",
+  "expect": "4. denemede hesap kilitlenir ve mesaj bunu söyler; Admin kilidi açabilir."
+ },
+ {
+  "id": "K-04",
+  "role": "Herkes",
+  "account": "—",
+  "title": "Dil ve mobil",
+  "steps": "Sağ üstten English'e geç; telefonda (veya dar pencerede) panel, ihale listesi ve teklif ekranını kullan.",
+  "expect": "Tüm metinler İngilizce; yatay kaydırma olmadan kullanılabilir."
+ },
+ {
+  "id": "N-01",
+  "role": "Satınalmacı",
+  "account": "ahmet.yilmaz@kuzey.local",
+  "title": "Yayın onayı iste",
+  "steps": "İhaleler → yeni bir taslak oluştur (Holding) → Durum Yönetimi'nde “Yayın onayı iste” → tarih seç ve gönder.",
+  "expect": "Panelde “Yayın onayı bekleniyor” görünür; doğrudan “Yayınla” yoktur; Admin'e bildirim gider."
+ },
+ {
+  "id": "N-02",
+  "role": "Admin",
+  "account": "admin@procurelive.local",
+  "title": "Yayın onayı ver / reddet",
+  "steps": "Panel → “Yayın onayı bekleyen ihaleler” → “2027 Yılı Kırtasiye Çerçeve Alımı” → önce gerekçeyle Reddet, satınalmacı yeniden isteyince Onayla.",
+  "expect": "Ret gerekçesi taslakta görünür; onayda ihale Planlandı olur; satınalmacıya her adımda bildirim gider."
+ },
+ {
+  "id": "N-03",
+  "role": "Satınalmacı",
+  "account": "burak.celik@kuzey.local",
+  "title": "Kazanan seç ve sipariş aç",
+  "steps": "“Manisa Depo Raf Sistemi Alımı” → her kalemde Kazanan Seç (onay penceresi) → “Kazananlardan sipariş taslağı oluştur”.",
+  "expect": "İhale Sonuçlandı olur; tedarikçi başına bir sipariş taslağı açılır (PO-…)."
+ },
+ {
+  "id": "N-04",
+  "role": "Satınalmacı",
+  "account": "ahmet.yilmaz@kuzey.local",
+  "title": "Siparişi düzenle ve gönder",
+  "steps": "Siparişler → PO-2026-0005 (taslak) → teslim tarihi ve not gir → Kaydet → “Tedarikçiye gönder”.",
+  "expect": "Durum Gönderildi olur, artık düzenlenemez; tedarikçiye “Yeni Sipariş” bildirimi gider."
+ },
+ {
+  "id": "N-05",
+  "role": "Tedarikçi",
+  "account": "satis@anadoluofis.example",
+  "title": "Siparişi onayla",
+  "steps": "Bildirimden veya Siparişlerim'den gönderilen siparişi aç → “Siparişi onayla” → teslim notu yaz.",
+  "expect": "Sipariş Onaylandı olur, not görünür; satınalmacıya bildirim gider. Taslak siparişler bu listede yoktur."
+ },
+ {
+  "id": "N-06",
+  "role": "Tedarikçi",
+  "account": "teklif@egebilisim.example",
+  "title": "Süreçte soru sor",
+  "steps": "“Genel Müdürlük BT Donanım Yenileme” → sayfa sonundaki Soru-cevap → soru gönder.",
+  "expect": "Soru “Cevap bekleniyor” olarak listelenir; satınalmacıya bildirim gider."
+ },
+ {
+  "id": "N-07",
+  "role": "Satınalmacı",
+  "account": "ahmet.yilmaz@kuzey.local",
+  "title": "Soruyu cevapla, duyuru yap",
+  "steps": "Bildirime tıkla (soru-cevap bölümüne iner) → soruyu “herkese açık” cevapla → tüm katılımcılara bir duyuru yayınla.",
+  "expect": "Diğer tedarikçiler cevabı soran firma adı olmadan ve duyuruyu görür; hepsine bildirim gider."
+ },
+ {
+  "id": "N-08",
+  "role": "Tedarikçi",
+  "account": "teklif@egebilisim.example",
+  "title": "Belge yükle",
+  "steps": "Firma Ayarları → Belgeler → “Belge ekle” → tür, ad, son geçerlilik (ör. 10 gün sonra), PDF yükle → Kaydet.",
+  "expect": "Belge “Yakında doluyor” rozetiyle listelenir; satınalmacı cari kartında aynı belgeyi görür."
+ },
+ {
+  "id": "N-09",
+  "role": "Admin",
+  "account": "admin@procurelive.local",
+  "title": "Satınalmacı işlem yetkisi",
+  "steps": "Yetkiler → “Satınalmacı işlem yetkileri”nde “Ürün kartı yönetme”yi kaldır → Kaydet. Bir satınalmacıyla Ürünler'e gir. Sonra geri ver.",
+  "expect": "Satınalmacıda “Yeni Ürün” düğmesi görünmez; API'den denese de 403 alır."
+ },
+ {
+  "id": "N-10",
+  "role": "Herkes",
+  "account": "—",
+  "title": "Bildirimden kayda git",
+  "steps": "Bildirim zilini aç → bir ihale/sipariş/soru bildirimine tıkla; sonra panel açıkken dışarı tıkla veya Esc'e bas.",
+  "expect": "İlgili kayıt (gerekirse ilgili bölüm) açılır; panel dışarı tıklayınca veya Esc ile kapanır."
+ },
+ {
+  "id": "N-11",
+  "role": "Herkes",
+  "account": "—",
+  "title": "Tema ve renk paleti",
+  "steps": "Hesap → Ayarlar → koyu mod, bir hazır palet ve örnek paletten özel vurgu rengi seç; kenar çubuğu stilini değiştir.",
+  "expect": "Tüm ekran seçilen renklere geçer; çıkış/giriş sonrası tercih korunur; okunması zor renkte uyarı çıkar."
+ },
+ {
+  "id": "N-12",
+  "role": "Ziyaretçi",
+  "account": "—",
+  "title": "Şifremi unuttum",
+  "steps": "Girişte “Şifremi unuttum” → bir satınalmacı e-postası gir. (E-posta simülasyonda: bağlantı API günlüğüne yazılır.)",
+  "expect": "Aynı nötr mesaj gösterilir; bağlantıyla yeni şifre belirlenir; Profilim'den şifre değiştirilebilir."
+ }
+]

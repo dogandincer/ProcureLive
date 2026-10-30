@@ -9,6 +9,7 @@ import {
 // Grid, store'u tek kaynak olarak tüketir (props/emit yerine) — tasarım kararı.
 const { lines, lineCount, addBlankLine, removeLine, moveLine, applyDeliveryDateToAll } = useTenderForm();
 const { t } = useI18n();
+const { ask } = useConfirm();
 
 // Satır bazlı şartname düzenlemesi üst bileşene (drawer) bırakılır.
 const emit = defineEmits<{ (e: "edit-spec", tempId: string): void }>();
@@ -35,8 +36,8 @@ const totalSize = computed(() => rowVirtualizer.value.getTotalSize());
 // Header ile satırların aynı kolon şablonunu paylaşması için tek kaynak.
 const GRID_COLS = "44px minmax(200px,1fr) 88px 120px 120px 150px 84px 92px";
 
-function confirmRemove(tempId: string, name: string) {
-  if (confirm(t("tender.grid.removeConfirm", { name: name || "—" }))) removeLine(tempId);
+async function confirmRemove(tempId: string, name: string) {
+  if ((await ask({ title: t("tender.grid.removeConfirm", { name: name || "—" }), tone: "danger", confirmLabel: t("common.delete") }))) removeLine(tempId);
 }
 </script>
 

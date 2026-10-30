@@ -23,6 +23,12 @@ public sealed class ExceptionHandlingMiddleware
         {
             await _next(context);
         }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            // İstemci bağlantıyı kapattı; yanıt okunmayacak. 499 (client closed request) ile sessizce bitir.
+            _logger.LogInformation("İstek istemci tarafından iptal edildi: {Method} {Path}", context.Request.Method, context.Request.Path);
+            if (!context.Response.HasStarted) context.Response.StatusCode = 499;
+        }
         catch (Exception exception)
         {
             await HandleExceptionAsync(context, exception);

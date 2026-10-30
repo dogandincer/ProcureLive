@@ -1,35 +1,24 @@
 <script setup lang="ts">
-import type { AuctionDto, CurrencyDto, PagedResult } from "~/types/api";
+import { PlusIcon } from "@heroicons/vue/24/outline";
+import type { AuctionDto, PagedResult } from "~/types/api";
 
+/**
+ * İhale listesi. Yeni ihale tek yoldan (sihirbaz) açılır. Durum süzgeci adres çubuğuyla senkron (?status=),
+ * panodaki "Yapılacaklar" bağlantıları listeyi süzülmüş açar. Başlıkta firma/işyeri seçimine uyar.
+ */
 const api = useApi();
 const { can } = usePermissions();
 const toast = useToast();
 const { t } = useI18n();
 const { formatDateTime } = useDateFormat();
+const route = useRoute();
 
 const auctions = ref<AuctionDto[]>([]);
-const currencies = ref<CurrencyDto[]>([]);
-const showForm = ref(false);
-const submitting = ref(false);
 const loading = ref(true);
+const status = ref(typeof route.query.status === "string" ? route.query.status : "");
 
 const { selectedFirmId } = useFirm();
 const { selectedWorkspaceId } = useWorkspace();
-
-const form = reactive({
-  title: "",
-  description: "",
-  auctionType: "English",
-  ownerCompanyId: "",
-  workspaceId: "",
-  currencyId: "",
-  startAt: "",
-  endAt: "",
-  extensionRuleMinutes: 2,
-  isListedForPlus: false,
-});
-
-const auctionTypes = ["English", "Dutch", "ReverseSealed", "SealedBid"];
 
 const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "rose"> = {
   Draft: "slate",
@@ -40,34 +29,29 @@ const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "ros
   Awarded: "indigo",
   Cancelled: "rose",
 };
+const statusOptions = computed(() =>
+  ["Draft", "Scheduled", "Live", "Paused", "Ended", "Awarded", "Cancelled"].map((s) => ({ value: s, label: t(`enums.auctionStatus.${s}`) })),
+);
 
 // Başlıktaki firma/işyeri açılışta art arda kurulur ve her değişim yeniden yükler; geç dönen eski (ör. filtresiz)
 // yanıt yenisinin üzerine yazmasın diye yalnızca son isteğin sonucu uygulanır.
 let loadSeq = 0;
 const { page: listPage, total: listTotal, search: listSearch, pageSize: listPageSize, params: listParams, resetAndLoad } = usePagedList(() => load());
 
-
 async function load() {
   const seq = ++loadSeq;
   loading.value = true;
   try {
-    const [auctionPage, currencyList] = await Promise.all([
-      // Başlıkta işyeri seçiliyse yalnızca o işyerinin ihaleleri; "Tüm İşyerleri"nde firmanın tümü.
-      api.get<PagedResult<AuctionDto>>("/api/auctions", {
-        ...listParams(),
-        firmId: selectedFirmId.value ?? undefined,
-        workspaceId: selectedWorkspaceId.value ?? undefined,
-      }),
-      api.get<CurrencyDto[]>("/api/currencies"),
-    ]);
+    // Başlıkta işyeri seçiliyse yalnızca o işyerinin ihaleleri; "Tüm İşyerleri"nde firmanın (ya da tüm firmaların) tümü.
+    const result = await api.get<PagedResult<AuctionDto>>("/api/auctions", {
+      ...listParams(),
+      status: status.value || undefined,
+      firmId: selectedFirmId.value ?? undefined,
+      workspaceId: selectedWorkspaceId.value ?? undefined,
+    });
     if (seq !== loadSeq) return;
-    auctions.value = auctionPage.items;
-    listTotal.value = auctionPage.totalCount;
-    currencies.value = currencyList;
-
-    if (!form.currencyId && currencies.value.length > 0) {
-      form.currencyId = currencies.value.find((c) => c.isBaseCurrency)?.id ?? currencies.value[0].id;
-    }
+    auctions.value = result.items;
+    listTotal.value = result.totalCount;
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("auctions.loadError")));
   } finally {
@@ -75,142 +59,68 @@ async function load() {
   }
 }
 
-async function createAuction() {
-  submitting.value = true;
-  try {
-    const id = await api.post<string>("/api/auctions", {
-      title: form.title,
-      description: form.description || null,
-      auctionType: form.auctionType,
-      ownerCompanyId: form.ownerCompanyId,
-      currencyId: form.currencyId,
-      startAt: new Date(form.startAt).toISOString(),
-      endAt: new Date(form.endAt).toISOString(),
-      reservePrice: null,
-      minDecrementAmount: null,
-      minDecrementPercentage: null,
-      extensionRuleMinutes: form.extensionRuleMinutes,
-      isListedForPlus: form.isListedForPlus,
-      workspaceId: form.workspaceId || null,
-    });
-    toast.success(t("auctions.createdToast"));
-    await navigateTo(`/admin/auctions/${id}`);
-  } catch (error: any) {
-    toast.error(apiErrorMessage(error, t("auctions.createError")));
-  } finally {
-    submitting.value = false;
-  }
-}
-
 onMounted(load);
-watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
+watch([selectedFirmId, selectedWorkspaceId, status], () => resetAndLoad());
+watch(() => route.query.status, (v) => { status.value = typeof v === "string" ? v : ""; });
 </script>
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800">{{ $t("auctions.title") }}</h1>
-      <div class="flex items-center gap-2">
-        <NuxtLink v-if="can('auctions.manage')" to="/admin/auctions/create" class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
-          {{ $t("tender.wizard.title") }}
-        </NuxtLink>
-        <AppButton v-if="can('auctions.manage')" variant="secondary" @click="showForm = !showForm">
-          {{ showForm ? $t("common.cancel") : $t("auctions.new") }}
-        </AppButton>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="text-xl font-bold text-slate-800">{{ $t("auctions.title") }}</h1>
+        <p class="mt-0.5 text-sm text-slate-500">{{ $t("auctions.subtitle") }}</p>
       </div>
+      <NuxtLink
+        v-if="can('auctions.manage')"
+        to="/admin/auctions/create"
+        class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+        data-testid="new-auction"
+      >
+        <PlusIcon class="h-4 w-4" />{{ $t("auctions.new") }}
+      </NuxtLink>
     </div>
 
-    <form v-if="showForm" class="space-y-4 rounded-xl border border-slate-200 bg-surface p-5" @submit.prevent="createAuction">
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div class="sm:col-span-2">
-          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.title") }}</label>
-          <input v-model="form.title" required class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        </div>
-        <div class="sm:col-span-2">
-          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.description") }}</label>
-          <textarea v-model="form.description" rows="2" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.auctionType") }}</label>
-          <select v-model="form.auctionType" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
-            <option v-for="at in auctionTypes" :key="at" :value="at">{{ $t(`enums.auctionType.${at}`) }}</option>
-          </select>
-        </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.extensionMinutes") }}</label>
-          <input v-model.number="form.extensionRuleMinutes" type="number" min="0" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        </div>
-        <!-- Sahip yalnızca firma olabilir (tedarikçi cari seçilemez); işyeri başlıktaki seçimle dolar -->
-        <div class="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-2">
-          <FirmWorkspaceSelect v-model:owner="form.ownerCompanyId" v-model:workspace="form.workspaceId" />
-        </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.currency") }}</label>
-          <select v-model="form.currencyId" required class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
-            <option v-for="c in currencies" :key="c.id" :value="c.id">{{ c.code }}</option>
-          </select>
-        </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.startAt") }}</label>
-          <input v-model="form.startAt" type="datetime-local" required class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">{{ $t("auctions.form.endAt") }}</label>
-          <input v-model="form.endAt" type="datetime-local" required class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        </div>
-        <label class="flex items-start gap-2 text-sm text-slate-700 sm:col-span-2">
-          <input v-model="form.isListedForPlus" type="checkbox" class="mt-0.5 rounded" />
-          <span>
-            {{ $t("tender.wizard.f.listedForPlus") }}
-            <span class="block text-xs text-slate-400">{{ $t("tender.wizard.f.listedForPlusHint") }}</span>
-          </span>
-        </label>
-      </div>
-
-      <AppButton type="submit" :loading="submitting">
-        {{ submitting ? $t("auctions.form.creating") : $t("auctions.form.createDraft") }}
-      </AppButton>
-      <p class="text-xs text-slate-400">{{ $t("auctions.form.hint") }}</p>
-    </form>
-
     <AppCard>
-      <input v-model="listSearch" type="search" :placeholder="$t('pager.search.auctions')" :aria-label="$t('pager.search.auctions')" class="mb-3 w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <input v-model="listSearch" type="search" :placeholder="$t('pager.search.auctions')" :aria-label="$t('pager.search.auctions')" class="w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
+        <StatusFilter v-model="status" :options="statusOptions" />
+      </div>
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
               <th class="pb-2">{{ $t("auctions.table.title") }}</th>
-              <th class="pb-2">{{ $t("auctions.table.owner") }}</th>
-              <th class="pb-2">{{ $t("auctions.table.type") }}</th>
+              <th class="hidden pb-2 md:table-cell">{{ $t("auctions.table.owner") }}</th>
+              <th class="hidden pb-2 lg:table-cell">{{ $t("auctions.table.type") }}</th>
               <th class="pb-2">{{ $t("common.status") }}</th>
-              <th class="pb-2">{{ $t("auctions.table.items") }}</th>
-              <th class="pb-2">{{ $t("auctions.table.invitations") }}</th>
-              <th class="pb-2">{{ $t("auctions.table.endsAt") }}</th>
-              <th class="pb-2"></th>
+              <th class="hidden pb-2 text-right lg:table-cell">{{ $t("auctions.table.items") }}</th>
+              <th class="hidden pb-2 text-right lg:table-cell">{{ $t("auctions.table.invitations") }}</th>
+              <th class="hidden pb-2 sm:table-cell">{{ $t("auctions.table.endsAt") }}</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="a in auctions" :key="a.id" class="border-b border-slate-50">
-              <td class="py-2 font-medium text-slate-700">{{ a.title }}</td>
-              <td class="py-2 text-slate-500">
+            <tr v-for="a in auctions" :key="a.id" class="border-b border-slate-50 hover:bg-slate-50/60">
+              <td class="py-2.5 pr-3">
+                <NuxtLink :to="`/admin/auctions/${a.id}`" class="font-medium text-slate-800 hover:text-indigo-600 hover:underline">{{ a.title }}</NuxtLink>
+                <span class="block text-[11px] text-slate-400 md:hidden">{{ a.ownerCompanyName }}</span>
+              </td>
+              <td class="hidden py-2.5 text-slate-500 md:table-cell">
                 {{ a.ownerCompanyName }}
                 <span v-if="a.workspaceName" class="block text-[11px] text-slate-400">{{ a.workspaceName }}</span>
               </td>
-              <td class="py-2 text-slate-500">{{ $t(`enums.auctionType.${a.auctionType}`) }}</td>
-              <td class="py-2">
+              <td class="hidden py-2.5 text-slate-500 lg:table-cell">{{ $t(`enums.auctionType.${a.auctionType}`) }}</td>
+              <td class="py-2.5">
                 <AppBadge :tone="statusTone[a.status]">{{ $t(`enums.auctionStatus.${a.status}`) }}</AppBadge>
               </td>
-              <td class="py-2 text-slate-500">{{ a.itemCount }}</td>
-              <td class="py-2 text-slate-500">{{ a.invitationCount }}</td>
-              <td class="py-2 text-slate-500">{{ formatDateTime(a.endAt) }}</td>
-              <td class="py-2 text-right">
-                <NuxtLink :to="`/admin/auctions/${a.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink>
-              </td>
+              <td class="hidden py-2.5 text-right tabular-nums text-slate-500 lg:table-cell">{{ a.itemCount }}</td>
+              <td class="hidden py-2.5 text-right tabular-nums text-slate-500 lg:table-cell">{{ a.invitationCount }}</td>
+              <td class="hidden py-2.5 text-slate-500 sm:table-cell">{{ formatDateTime(a.endAt) }}</td>
             </tr>
           </tbody>
         </table>
-        <EmptyState v-if="auctions.length === 0">{{ $t("auctions.empty") }}</EmptyState>
+        <EmptyState v-if="auctions.length === 0">{{ status ? $t("auctions.emptyFiltered") : $t("auctions.empty") }}</EmptyState>
         <ListPager v-model:page="listPage" :total="listTotal" :page-size="listPageSize" />
       </div>
     </AppCard>

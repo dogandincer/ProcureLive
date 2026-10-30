@@ -52,6 +52,12 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
         bool requiresApproval = false;
         ParticipationRequestDto? myRequest = null;
 
+        // Taslak ihale yalnızca iç kullanıcıya görünür; tedarikçiye başlığı dahil hiçbir bilgi dönmez.
+        if (!isInternalUser && auction.Status == AuctionStatus.Draft)
+        {
+            throw new NotFoundException(nameof(Auction), request.Id);
+        }
+
         if (!isInternalUser)
         {
             if (viewerCompanyId is not Guid companyId)

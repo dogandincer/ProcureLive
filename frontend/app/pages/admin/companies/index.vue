@@ -5,10 +5,11 @@ import { MagnifyingGlassIcon, StarIcon, TrashIcon } from "@heroicons/vue/24/outl
 
 /** Cari ekranı: davetle veya kendi kaydıyla gelen tedarikçiler (Firma tanımı Firma Tanım ekranındadır). */
 const api = useApi();
+const { ask } = useConfirm();
 const { can } = usePermissions();
 const toast = useToast();
 const { t } = useI18n();
-const { selectedWorkspaceId, selectedWorkspace, workspaces } = useWorkspace();
+const { selectedWorkspaceId, workspaces } = useWorkspace();
 const { selectedFirmId } = useFirm();
 const companies = ref<CompanyDto[]>([]);
 const sectors = ref<SectorDto[]>([]);
@@ -25,13 +26,23 @@ const emptyForm = () => ({
 const form = reactive(emptyForm());
 const statuses = ["PendingApproval", "Active", "Passive"];
 const statusDrafts = reactive<Record<string, string>>({});
+const route = useRoute();
+const statusFilter = ref(typeof route.query.status === "string" ? route.query.status : "");
+const statusOptions = computed(() => statuses.map((s) => ({ value: s, label: t(`enums.companyStatus.${s}`) })));
 
-// Ek görünür işyerleri: başlıktaki firmanın diğer aktif işyerleri (birincil = seçili işyeri).
-const workspaceOptions = computed(() =>
-  workspaces.value
-    .filter((w) => w.isActive && w.firmId === selectedFirmId.value && w.id !== selectedWorkspaceId.value)
-    .map((w) => ({ value: w.id, label: w.name })),
-);
+// Birincil işyeri formda seçilir (başlıktaki seçim önerilir); ek görünür işyerleri aynı firmanın diğer aktif işyerleri.
+const primaryWorkspaceId = ref("");
+const importWorkspaceId = ref("");
+function extraWorkspaceOptions(primaryId: string) {
+  const firmId = workspaces.value.find((w) => w.id === primaryId)?.firmId;
+  return workspaces.value
+    .filter((w) => w.isActive && w.firmId === firmId && w.id !== primaryId)
+    .map((w) => ({ value: w.id, label: w.name }));
+}
+const workspaceOptions = computed(() => extraWorkspaceOptions(primaryWorkspaceId.value));
+watch(primaryWorkspaceId, () => {
+  form.visibleWorkspaceIds = form.visibleWorkspaceIds.filter((id) => workspaceOptions.value.some((o) => o.value === id));
+});
 const sectorOptions = computed(() => sectors.value.filter((s) => s.isActive).map((s) => ({ value: s.id, label: s.name })));
 
 // TCKN/VKN lookup (simulated auto-fill)
@@ -92,7 +103,6 @@ function resolveNames(names: string[], pool: { value: string; label: string }[],
 }
 
 async function importCompanyRow(row: Record<string, string | number | boolean | null>) {
-  if (!selectedWorkspaceId.value) throw { data: { title: t("workspaceGate.selectFirst") } };
   const userEmail = text(row.userEmail);
   const [first, ...rest] = text(row.name).split(" ");
   await api.post("/api/companies", {
@@ -102,11 +112,11 @@ async function importCompanyRow(row: Record<string, string | number | boolean | 
     taxOffice: text(row.taxOffice),
     companyType: "Supplier",
     website: null,
-    workspaceId: selectedWorkspaceId.value,
+    workspaceId: importWorkspaceId.value || null,
     email: text(row.email) || null,
     phone: text(row.phone) || null,
     sectorIds: resolveNames(splitList(row.sectors), sectorOptions.value, "companies.import.unknownSector"),
-    visibleWorkspaceIds: resolveNames(splitList(row.workspaces), workspaceOptions.value, "companies.import.unknownWorkspace"),
+    visibleWorkspaceIds: resolveNames(splitList(row.workspaces), extraWorkspaceOptions(importWorkspaceId.value), "companies.import.unknownWorkspace"),
     userEmail: userEmail || null,
     userPassword: userEmail ? text(row.userPassword) : null,
     userFirstName: userEmail ? text(row.userFirstName) || first || text(row.name) : null,
@@ -124,7 +134,7 @@ async function load() {
   const seq = ++loadSeq;
   loading.value = true;
   try {
-    const params: Record<string, unknown> = { ...listParams("searchTerm"), companyType: "Supplier" };
+    const params: Record<string, unknown> = { ...listParams("searchTerm"), companyType: "Supplier", status: statusFilter.value || undefined };
     // "Tüm İşyerleri": başlıktaki firmanın işyerleriyle sınırlı.
     if (selectedWorkspaceId.value) params.workspaceId = selectedWorkspaceId.value;
     else if (selectedFirmId.value) params.firmId = selectedFirmId.value;
@@ -167,10 +177,6 @@ async function saveStatus(company: CompanyDto) {
 }
 
 async function create() {
-  if (!selectedWorkspaceId.value) {
-    toast.error(t("workspaceGate.selectFirst"));
-    return;
-  }
   submitting.value = true;
   try {
     await api.post("/api/companies", {
@@ -180,7 +186,7 @@ async function create() {
       taxOffice: form.taxOffice,
       companyType: "Supplier",
       website: form.website || null,
-      workspaceId: selectedWorkspaceId.value || null,
+      workspaceId: primaryWorkspaceId.value || null,
       tradeName: form.tradeName || null,
       mersisNo: form.mersisNo || null,
       phone: form.phone || null,
@@ -209,7 +215,7 @@ async function create() {
 
 const deleting = ref<string | null>(null);
 async function deleteCompany(c: CompanyDto) {
-  if (!confirm(t("companies.deleteConfirm", { name: c.name }))) return;
+  if (!(await ask({ title: t("companies.deleteConfirm", { name: c.name }), tone: "danger", confirmLabel: t("common.delete") }))) return;
   deleting.value = c.id;
   try {
     await api.delete(`/api/companies/${c.id}`);
@@ -230,10 +236,9 @@ async function loadSectors() {
   }
 }
 
-watch([selectedWorkspaceId, selectedFirmId], () => {
-  form.visibleWorkspaceIds = [];
-  resetAndLoad();
-});
+watch([selectedWorkspaceId, selectedFirmId], () => resetAndLoad());
+watch(statusFilter, () => resetAndLoad());
+watch(() => route.query.status, (v) => { statusFilter.value = typeof v === "string" ? v : ""; });
 onMounted(() => {
   load();
   loadSectors();
@@ -248,7 +253,9 @@ onMounted(() => {
         <p class="text-sm text-slate-500">{{ $t("companies.subtitle") }}</p>
       </div>
       <div class="flex gap-2">
-        <ExcelImportButton :columns="importColumns" template-filename="cariler-sablon.xlsx" :import-row="importCompanyRow" @imported="load" />
+        <ExcelImportButton :columns="importColumns" template-filename="cariler-sablon.xlsx" :import-row="importCompanyRow" @imported="load">
+          <template #options><WorkspaceField v-model="importWorkspaceId" :label="$t('excelImport.targetWorkspace')" :hint="$t('companies.import.workspaceHint')" /></template>
+        </ExcelImportButton>
         <AppButton v-if="can('companies.manage')" @click="showForm = !showForm">
           {{ showForm ? $t("common.cancel") : $t("companies.new") }}
         </AppButton>
@@ -276,24 +283,21 @@ onMounted(() => {
         <p class="mt-1 text-[11px] text-indigo-500">{{ $t("companies.lookup.hint") }}</p>
       </div>
 
-      <p class="text-xs text-slate-500">
-        {{ $t("companies.form.primaryWorkspace") }}:
-        <span class="font-semibold text-slate-700">{{ selectedWorkspace?.name ?? "—" }}</span>
-      </p>
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <input v-model="form.code" :placeholder="$t('companies.form.code')" maxlength="30" class="rounded-md border border-slate-300 px-3 py-2 text-sm uppercase" />
-        <input v-model="form.name" :placeholder="$t('companies.form.name')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <input v-model="form.tradeName" :placeholder="$t('companies.form.tradeName')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <input v-model="form.taxNumber" :placeholder="$t('companies.form.taxNumber')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <input v-model="form.taxOffice" :placeholder="$t('companies.form.taxOffice')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <input v-model="form.mersisNo" :placeholder="$t('companies.form.mersisNo')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <input v-model="form.phone" :placeholder="$t('companies.form.phone')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <input v-model="form.email" type="email" :placeholder="$t('companies.form.email')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <input v-model="form.foundationYear" type="number" :placeholder="$t('companies.form.foundationYear')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <input v-model="form.employeeCount" type="number" :placeholder="$t('companies.form.employeeCount')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <input v-model="form.website" :placeholder="$t('companies.form.website')" class="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
-        <textarea v-model="form.description" rows="2" :placeholder="$t('companies.form.description')" class="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
+        <WorkspaceField v-model="primaryWorkspaceId" :label="$t('companies.form.primaryWorkspace')" class="sm:col-span-2" />
+        <FormField :label="$t('companies.form.code')"><input v-model="form.code" maxlength="30" class="rounded-md border border-slate-300 px-3 py-2 text-sm uppercase" /></FormField>
+        <FormField :label="$t('companies.form.name')" required><input v-model="form.name" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
+        <FormField :label="$t('companies.form.tradeName')"><input v-model="form.tradeName" class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
+        <FormField :label="$t('companies.form.taxNumber')" required><input v-model="form.taxNumber" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
+        <FormField :label="$t('companies.form.taxOffice')" required><input v-model="form.taxOffice" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
+        <FormField :label="$t('companies.form.mersisNo')"><input v-model="form.mersisNo" class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
+        <FormField :label="$t('companies.form.phone')"><input v-model="form.phone" class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
+        <FormField :label="$t('companies.form.email')"><input v-model="form.email" type="email" class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
+        <FormField :label="$t('companies.form.foundationYear')"><input v-model="form.foundationYear" type="number" class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
+        <FormField :label="$t('companies.form.employeeCount')"><input v-model="form.employeeCount" type="number" class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
+        <FormField :label="$t('companies.form.website')" class="sm:col-span-2"><input v-model="form.website" class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
+        <FormField :label="$t('companies.form.description')" class="sm:col-span-2"><textarea v-model="form.description" rows="2" class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
       </div>
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -310,20 +314,25 @@ onMounted(() => {
         <legend class="px-1 text-xs font-semibold text-slate-600">{{ $t("companies.form.userSection") }}</legend>
         <p class="mb-2 text-[11px] text-slate-400">{{ $t("companies.form.userHint") }}</p>
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <input v-model="form.userEmail" type="email" autocomplete="off" :placeholder="$t('companies.form.userEmail')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <input v-model="form.userPassword" type="password" autocomplete="new-password" minlength="8" :required="!!form.userEmail" :placeholder="$t('companies.form.userPassword')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <input v-model="form.userFirstName" :required="!!form.userEmail" :placeholder="$t('companies.form.userFirstName')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <input v-model="form.userLastName" :required="!!form.userEmail" :placeholder="$t('companies.form.userLastName')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+          <FormField :label="$t('companies.form.userEmail')"><input v-model="form.userEmail" type="email" autocomplete="off" class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
+          <FormField :label="$t('companies.form.userPassword')"><input v-model="form.userPassword" type="password" autocomplete="new-password" minlength="8" :required="!!form.userEmail" class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
+          <FormField :label="$t('companies.form.userFirstName')"><input v-model="form.userFirstName" :required="!!form.userEmail" class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
+          <FormField :label="$t('companies.form.userLastName')"><input v-model="form.userLastName" :required="!!form.userEmail" class="rounded-md border border-slate-300 px-3 py-2 text-sm" /></FormField>
         </div>
       </fieldset>
 
-      <AppButton type="submit" :loading="submitting">
-        {{ submitting ? $t("common.saving") : $t("common.save") }}
-      </AppButton>
+      <div class="flex justify-end">
+        <AppButton type="submit" :loading="submitting">
+          {{ submitting ? $t("common.saving") : $t("common.save") }}
+        </AppButton>
+      </div>
     </form>
 
     <AppCard>
-      <input v-model="listSearch" type="search" :placeholder="$t('pager.search.companies')" :aria-label="$t('pager.search.companies')" class="mb-3 w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <input v-model="listSearch" type="search" :placeholder="$t('pager.search.companies')" :aria-label="$t('pager.search.companies')" class="w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
+        <StatusFilter v-model="statusFilter" :options="statusOptions" />
+      </div>
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -341,7 +350,7 @@ onMounted(() => {
           <tbody>
             <tr v-for="c in companies" :key="c.id" class="border-b border-slate-50">
               <td class="whitespace-nowrap py-2 font-mono text-xs text-slate-500">{{ c.code ?? "—" }}</td>
-              <td class="py-2 font-medium text-slate-700">{{ c.name }}</td>
+              <td class="py-2"><NuxtLink :to="`/admin/companies/${c.id}`" class="font-medium text-slate-800 hover:text-indigo-600 hover:underline">{{ c.name }}</NuxtLink></td>
               <td class="py-2 text-slate-500">{{ c.taxNumber }}</td>
               <td class="py-2 text-xs text-slate-500">
                 <span v-if="c.workspaceName" class="font-medium text-slate-600">{{ c.workspaceName }}</span>

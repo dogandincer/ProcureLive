@@ -103,7 +103,7 @@ onMounted(load);
         <AppButton variant="ghost" @click="print"><PrinterIcon class="h-4 w-4" />{{ $t("orders.print") }}</AppButton>
         <template v-if="canManage">
           <AppButton v-if="order.status === 'Draft'" data-testid="order-send" @click="dialog = 'send'">{{ $t("orders.send") }}</AppButton>
-          <AppButton v-if="order.status === 'Draft' || order.status === 'Sent'" variant="danger" data-testid="order-cancel" @click="dialog = 'cancel'">{{ $t("orders.cancel") }}</AppButton>
+          <AppButton v-if="order.status === 'Draft' || order.status === 'Sent'" variant="danger-outline" data-testid="order-cancel" @click="dialog = 'cancel'">{{ $t("orders.cancel") }}</AppButton>
         </template>
         <AppButton v-if="!internal && order.status === 'Sent'" variant="success" data-testid="order-confirm" @click="dialog = 'confirm'">{{ $t("orders.confirm") }}</AppButton>
       </div>

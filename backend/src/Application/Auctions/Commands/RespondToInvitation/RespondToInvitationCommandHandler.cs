@@ -59,7 +59,8 @@ public sealed class RespondToInvitationCommandHandler : IRequestHandler<RespondT
 
         Auction? auction = await _context.Auctions.FirstOrDefaultAsync(a => a.Id == request.AuctionId, cancellationToken);
 
-        if (auction is null)
+        // Taslak ihaledeki davet tedarikçi için henüz yoktur (yayınlanınca bildirilir).
+        if (auction is null || auction.Status == AuctionStatus.Draft)
         {
             throw new NotFoundException(nameof(Auction), request.AuctionId);
         }

@@ -144,6 +144,9 @@ watch([selectedFirmId, selectedWorkspaceId], load);
     </div>
 
     <!-- Yayın onayı bekleyen ihaleler (yalnızca Admin) -->
+    <!-- Yapılacaklar: sırada bekleyen işler (kapsama göre) -->
+    <DashboardTasks internal />
+
     <PendingApprovalsCard v-if="isAdminRole()" />
 
     <!-- Recent auctions table -->

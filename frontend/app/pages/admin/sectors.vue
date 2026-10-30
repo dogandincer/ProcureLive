@@ -3,6 +3,7 @@ import type { SectorDto } from "~/types/api";
 import { PlusIcon, PencilIcon, TrashIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/vue/24/outline";
 
 const api = useApi();
+const { ask } = useConfirm();
 const toast = useToast();
 const { t } = useI18n();
 
@@ -70,7 +71,7 @@ async function save() {
 }
 
 async function deleteSector(id: string) {
-  if (!confirm(t("sectors.deleteConfirm"))) return;
+  if (!(await ask({ title: t("sectors.deleteConfirm"), tone: "danger", confirmLabel: t("common.delete") }))) return;
   deleting.value = id;
   try {
     await api.delete(`/api/sectors/${id}`);

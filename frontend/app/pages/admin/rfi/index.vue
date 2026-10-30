@@ -8,6 +8,11 @@ const { t } = useI18n();
 const processes = ref<RfiProcessDto[]>([]);
 const templates = ref<RfiTemplateDto[]>([]);
 const loading = ref(true);
+const route = useRoute();
+const status = ref(typeof route.query.status === "string" ? route.query.status : "");
+const statusOptions = computed(() =>
+  ["Draft", "Sent", "InProgress", "Closed", "Evaluated", "Awarded", "Cancelled"].map((s) => ({ value: s, label: t(`enums.processStatus.${s}`) })),
+);
 
 const showTemplateForm = ref(false);
 const showProcessForm = ref(false);
@@ -47,6 +52,7 @@ async function load() {
     const [processPage, templateList] = await Promise.all([
       api.get<PagedResult<RfiProcessDto>>("/api/rfi/processes", {
         ...listParams(),
+        status: status.value || undefined,
         firmId: selectedFirmId.value ?? undefined,
         workspaceId: selectedWorkspaceId.value ?? undefined,
       }),
@@ -117,7 +123,8 @@ async function createProcess() {
 }
 
 onMounted(load);
-watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
+watch([selectedFirmId, selectedWorkspaceId, status], () => resetAndLoad());
+watch(() => route.query.status, (v) => { status.value = typeof v === "string" ? v : ""; });
 </script>
 
 <template>
@@ -189,18 +196,34 @@ watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
       </template>
     </AppCard>
 
-    <form v-if="showProcessForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-surface p-5 sm:grid-cols-2" @submit.prevent="createProcess">
-      <select v-model="processForm.rfiTemplateId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm">
-        <option v-for="tpl in templates" :key="tpl.id" :value="tpl.id">{{ tpl.name }} ({{ tpl.questions.length }} {{ $t("rfi.questionCount") }})</option>
-      </select>
-      <FirmWorkspaceSelect v-model:owner="processForm.ownerCompanyId" v-model:workspace="processForm.workspaceId" />
-      <input v-model="processForm.title" :placeholder="$t('rfi.processForm.titlePlaceholder')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
-      <input v-model="processForm.dueDate" type="datetime-local" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-      <AppButton type="submit">{{ $t("rfi.processForm.create") }}</AppButton>
+    <form v-if="showProcessForm" class="space-y-4 rounded-xl border border-slate-200 bg-surface p-5" data-testid="rfi-process-form" @submit.prevent="createProcess">
+      <h2 class="text-sm font-semibold text-slate-800">{{ $t("rfi.newProcess") }}</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-xs font-medium text-slate-600 sm:col-span-2">{{ $t("rfi.processForm.template") }}
+          <select v-model="processForm.rfiTemplateId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm font-normal text-slate-800">
+            <option v-for="tpl in templates" :key="tpl.id" :value="tpl.id">{{ tpl.name }} ({{ tpl.questions.length }} {{ $t("rfi.questionCount") }})</option>
+          </select>
+        </label>
+        <FirmWorkspaceSelect v-model:owner="processForm.ownerCompanyId" v-model:workspace="processForm.workspaceId" />
+        <label class="flex flex-col gap-1 text-xs font-medium text-slate-600 sm:col-span-2">{{ $t("rfi.processForm.title") }}
+          <input v-model="processForm.title" :placeholder="$t('rfi.processForm.titlePlaceholder')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm font-normal" />
+        </label>
+        <label class="flex flex-col gap-1 text-xs font-medium text-slate-600">{{ $t("rfi.processForm.dueDate") }}
+          <input v-model="processForm.dueDate" type="datetime-local" required class="rounded-md border border-slate-300 px-3 py-2 text-sm font-normal" />
+          <span class="font-normal text-slate-400">{{ $t("rfi.processForm.dueDateHint") }}</span>
+        </label>
+      </div>
+      <div class="flex gap-2">
+        <AppButton type="submit">{{ $t("rfi.processForm.create") }}</AppButton>
+        <AppButton variant="ghost" @click="showProcessForm = false">{{ $t("common.cancel") }}</AppButton>
+      </div>
     </form>
 
     <AppCard>
-      <input v-model="listSearch" type="search" :placeholder="$t('pager.search.rfi')" :aria-label="$t('pager.search.rfi')" class="mb-3 w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <input v-model="listSearch" type="search" :placeholder="$t('pager.search.rfi')" :aria-label="$t('pager.search.rfi')" class="w-full max-w-sm rounded-md border border-slate-300 px-3 py-1.5 text-sm" data-testid="list-search" />
+        <StatusFilter v-model="status" :options="statusOptions" />
+      </div>
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -217,7 +240,7 @@ watch([selectedFirmId, selectedWorkspaceId], () => resetAndLoad());
           <tbody>
             <tr v-for="p in processes" :key="p.id" class="border-b border-slate-50">
               <td class="py-2 font-medium text-slate-700">
-                {{ p.title }}
+                <NuxtLink :to="`/admin/rfi/${p.id}`" class="text-slate-800 hover:text-indigo-600 hover:underline">{{ p.title }}</NuxtLink>
                 <span v-if="p.workspaceName" class="block text-[11px] font-normal text-slate-400">{{ p.ownerCompanyName }} · {{ p.workspaceName }}</span>
               </td>
               <td class="py-2 text-slate-500">{{ p.templateName }}</td>

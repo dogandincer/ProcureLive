@@ -7,6 +7,7 @@ import { CheckIcon, MinusIcon, MagnifyingGlassIcon, BuildingOffice2Icon } from "
  * bir firmayı işaretlemek tüm işyerlerini verir. Sunucu kapsamı her istekte ayrıca uygular (ScopeAuthorizationBehavior).
  */
 const api = useApi();
+const { ask } = useConfirm();
 const toast = useToast();
 const { t } = useI18n();
 const route = useRoute();
@@ -63,7 +64,7 @@ function toggleWorkspace(id: string) {
 }
 
 async function selectUser(id: string) {
-  if (dirty.value && selectedUserId.value && !confirm(t("permissions.discardConfirm"))) return;
+  if (dirty.value && selectedUserId.value && !(await ask({ title: t("permissions.discardConfirm") }))) return;
   selectedUserId.value = id;
   try {
     const access = await api.get<{ userId: string; workspaceIds: string[] }>(`/api/users/${id}/workspace-access`);

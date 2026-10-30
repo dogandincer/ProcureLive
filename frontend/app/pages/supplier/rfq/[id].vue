@@ -23,7 +23,8 @@ const myInvitation = computed(() =>
   process.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId) ?? null,
 );
 
-const accepted = computed(() => !!myInvitation.value && ["Accepted", "Participating"].includes(myInvitation.value.status));
+// Sonuçlanan süreçte davet "Kazandı/Kaybetti" olur; tedarikçi kendi yanıtını ve sonucu görmeye devam eder.
+const accepted = computed(() => !!myInvitation.value && ["Accepted", "Participating", "Won", "Lost"].includes(myInvitation.value.status));
 // Standart kota dolu ve davet kabul edilmemiş: kalemler sunucuda düşürüldü → "Plus alınız".
 const restricted = computed(() => !!process.value && process.value.accessLevel !== "Full");
 const showQa = computed(() => !!process.value && !restricted.value && !!myInvitation.value && myInvitation.value.status !== "Declined");
@@ -154,7 +155,7 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
       <p class="text-sm font-medium text-amber-800">{{ $t("rfq.quote.invitedBanner") }}</p>
       <div class="mt-3 flex gap-2">
         <AppButton @click="accept">{{ $t("common.accept") }}</AppButton>
-        <AppButton variant="danger" @click="showDecline = true">{{ $t("common.decline") }}</AppButton>
+        <AppButton variant="danger-outline" @click="showDecline = true">{{ $t("common.decline") }}</AppButton>
       </div>
       <div v-if="showDecline" class="mt-3 flex gap-2">
         <input v-model="declineReason" :placeholder="$t('common.declineReasonPlaceholder')" class="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
@@ -163,8 +164,10 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
     </div>
 
     <form v-else-if="accepted" class="space-y-4 rounded-xl border border-slate-200 bg-surface p-5" @submit.prevent="submitQuote">
-      <!-- Durum: kapalı süreç / gönderildi (Standart: revizyon Plus'a özel) / Plus: revize edilebilir -->
-      <p v-if="!process.isOpen" class="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-600">{{ $t("rfx.closed") }}</p>
+      <!-- Durum: sonuç / kapalı süreç / gönderildi (Standart: revizyon Plus'a özel) / Plus: revize edilebilir -->
+      <p v-if="myInvitation?.status === 'Won'" class="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800" data-testid="rfq-result">{{ $t("rfq.quote.resultWon") }}</p>
+      <p v-else-if="myInvitation?.status === 'Lost'" class="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700" data-testid="rfq-result">{{ $t("rfq.quote.resultLost") }}</p>
+      <p v-else-if="!process.isOpen" class="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-600">{{ $t("rfx.closed") }}</p>
       <div v-else-if="process.hasSubmitted && !canSubmit" class="flex flex-wrap items-center justify-between gap-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
         <span>{{ $t("rfx.submittedStandardQuote") }}</span>
         <NuxtLink to="/supplier/pricing" class="rounded bg-amber-500 px-2 py-1 font-semibold text-white hover:bg-amber-600">{{ $t("restricted.upgradeCta") }}</NuxtLink>

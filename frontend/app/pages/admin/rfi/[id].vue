@@ -7,6 +7,7 @@ const processId = route.params.id as string;
 const api = useApi();
 const accessState = ref<"forbidden" | "notFound" | null>(null);
 const toast = useToast();
+const { ask } = useConfirm();
 const { t } = useI18n();
 
 const process = ref<RfiProcessDetailDto | null>(null);
@@ -127,6 +128,7 @@ async function exportResponses() {
 }
 
 async function close() {
+  if (!(await ask({ title: t("rfi.detail.closeConfirmTitle"), body: t("rfi.detail.closeConfirmBody"), confirmLabel: t("rfi.detail.closeProcess") }))) return;
   await runAction(async () => {
     await api.post(`/api/rfi/processes/${processId}/close`);
     toast.success(t("rfi.detail.closedToast"));
@@ -166,7 +168,7 @@ onMounted(async () => {
         <AppButton v-if="!['Closed', 'Evaluated', 'Cancelled'].includes(process.status)" variant="secondary" @click="close">
           {{ $t("rfi.detail.closeProcess") }}
         </AppButton>
-        <AppButton v-if="cancellable" variant="danger" data-testid="cancel-process" @click="showCancel = true; cancelReason = ''">
+        <AppButton v-if="cancellable" variant="danger-outline" data-testid="cancel-process" @click="showCancel = true; cancelReason = ''">
           {{ $t("rfx.edit.cancel") }}
         </AppButton>
       </div>

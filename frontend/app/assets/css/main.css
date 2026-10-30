@@ -25,3 +25,8 @@ body,
 body {
   @apply bg-slate-50 text-slate-900;
 }
+
+/* Yapışkan üst çubuk ve bölüm gezintisi bağlantıyla atlanan başlığı örtmesin. */
+main [id] {
+  scroll-margin-top: 7rem;
+}

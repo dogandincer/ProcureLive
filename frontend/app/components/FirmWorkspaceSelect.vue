@@ -14,7 +14,7 @@ watch(
   () => [firms.value.length, selectedFirmId.value],
   () => {
     if (!owner.value || !firms.value.some((f) => f.id === owner.value)) {
-      owner.value = selectedFirmId.value ?? firms.value[0]?.id ?? "";
+      owner.value = selectedFirmId.value ?? firms.value.find((f) => f.isDefault)?.id ?? firms.value[0]?.id ?? "";
     }
   },
   { immediate: true },

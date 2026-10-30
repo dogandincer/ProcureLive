@@ -15,4 +15,5 @@ onMounted(() => load());
     <NuxtPage />
   </NuxtLayout>
   <AppToastContainer />
+  <ConfirmHost />
 </template>

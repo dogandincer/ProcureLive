@@ -23,9 +23,10 @@ public sealed class SupplierAccessService : ISupplierAccessService
 
     public async Task<SupplierAccessContext> GetContextAsync(Guid companyId, CancellationToken cancellationToken)
     {
-        // Tek sorgu: carinin tüm davetleri + ihale sahibi.
+        // Tek sorgu: carinin tüm davetleri + ihale sahibi. Taslak ihaledeki davet tedarikçi için henüz yoktur:
+        // ihale yayınlanana kadar görünmez, kotaya sayılmaz ve sahibini "davet eden firma" yapmaz.
         var invitations = await _context.AuctionInvitations
-            .Where(i => i.CompanyId == companyId)
+            .Where(i => i.CompanyId == companyId && i.Auction.Status != AuctionStatus.Draft)
             .Select(i => new { i.AuctionId, i.Status, i.Origin, OwnerId = i.Auction.OwnerCompanyId })
             .ToListAsync(cancellationToken);
 

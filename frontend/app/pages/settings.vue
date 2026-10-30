@@ -17,6 +17,11 @@ const sidebars: SidebarStyle[] = ["dark", "light", "accent"];
 
 const hexInput = ref(theme.value.customColor);
 watch(() => theme.value.customColor, (v) => (hexInput.value = v));
+// Geçerli tam bir HEX yazıldığında beklemeden uygulanır (Enter/odak kaybı gerekmez).
+watch(hexInput, (v) => {
+  const value = v.startsWith("#") ? v : `#${v}`;
+  if (/^#[0-9a-fA-F]{6}$/.test(value) && value.toLowerCase() !== theme.value.customColor?.toLowerCase()) pickCustom(value);
+});
 
 const current = computed(() => accentScale(theme.value));
 const contrast = computed(() => whiteTextContrast(current.value[600]));

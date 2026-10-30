@@ -1,0 +1,18 @@
+{
+  "tr": {
+    "nav": {
+      "language": "Arayüz dili"
+    },
+    "products": {
+      "createdGoDetail": "Ürün oluşturuldu. Görsel ve 3D modeli bu sayfadan ekleyebilirsiniz."
+    }
+  },
+  "en": {
+    "nav": {
+      "language": "Interface language"
+    },
+    "products": {
+      "createdGoDetail": "Product created. You can add photos and a 3D model on this page."
+    }
+  }
+}

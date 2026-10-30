@@ -4,6 +4,7 @@ import { PlusIcon, PencilIcon, TrashIcon, CheckCircleIcon, XCircleIcon, StarIcon
 import { StarIcon as StarSolid } from "@heroicons/vue/24/solid";
 
 const api = useApi();
+const { ask } = useConfirm();
 const toast = useToast();
 const { t } = useI18n();
 const { workspaces, init } = useWorkspace();
@@ -111,7 +112,7 @@ async function save() {
 }
 
 async function deleteWs(id: string) {
-  if (!confirm(t("workspaces.deleteConfirm"))) return;
+  if (!(await ask({ title: t("workspaces.deleteConfirm"), tone: "danger", confirmLabel: t("common.delete") }))) return;
   deleting.value = id;
   try {
     await api.delete(`/api/workspaces/${id}`);

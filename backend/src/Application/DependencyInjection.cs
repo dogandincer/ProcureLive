@@ -16,10 +16,11 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(assembly);
 
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnhandledExceptionBehavior<,>));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        // Yetki ve kapsam doğrulamadan önce: yetkisiz kullanıcı alan hatalarını (400) değil 403'ü görür.
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ScopeAuthorizationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(Common.Security.PermissionBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
         services.AddAutoMapper(assembly);

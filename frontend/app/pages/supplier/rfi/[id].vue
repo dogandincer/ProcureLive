@@ -23,7 +23,8 @@ const myInvitation = computed(() =>
   process.value?.invitations.find((i) => i.companyId === currentUser.value?.companyId) ?? null,
 );
 
-const accepted = computed(() => !!myInvitation.value && ["Accepted", "Participating"].includes(myInvitation.value.status));
+// Sonuçlanan süreçte davet "Kazandı/Kaybetti" olur; tedarikçi kendi yanıtını ve sonucu görmeye devam eder.
+const accepted = computed(() => !!myInvitation.value && ["Accepted", "Participating", "Won", "Lost"].includes(myInvitation.value.status));
 // Standart kota dolu ve davet kabul edilmemiş: sorular sunucuda düşürüldü → "Plus alınız".
 const restricted = computed(() => !!process.value && process.value.accessLevel !== "Full");
 const showQa = computed(() => !!process.value && !restricted.value && !!myInvitation.value && myInvitation.value.status !== "Declined");
@@ -169,7 +170,7 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
       <p class="text-sm font-medium text-amber-800">{{ $t("rfi.answer.invitedBanner") }}</p>
       <div class="mt-3 flex gap-2">
         <AppButton @click="accept">{{ $t("common.accept") }}</AppButton>
-        <AppButton variant="danger" @click="showDecline = true">{{ $t("common.decline") }}</AppButton>
+        <AppButton variant="danger-outline" @click="showDecline = true">{{ $t("common.decline") }}</AppButton>
       </div>
       <div v-if="showDecline" class="mt-3 flex gap-2">
         <input v-model="declineReason" :placeholder="$t('common.declineReasonPlaceholder')" class="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />

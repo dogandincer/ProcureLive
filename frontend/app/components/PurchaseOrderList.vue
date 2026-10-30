@@ -15,7 +15,9 @@ const { selectedWorkspaceId } = useWorkspace();
 
 const orders = ref<PurchaseOrderListItemDto[]>([]);
 const loading = ref(true);
-const status = ref("");
+const route = useRoute();
+// Panodaki "Yapılacaklar" bağlantısı listeyi süzülmüş açabilir (?status=).
+const status = ref(!props.compact && typeof route.query.status === "string" ? route.query.status : "");
 const basePath = computed(() => (props.internal ? "/admin/orders" : "/supplier/orders"));
 const statuses = computed(() => (props.internal ? ["Draft", "Sent", "Confirmed", "Cancelled"] : ["Sent", "Confirmed", "Cancelled"]));
 
@@ -75,7 +77,7 @@ defineExpose({ reload: load, count: computed(() => total.value) });
         </thead>
         <tbody>
           <tr v-for="o in orders" :key="o.id" class="border-b border-slate-50" data-testid="order-row">
-            <td class="py-2 font-mono text-xs font-semibold text-slate-700">{{ o.orderNumber }}</td>
+            <td class="py-2"><NuxtLink :to="`${basePath}/${o.id}`" class="font-mono text-xs font-semibold text-slate-800 hover:text-indigo-600 hover:underline">{{ o.orderNumber }}</NuxtLink></td>
             <td v-if="!compact" class="py-2 text-slate-600">
               {{ o.sourceTitle }}
               <span class="block text-[11px] text-slate-400">{{ $t(`orders.kind.${o.sourceKind}`) }}</span>

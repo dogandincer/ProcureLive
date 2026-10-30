@@ -42,7 +42,7 @@ const showAllHistory = ref(false);
 
 type ActionKey = "publish" | "startNow" | "resume" | "reopen" | "pause" | "endNow" | "unpublish" | "cancel" | "requestApproval";
 
-const actionStyle: Record<ActionKey, { icon: Component; variant: "primary" | "secondary" | "danger" | "success" }> = {
+const actionStyle: Record<ActionKey, { icon: Component; variant: "primary" | "secondary" | "danger" | "danger-outline" | "success" }> = {
   publish: { icon: RocketLaunchIcon, variant: "primary" },
   startNow: { icon: PlayIcon, variant: "success" },
   resume: { icon: PlayIcon, variant: "success" },
@@ -50,7 +50,7 @@ const actionStyle: Record<ActionKey, { icon: Component; variant: "primary" | "se
   pause: { icon: PauseIcon, variant: "secondary" },
   endNow: { icon: StopIcon, variant: "secondary" },
   unpublish: { icon: ArrowUturnLeftIcon, variant: "secondary" },
-  cancel: { icon: XCircleIcon, variant: "danger" },
+  cancel: { icon: XCircleIcon, variant: "danger-outline" },
   requestApproval: { icon: PaperAirplaneIcon, variant: "primary" },
 };
 
@@ -288,7 +288,7 @@ onMounted(load);
         <p>{{ $t("auctions.approval.pending", { name: panel.approvalRequestedByName ?? "—", date: formatDateTime(panel.approvalRequestedAt) }) }}</p>
         <div v-if="isAdmin" class="flex flex-wrap items-center gap-2">
           <AppButton variant="success" :loading="approvalBusy" data-testid="approval-approve" @click="approve"><CheckBadgeIcon class="h-4 w-4" />{{ $t("auctions.approval.approve") }}</AppButton>
-          <AppButton v-if="!rejecting" variant="danger" data-testid="approval-reject" @click="rejecting = true">{{ $t("auctions.approval.reject") }}</AppButton>
+          <AppButton v-if="!rejecting" variant="danger-outline" data-testid="approval-reject" @click="rejecting = true">{{ $t("auctions.approval.reject") }}</AppButton>
         </div>
         <form v-if="isAdmin && rejecting" class="space-y-2" @submit.prevent="reject">
           <label for="approval-reject-reason" class="block text-xs font-medium">{{ $t("auctions.approval.rejectReason") }}</label>

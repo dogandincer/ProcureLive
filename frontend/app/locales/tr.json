@@ -71,7 +71,8 @@
     "settings": "Ayarlar",
     "profile": "Profilim",
     "orders": "Siparişler",
-    "myOrders": "Siparişlerim"
+    "myOrders": "Siparişlerim",
+    "language": "Arayüz dili"
   },
   "language": {
     "label": "Dil",
@@ -112,7 +113,8 @@
     "successCount": "{count} başarılı",
     "errorCount": "{count} hatalı",
     "rowLabel": "Satır {number}",
-    "rowImportError": "Satır aktarılamadı."
+    "rowImportError": "Satır aktarılamadı.",
+    "targetWorkspace": "Kayıtların açılacağı işyeri"
   },
   "login": {
     "email": "E-posta",
@@ -284,7 +286,7 @@
   },
   "auctions": {
     "title": "İhaleler",
-    "new": "+ Yeni İhale",
+    "new": "Yeni İhale",
     "form": {
       "title": "Başlık",
       "description": "Açıklama",
@@ -624,7 +626,9 @@
       "dashboardHint": "Satınalmacıların onaya gönderdiği taslaklar. Detayda onaylayın veya gerekçeyle reddedin.",
       "requestedBy": "{name}, {date}",
       "plannedStart": "Başlangıç: {date}"
-    }
+    },
+    "subtitle": "İhaleleri durumuna göre süzün, başlığa tıklayarak detayına gidin.",
+    "emptyFiltered": "Bu durumda ihale yok."
   },
   "currencies": {
     "title": "Para Birimleri & Kurlar",
@@ -692,7 +696,10 @@
     "form": {
       "sku": "SKU",
       "name": "Ürün Adı",
-      "brand": "Marka (opsiyonel)"
+      "brand": "Marka (opsiyonel)",
+      "category": "Kategori",
+      "categoryPick": "Kategori seçin",
+      "unit": "Birim"
     },
     "table": {
       "sku": "SKU",
@@ -758,7 +765,8 @@
       },
       "uploadImage": "Görsel yükle",
       "orUrl": "veya bağlantı girin:"
-    }
+    },
+    "createdGoDetail": "Ürün oluşturuldu. Görsel ve 3D modeli bu sayfadan ekleyebilirsiniz."
   },
   "companies": {
     "title": "Cariler",
@@ -779,7 +787,7 @@
       "description": "Açıklama (opsiyonel)",
       "code": "Cari Kodu (boşsa otomatik)",
       "codeAuto": "Boşsa değişmez",
-      "primaryWorkspace": "Birincil işyeri (başlıktaki seçim)",
+      "primaryWorkspace": "Birincil işyeri",
       "sectors": "Sektörler",
       "noSectors": "Tanımlı sektör yok",
       "visibleWorkspaces": "Ek görünür işyerleri",
@@ -840,7 +848,8 @@
       "userLastName": "Kullanıcı Soyadı",
       "unknownSector": "Tanımsız sektör: {name}",
       "unknownWorkspace": "Bu firmada bulunmayan işyeri: {name}",
-      "defaultLastName": "Yetkili"
+      "defaultLastName": "Yetkili",
+      "workspaceHint": "Şablondaki \"İşyerleri\" sütunu bu işyerinin firmasındaki ek görünür işyerleridir."
     },
     "detail": {
       "loadError": "Cari yüklenemedi.",
@@ -900,7 +909,11 @@
       "visibleWorkspaces": "Ek görünür işyerleri",
       "visibleHint": "Cari bu işyerlerinin ihalelerinde onaylı sayılır; davetsiz katılımda talep gerekmez.",
       "visibleSaved": "Görünür işyerleri güncellendi.",
-      "visibleError": "Görünür işyerleri güncellenemedi."
+      "visibleError": "Görünür işyerleri güncellenemedi.",
+      "approve": "Onayla ve aktifleştir",
+      "approved": "Cari onaylandı; tedarikçiye bildirim gönderildi.",
+      "pendingHint": "Bu tedarikçi kendi kaydıyla geldi ve onay bekliyor. Bilgileri kontrol edip onaylayın.",
+      "pendingNeedsWorkspace": "Bu tedarikçi onay bekliyor. Onaylamadan önce birincil işyerini seçin."
     },
     "subtitle": "Davetle ya da kendi kaydıyla gelen tedarikçiler. Firma tanımı Firma Tanım ekranındadır.",
     "users": {
@@ -985,7 +998,11 @@
     "emptyTemplates": "Henüz şablon yok",
     "processForm": {
       "titlePlaceholder": "Süreç Başlığı",
-      "create": "Oluştur"
+      "create": "Oluştur",
+      "template": "Şablon (soru seti)",
+      "title": "Süreç başlığı",
+      "dueDate": "Son yanıt tarihi",
+      "dueDateHint": "Tedarikçiler bu tarihe kadar yanıt verebilir."
     },
     "table": {
       "title": "Başlık",
@@ -1031,7 +1048,9 @@
       "invitedToast": "Cari davet edildi.",
       "evaluationSavedToast": "Değerlendirme kaydedildi.",
       "closedToast": "RFI süreci kapatıldı.",
-      "openAttachment": "Dosyayı aç"
+      "openAttachment": "Dosyayı aç",
+      "closeConfirmTitle": "RFI sürecini kapat",
+      "closeConfirmBody": "Süreç kapanınca tedarikçiler yanıt gönderemez; yanıtlar değerlendirmeye açılır."
     },
     "supplierList": {
       "title": "RFI Davetlerim",
@@ -1133,7 +1152,11 @@
         "weightNote": "Ağırlıklar: Fiyat %70, Teslimat Süresi %30. Normalize edilmiş baz para birimi üzerinden hesaplanır.",
         "hint": "Gönderilmiş teklifleri analiz etmek için butona tıklayın.",
         "error": "AI analizi gerçekleştirilemedi."
-      }
+      },
+      "awardConfirmTitle": "Kazanan teklifi seç",
+      "awardConfirmBody": "{company} kazanan olarak seçilecek; diğer tedarikçilere sonuç bildirilir. Bu işlem geri alınamaz.",
+      "closeConfirmTitle": "Teklif toplamayı kapat",
+      "closeConfirmBody": "Süreç kapanınca tedarikçiler yeni teklif veremez ve teklifler değerlendirmeye açılır."
     },
     "supplierList": {
       "title": "RFQ Davetlerim",
@@ -1159,7 +1182,9 @@
       "actionError": "İşlem gerçekleştirilemedi.",
       "acceptedToast": "Davet kabul edildi.",
       "declinedToast": "Davet reddedildi.",
-      "quoteSavedToast": "Teklifiniz kaydedildi."
+      "quoteSavedToast": "Teklifiniz kaydedildi.",
+      "resultWon": "Tebrikler, teklifiniz kazandı. Sipariş ve teslimat için alıcı sizinle iletişime geçecek.",
+      "resultLost": "Bu RFQ başka bir teklifle sonuçlandı. Gönderdiğiniz teklif aşağıda; katılımınız için teşekkürler."
     }
   },
   "auditLog": {
@@ -1188,6 +1213,17 @@
       "entity": "Kayıt türü",
       "entityId": "Kayıt no",
       "columns": "Değişen alanlar"
+    },
+    "subtitle": "Sistemdeki tüm ekleme, değişiklik ve silmeler. Satıra tıklayınca eski ve yeni değerler açılır.",
+    "f": {
+      "entity": "Kayıt türü",
+      "user": "Kullanıcı",
+      "userPlaceholder": "Ad veya e-posta",
+      "action": "İşlem",
+      "from": "Başlangıç",
+      "to": "Bitiş",
+      "all": "Tümü",
+      "clear": "Süzgeçleri temizle"
     }
   },
   "dashboardSupplier": {
@@ -1780,7 +1816,8 @@
       "workspaces": "İşyeri",
       "default": "Varsayılan"
     },
-    "requirePublishApprovalHint": "Açıksa satınalmacılar taslağı doğrudan yayınlayamaz; \"Yayın onayı iste\" ile Admin'e gönderir."
+    "requirePublishApprovalHint": "Açıksa satınalmacılar taslağı doğrudan yayınlayamaz; \"Yayın onayı iste\" ile Admin'e gönderir.",
+    "allFirms": "Tüm firmalar"
   },
   "permissions": {
     "title": "Yetkiler",
@@ -1917,7 +1954,9 @@
       "willApply": "İhale canlıya geçince ön teklif ilk teklif olarak işlenecek.",
       "appliedAt": "Ön teklif ilk teklif olarak işlendi: {date}"
     },
-    "bidAfterAccept": "Katılım talebiniz kabul edilince bu kaleme teklif verebilirsiniz."
+    "bidAfterAccept": "Katılım talebiniz kabul edilince bu kaleme teklif verebilirsiniz.",
+    "supplierApplied": "Ön teklifiniz ({amount}) bu kalemde ilk teklifiniz olarak işlendi.",
+    "supplierSkipped": "Ön teklifiniz ({amount}) o anki en iyi teklifi geçmediği için işlenmedi; yeni teklif verebilirsiniz."
   },
   "rfx": {
     "closed": "Bu süreç yanıtlara kapalı; gönderdiğiniz bilgiler aşağıda.",
@@ -2198,5 +2237,45 @@
       "Insurance": "Sigorta poliçesi",
       "Other": "Diğer"
     }
+  },
+  "sectionNav": {
+    "label": "Sayfa bölümleri",
+    "status": "Durum",
+    "items": "Kalemler ve teklifler",
+    "evaluation": "Değerlendirme",
+    "orders": "Siparişler",
+    "participation": "Katılım talepleri",
+    "terms": "Şartlar ve ekler",
+    "qa": "Soru-cevap",
+    "invitations": "Davetliler",
+    "quotes": "Teklifler",
+    "matrix": "Karşılaştırma",
+    "documents": "Belgeler",
+    "info": "Bilgiler",
+    "feed": "Canlı akış"
+  },
+  "tasks": {
+    "title": "Yapılacaklar",
+    "hint": "Sırada sizi bekleyen işler. Tıklayınca ilgili kayda ya da süzülmüş listeye gidersiniz.",
+    "empty": "Şu an bekleyen bir iş yok.",
+    "items": {
+      "publishApprovals": "{n} ihale yayın onayınızı bekliyor",
+      "pendingSuppliers": "{n} tedarikçi kaydı onay bekliyor",
+      "awaitingAward": "{n} ihale sona erdi, kazanan seçilmeli",
+      "participationRequests": "{n} katılım talebi değerlendirme bekliyor",
+      "openQuestions": "{n} tedarikçi sorusu cevap bekliyor",
+      "rfqToAward": "{n} RFQ kapandı, kazanan seçilmeli",
+      "draftOrders": "{n} sipariş taslağı gönderilmeyi bekliyor",
+      "expiringDocuments": "{n} cari belgesinin süresi dolmuş ya da 30 gün içinde doluyor",
+      "auctionInvitations": "{n} ihale daveti yanıt bekliyor",
+      "rfiInvitations": "{n} RFI daveti yanıt bekliyor",
+      "rfqInvitations": "{n} RFQ daveti yanıt bekliyor",
+      "ordersToConfirm": "{n} sipariş onayınızı bekliyor",
+      "pendingParticipation": "{n} katılım talebiniz değerlendiriliyor",
+      "myExpiringDocuments": "{n} belgenizin süresi dolmuş ya da 30 gün içinde doluyor"
+    }
+  },
+  "statusFilter": {
+    "all": "Tümü"
   }
 }

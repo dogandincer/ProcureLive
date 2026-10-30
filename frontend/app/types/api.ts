@@ -1026,3 +1026,12 @@ export interface RolePermissionDto {
   description: string;
   granted: boolean;
 }
+
+// --- Pano: Yapılacaklar ---
+export interface DashboardTaskDto {
+  key: string;
+  count: number;
+  /** Tek kayıt varsa doğrudan o kayda gidilir. */
+  targetId: string | null;
+  targetKind: "auction" | "rfi" | "rfq" | "order" | "company" | null;
+}

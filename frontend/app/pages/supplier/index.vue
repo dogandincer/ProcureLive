@@ -82,23 +82,27 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
       </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <AppCard>
-        <div class="text-sm text-slate-500">{{ $t("dashboardSupplier.auctionInvites") }}</div>
-        <div class="mt-1 text-2xl font-bold text-slate-800">{{ counts.auctions }}</div>
-        <NuxtLink to="/supplier/auctions" class="mt-2 inline-block text-xs text-indigo-600 hover:underline">{{ $t("dashboardSupplier.viewAll") }}</NuxtLink>
-      </AppCard>
-      <AppCard>
-        <div class="text-sm text-slate-500">{{ $t("dashboardSupplier.rfiInvites") }}</div>
-        <div class="mt-1 text-2xl font-bold text-slate-800">{{ counts.rfi }}</div>
-        <NuxtLink to="/supplier/rfi" class="mt-2 inline-block text-xs text-indigo-600 hover:underline">{{ $t("dashboardSupplier.viewAll") }}</NuxtLink>
-      </AppCard>
-      <AppCard>
-        <div class="text-sm text-slate-500">{{ $t("dashboardSupplier.rfqInvites") }}</div>
-        <div class="mt-1 text-2xl font-bold text-slate-800">{{ counts.rfq }}</div>
-        <NuxtLink to="/supplier/rfq" class="mt-2 inline-block text-xs text-indigo-600 hover:underline">{{ $t("dashboardSupplier.viewAll") }}</NuxtLink>
-      </AppCard>
+    <!-- Sayaçlar kartın tamamıyla tıklanır; mobilde üçü tek satırda kalır. -->
+    <div class="grid grid-cols-3 gap-3 sm:gap-4">
+      <NuxtLink
+        v-for="s in [
+          { to: '/supplier/auctions', label: $t('dashboardSupplier.auctionInvites'), count: counts.auctions },
+          { to: '/supplier/rfi', label: $t('dashboardSupplier.rfiInvites'), count: counts.rfi },
+          { to: '/supplier/rfq', label: $t('dashboardSupplier.rfqInvites'), count: counts.rfq },
+        ]"
+        :key="s.to"
+        :to="s.to"
+        class="rounded-xl border border-slate-200 bg-surface p-3 shadow-sm transition-colors hover:border-indigo-300 sm:p-5"
+        data-testid="supplier-stat"
+      >
+        <div class="text-xs text-slate-500 sm:text-sm">{{ s.label }}</div>
+        <div class="mt-1 text-xl font-bold text-slate-800 sm:text-2xl">{{ s.count }}</div>
+        <span class="mt-2 hidden text-xs text-indigo-600 sm:inline-block">{{ $t("dashboardSupplier.viewAll") }}</span>
+      </NuxtLink>
     </div>
+
+    <!-- Yapılacaklar: yanıt bekleyen davetler, onay bekleyen siparişler, süresi dolan belgeler -->
+    <DashboardTasks :internal="false" />
 
     <div v-if="liveAuctions.length > 0" class="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
       <h2 class="text-sm font-semibold text-emerald-800">🔴 {{ $t("dashboardSupplier.liveNow") }}</h2>

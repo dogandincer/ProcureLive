@@ -38,6 +38,14 @@ const higherIsBetter = computed(() => auction.value?.auctionType === "English");
 
 // Kısıtlı görünüm: sunucu kalem/fiyat/ek/şart verisini hiç göndermedi; sayfa yalnızca vitrin + bulanık iskelet gösterir.
 const restricted = computed(() => !!auction.value && auction.value.accessLevel !== "Full");
+// Canlı ihalede teklif alanları önce gelir (mobilde şartları geçmeden teklif verilebilsin); diğer durumlarda şartlar önce okunur.
+const termsFirst = computed(() => auction.value?.status !== "Live");
+const sectionNavItems = computed(() => [
+  { id: "items", label: t("sectionNav.items"), count: auction.value?.items.length },
+  { id: "terms", label: t("sectionNav.terms") },
+  { id: "feed", label: t("sectionNav.feed") },
+  { id: "qa", label: t("sectionNav.qa") },
+]);
 const showQa = computed(() => !!auction.value && !restricted.value && !!myInvitation.value && myInvitation.value.status !== "Declined");
 const qaOpen = computed(() => !!auction.value && ["Scheduled", "Live", "Paused"].includes(auction.value.status));
 const restrictedLevel = computed(() => (auction.value?.accessLevel === "NoAccess" ? "NoAccess" : "QuotaExceeded"));
@@ -71,6 +79,14 @@ function rankLabel(item: AuctionItemDto): string {
   return item.myRank === 1
     ? t("auctions.live.youLead")
     : t("auctions.live.yourRank", { rank: item.myRank, total: item.competitorCount ?? item.myRank });
+}
+
+/** Kabul edilmiş ön teklifin bu kalemdeki sonucu (ilk teklif oldu / en iyiyi geçmediği için atlandı). */
+function preOfferLine(itemId: string) {
+  const r = auction.value?.myParticipationRequest;
+  if (!r || r.status !== "Accepted") return null;
+  const line = r.lines.find((l) => l.auctionItemId === itemId);
+  return line && line.appliedAsBid != null ? line : null;
 }
 
 async function load() {
@@ -358,7 +374,7 @@ onBeforeUnmount(() => {
       <p class="text-sm font-medium text-amber-800">{{ $t("auctions.live.invitedBanner") }}</p>
       <div class="mt-3 flex gap-2">
         <AppButton @click="accept">{{ $t("auctions.live.acceptInvite") }}</AppButton>
-        <AppButton variant="danger" @click="showDecline = true">{{ $t("common.decline") }}</AppButton>
+        <AppButton variant="danger-outline" @click="showDecline = true">{{ $t("common.decline") }}</AppButton>
       </div>
       <div v-if="showDecline" class="mt-3 flex gap-2">
         <input v-model="declineReason" :placeholder="$t('auctions.live.declineReasonRequired')" :aria-label="$t('auctions.live.declineReasonRequired')" class="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
@@ -384,11 +400,13 @@ onBeforeUnmount(() => {
     <!-- Onaylı cari değil: katılım talebi + ön teklif, ardından talep adımlarının durumu -->
     <ParticipationRequestCard v-if="showParticipation" :auction="auction" @changed="load" />
 
-    <AuctionTermsCard :auction="auction" />
+    <SectionNav :sections="sectionNavItems" />
+
+    <div v-if="termsFirst" id="terms"><AuctionTermsCard :auction="auction" /></div>
 
     <p v-if="sealed" class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-500">{{ $t("auctions.live.sealedNote") }}</p>
 
-    <div class="space-y-4">
+    <div id="items" class="space-y-4">
       <div
         v-for="item in auction.items"
         :key="item.id"
@@ -403,7 +421,17 @@ onBeforeUnmount(() => {
             <div v-if="item.requestedDeliveryDate || item.specification" class="mt-1 space-y-0.5 text-xs text-slate-500">
               <div v-if="item.requestedDeliveryDate">{{ $t("auctions.terms.requestedDelivery") }}: {{ formatDate(item.requestedDeliveryDate) }}</div>
               <div v-if="item.specification" class="whitespace-pre-line">{{ $t("auctions.terms.specification") }}: {{ item.specification }}</div>
-            </div>
+              <p v-if="preOfferLine(item.id)" class="mt-1.5 text-xs" :class="preOfferLine(item.id)!.appliedAsBid ? 'text-emerald-700' : 'text-amber-700'" data-testid="pre-offer-outcome">
+              {{ preOfferLine(item.id)!.appliedAsBid
+                ? $t("participation.supplierApplied", { amount: formatMoney(preOfferLine(item.id)!.unitPrice) })
+                : $t("participation.supplierSkipped", { amount: formatMoney(preOfferLine(item.id)!.unitPrice) }) }}
+            </p>
+          </div>
+            <p v-if="preOfferLine(item.id)" class="mt-1.5 text-xs" :class="preOfferLine(item.id)!.appliedAsBid ? 'text-emerald-700' : 'text-amber-700'" data-testid="pre-offer-outcome">
+              {{ preOfferLine(item.id)!.appliedAsBid
+                ? $t("participation.supplierApplied", { amount: formatMoney(preOfferLine(item.id)!.unitPrice) })
+                : $t("participation.supplierSkipped", { amount: formatMoney(preOfferLine(item.id)!.unitPrice) }) }}
+            </p>
           </div>
           <div v-if="!sealed" class="text-right">
             <div class="text-xs text-slate-500">{{ $t("auctions.live.currentBestUnit") }}</div>
@@ -449,7 +477,9 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <AppCard>
+    <div v-if="!termsFirst" id="terms"><AuctionTermsCard :auction="auction" /></div>
+
+    <AppCard id="feed">
       <h3 class="text-sm font-semibold text-slate-700">{{ $t("auctions.live.liveFeed") }}</h3>
       <ul v-if="feed.length > 0" class="mt-3 space-y-1 text-sm text-slate-600" data-testid="live-feed">
         <li v-for="(entry, i) in feed" :key="entry.id ?? i">

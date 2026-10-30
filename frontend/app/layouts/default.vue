@@ -356,8 +356,8 @@ onMounted(async () => {
 
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 -transide-x-full flex-col bg-side-900 transition-all md:static md:transide-x-0"
-      :class="[sidebarOpen ? 'transide-x-0' : '', collapsed ? 'md:w-16' : 'md:w-64']"
+      class="fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 -translate-x-full flex-col bg-side-900 transition-all md:sticky md:top-0 md:h-screen md:translate-x-0"
+      :class="[sidebarOpen ? 'translate-x-0' : '', collapsed ? 'md:w-16' : 'md:w-64']"
     >
       <!-- Brand (varsayılan firmanın logosu / adı) -->
       <div class="flex items-center gap-2.5 border-b border-side-700/60 py-4" :class="collapsed ? 'px-5 md:justify-center md:px-0' : 'px-5'">
@@ -439,7 +439,7 @@ onMounted(async () => {
     <!-- Main content -->
     <div class="flex min-h-screen min-w-0 flex-1 flex-col">
       <!-- Header -->
-      <header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-surface px-4 py-2.5 sm:px-6 shadow-sm">
+      <header class="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-slate-200 bg-surface px-4 sm:px-6 shadow-sm">
         <div class="flex min-w-0 flex-1 items-center gap-3">
           <!-- Hamburger: mobilde menüyü açar, masaüstünde kenar çubuğunu daraltır/genişletir -->
           <button
@@ -546,7 +546,7 @@ onMounted(async () => {
         </div>
       </header>
 
-      <main class="flex-1 overflow-x-hidden p-4 sm:p-6">
+      <main class="flex-1 overflow-x-clip p-4 sm:p-6">
         <div v-if="setupGate" class="flex min-h-[60vh] items-center justify-center">
           <div class="max-w-md rounded-2xl border border-slate-200 bg-surface p-8 text-center shadow-sm">
             <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50">

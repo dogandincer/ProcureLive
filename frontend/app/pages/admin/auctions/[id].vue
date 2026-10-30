@@ -35,6 +35,16 @@ const { connectAndJoin, disconnect } = useAuctionHub();
 const { isAdminRole } = useAuth();
 const { can } = usePermissions();
 
+// Bölüm gezintisi (sayfada var olan bölümler gösterilir).
+const sectionNavItems = computed(() => [
+  { id: "status", label: t("sectionNav.status") },
+  { id: "items", label: isEvaluationStage.value ? t("sectionNav.evaluation") : t("sectionNav.items"), count: auction.value?.items.length },
+  { id: "orders", label: t("sectionNav.orders") },
+  { id: "participation", label: t("sectionNav.participation") },
+  { id: "terms", label: t("sectionNav.terms") },
+  { id: "qa", label: t("sectionNav.qa") },
+]);
+
 // ---- Sonuçtan sipariş: kalem bazlı kazananlar → tedarikçi başına bir sipariş taslağı ----
 const orderList = ref<{ reload: () => Promise<void> } | null>(null);
 const creatingOrders = ref(false);
@@ -409,14 +419,17 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <AuctionTermsCard :auction="auction" internal @changed="load" />
+
+    <!-- Uzun sayfada bölümlere atlama (yapışkan) -->
+    <SectionNav :sections="sectionNavItems" />
 
     <!-- Durum yönetimi: yayınla / başlat / duraklat / devam / bitir / yeniden aç / iptal + süre uzatma + geçmiş -->
-    <AuctionStatusPanel :auction-id="auctionId" :status="auction.status" :can-manage="isAdminRole() || can('auctions.manage')" :is-admin="isAdminRole()" @changed="load" />
+    <div id="status" class="scroll-mt-28">
+      <AuctionStatusPanel :auction-id="auctionId" :status="auction.status" :can-manage="isAdminRole() || can('auctions.manage')" :is-admin="isAdminRole()" @changed="load" />
+    </div>
 
-    <!-- Davetsiz tedarikçilerin katılım talepleri: cari onayı → ön teklif kabulü / red -->
-    <!-- Durum değişince (ör. canlıya geçişte ön teklifler teklife dönüşür) panel yeniden yüklenir. -->
-    <ParticipationRequestsPanel v-if="auction.status !== 'Draft'" :key="auction.status" :auction-id="auctionId" @changed="load" />
+    <div id="items" class="scroll-mt-28 space-y-6">
+
 
     <!-- ============================================================ -->
     <!-- EVALUATION MODE: Ended / Awarded                            -->
@@ -449,7 +462,7 @@ onBeforeUnmount(() => {
         />
       </div>
 
-      <AppCard v-if="evaluationSummary && evaluationSummary.awarded > 0" :title="$t('orders.sectionTitle')" :description="$t('orders.sectionHint')">
+      <AppCard v-if="evaluationSummary && evaluationSummary.awarded > 0" id="orders" class="scroll-mt-28" :title="$t('orders.sectionTitle')" :description="$t('orders.sectionHint')">
         <div class="space-y-3" data-testid="auction-orders">
           <AppButton v-if="can('orders.manage')" :loading="creatingOrders" data-testid="create-orders" @click="createOrders">{{ $t("orders.createFromAuction") }}</AppButton>
           <PurchaseOrderList ref="orderList" internal :source-id="auctionId" compact />
@@ -671,7 +684,21 @@ onBeforeUnmount(() => {
       </div>
     </template>
 
-    <ProcessQaPanel v-if="auction.status !== 'Draft'" kind="auction" :process-id="auctionId" internal />
+    </div>
+
+    <!-- Davetsiz tedarikçilerin katılım talepleri: cari onayı → ön teklif kabulü / red -->
+    <!-- Durum değişince (ör. canlıya geçişte ön teklifler teklife dönüşür) panel yeniden yüklenir. -->
+    <div v-if="auction.status !== 'Draft'" id="participation" class="scroll-mt-28">
+      <ParticipationRequestsPanel :key="auction.status" :auction-id="auctionId" @changed="load" />
+    </div>
+
+    <div id="terms" class="scroll-mt-28">
+      <AuctionTermsCard :auction="auction" internal @changed="load" />
+    </div>
+
+    <div id="qa-section" class="scroll-mt-28">
+      <ProcessQaPanel v-if="auction.status !== 'Draft'" kind="auction" :process-id="auctionId" internal />
+    </div>
 
     <ConfirmDialog
       :open="!!pendingDelete"

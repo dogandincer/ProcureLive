@@ -6,7 +6,8 @@ const props = withDefaults(defineProps<{ block?: boolean }>(), { block: false })
 
 // İşyeri listesi layout tarafından yüklenir (paylaşılan state); burada yalnızca seçili firmanın aktif işyerleri gösterilir.
 const { selectedWorkspaceId, selectedWorkspace, workspaces, setWorkspace } = useWorkspace();
-const { selectedFirmId } = useFirm();
+const { selectedFirmId, firms } = useFirm();
+const firmCode = (id: string | null) => firms.value.find((f) => f.id === id)?.code ?? "";
 const open = ref(false);
 const el = ref<HTMLElement | null>(null);
 
@@ -65,7 +66,7 @@ onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside))
         @click="select(ws.id)"
       >
         <StarIcon v-if="ws.isDefault" class="h-3 w-3 shrink-0 text-amber-500" :title="$t('workspaces.default')" />
-        <span class="flex-1 truncate">{{ ws.name }}</span>
+        <span class="flex-1 truncate"><span v-if="!selectedFirmId" class="mr-1 font-mono text-[10px] text-slate-400">{{ firmCode(ws.firmId) }}</span>{{ ws.name }}</span>
         <span class="shrink-0 text-[10px] text-slate-400">{{ ws.companyCount }}C / {{ ws.productCount }}P</span>
       </button>
       <div v-if="firmWorkspaces.length === 0" class="px-3 py-2 text-[11px] text-slate-400">

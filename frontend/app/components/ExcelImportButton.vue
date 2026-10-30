@@ -100,7 +100,7 @@ async function confirmImport() {
       <div class="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-surface p-5 shadow-xl">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-semibold text-slate-800">{{ displayLabel }}</h3>
-          <button class="text-sm text-slate-400 hover:text-slate-600" @click="closePanel">✕</button>
+          <button type="button" class="text-sm text-slate-400 hover:text-slate-600" :aria-label="$t('excelImport.close')" @click="closePanel">✕</button>
         </div>
 
         <div v-if="stage === 'idle'" class="mt-4 space-y-3">
@@ -139,22 +139,26 @@ async function confirmImport() {
               <thead class="sticky top-0 bg-slate-50">
                 <tr class="text-left text-slate-400">
                   <th class="px-2 py-1">{{ $t("excelImport.rowHeader") }}</th>
+                  <th class="min-w-[10rem] px-2 py-1">{{ $t("excelImport.statusHeader") }}</th>
                   <th v-for="c in columns" :key="c.key" class="px-2 py-1">{{ c.label }}</th>
-                  <th class="px-2 py-1">{{ $t("excelImport.statusHeader") }}</th>
                 </tr>
               </thead>
               <tbody>
+                <!-- Durum sütunu solda: hata nedeni yatay kaydırmadan görünür. -->
                 <tr v-for="row in parsedRows" :key="row.rowNumber" class="border-t border-slate-50" :class="{ 'bg-rose-50': row.errors.length > 0 }">
                   <td class="px-2 py-1 text-slate-400">{{ row.rowNumber }}</td>
-                  <td v-for="c in columns" :key="c.key" class="px-2 py-1 text-slate-700">{{ row.values[c.key] ?? "-" }}</td>
                   <td class="px-2 py-1">
                     <span v-if="row.errors.length === 0" class="text-emerald-600">{{ $t("excelImport.ready") }}</span>
-                    <span v-else class="text-rose-600">{{ row.errors.join(" ") }}</span>
+                    <span v-else class="font-medium text-rose-600" data-testid="import-row-error">{{ row.errors.join(" ") }}</span>
                   </td>
+                  <td v-for="c in columns" :key="c.key" class="px-2 py-1 text-slate-700">{{ row.values[c.key] ?? "-" }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
+
+          <!-- Sayfaya özgü aktarım seçenekleri (ör. kayıtların açılacağı işyeri). -->
+          <slot name="options" />
 
           <div class="flex gap-2">
             <button

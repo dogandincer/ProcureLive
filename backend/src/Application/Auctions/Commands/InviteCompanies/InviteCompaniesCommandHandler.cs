@@ -73,7 +73,13 @@ public sealed class InviteCompaniesCommandHandler : IRequestHandler<InviteCompan
 
         // Mirrors InviteCompaniesToRfiCommandHandler / InviteCompaniesToRfqCommandHandler - without this,
         // a supplier invited to an auction (the app's core feature) never finds out unless they happen
-        // to be browsing the list themselves.
+        // to be browsing the list themselves. Taslak ihalenin davetlileri yayın anında bilgilendirilir
+        // (AuctionStatusService); taslağın adı yayından önce tedarikçiye ulaşmaz.
+        if (auction.Status == AuctionStatus.Draft)
+        {
+            return;
+        }
+
         foreach (Guid companyId in newlyInvitedCompanyIds)
         {
             await NotificationCreator.CreateForCompanyAsync(

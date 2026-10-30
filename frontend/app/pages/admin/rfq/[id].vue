@@ -8,6 +8,7 @@ const processId = route.params.id as string;
 const api = useApi();
 const accessState = ref<"forbidden" | "notFound" | null>(null);
 const toast = useToast();
+const { ask } = useConfirm();
 const { t } = useI18n();
 
 const process = ref<RfqProcessDetailDto | null>(null);
@@ -91,6 +92,8 @@ async function loadQuotes() {
 }
 
 async function award(quoteId: string) {
+  const company = quotes.value.find((q) => q.id === quoteId)?.companyName ?? "";
+  if (!(await ask({ title: t("rfq.detail.awardConfirmTitle"), body: t("rfq.detail.awardConfirmBody", { company }), confirmLabel: t("rfq.detail.selectWinner") }))) return;
   await runAction(async () => {
     await api.post(`/api/rfq/processes/${processId}/award`, { winningQuoteId: quoteId, notes: null });
     toast.success(t("rfq.detail.winnerSelectedToast"));
@@ -225,6 +228,7 @@ function exportMatrix() {
 }
 
 async function close() {
+  if (!(await ask({ title: t("rfq.detail.closeConfirmTitle"), body: t("rfq.detail.closeConfirmBody"), confirmLabel: t("rfq.detail.closeProcess") }))) return;
   await runAction(async () => {
     await api.post(`/api/rfq/processes/${processId}/close`);
     toast.success(t("rfq.detail.closedToast"));
@@ -268,7 +272,7 @@ onMounted(async () => {
         <AppButton v-if="!['Closed', 'Awarded', 'Cancelled'].includes(process.status)" variant="secondary" @click="close">
           {{ $t("rfq.detail.closeProcess") }}
         </AppButton>
-        <AppButton v-if="cancellable" variant="danger" data-testid="cancel-process" @click="showCancel = true; cancelReason = ''">
+        <AppButton v-if="cancellable" variant="danger-outline" data-testid="cancel-process" @click="showCancel = true; cancelReason = ''">
           {{ $t("rfx.edit.cancel") }}
         </AppButton>
       </div>

@@ -1,0 +1,190 @@
+{
+  "tr": {
+    "sectionNav": {
+      "label": "Sayfa bölümleri",
+      "status": "Durum",
+      "items": "Kalemler ve teklifler",
+      "evaluation": "Değerlendirme",
+      "orders": "Siparişler",
+      "participation": "Katılım talepleri",
+      "terms": "Şartlar ve ekler",
+      "qa": "Soru-cevap",
+      "invitations": "Davetliler",
+      "quotes": "Teklifler",
+      "matrix": "Karşılaştırma",
+      "documents": "Belgeler",
+      "info": "Bilgiler"
+    },
+    "tasks": {
+      "title": "Yapılacaklar",
+      "hint": "Sırada sizi bekleyen işler. Tıklayınca ilgili kayda ya da süzülmüş listeye gidersiniz.",
+      "empty": "Şu an bekleyen bir iş yok.",
+      "items": {
+        "publishApprovals": "{n} ihale yayın onayınızı bekliyor",
+        "pendingSuppliers": "{n} tedarikçi kaydı onay bekliyor",
+        "awaitingAward": "{n} ihale sona erdi, kazanan seçilmeli",
+        "participationRequests": "{n} katılım talebi değerlendirme bekliyor",
+        "openQuestions": "{n} tedarikçi sorusu cevap bekliyor",
+        "rfqToAward": "{n} RFQ kapandı, kazanan seçilmeli",
+        "draftOrders": "{n} sipariş taslağı gönderilmeyi bekliyor",
+        "expiringDocuments": "{n} cari belgesinin süresi dolmuş ya da 30 gün içinde doluyor",
+        "auctionInvitations": "{n} ihale daveti yanıt bekliyor",
+        "rfiInvitations": "{n} RFI daveti yanıt bekliyor",
+        "rfqInvitations": "{n} RFQ daveti yanıt bekliyor",
+        "ordersToConfirm": "{n} sipariş onayınızı bekliyor",
+        "pendingParticipation": "{n} katılım talebiniz değerlendiriliyor",
+        "myExpiringDocuments": "{n} belgenizin süresi dolmuş ya da 30 gün içinde doluyor"
+      }
+    },
+    "statusFilter": { "all": "Tümü" },
+    "firms": { "allFirms": "Tüm firmalar" },
+    "auctions": {
+      "new": "Yeni İhale",
+      "subtitle": "İhaleleri durumuna göre süzün, başlığa tıklayarak detayına gidin.",
+      "emptyFiltered": "Bu durumda ihale yok."
+    },
+    "companies": {
+      "detail": {
+        "approve": "Onayla ve aktifleştir",
+        "approved": "Cari onaylandı; tedarikçiye bildirim gönderildi.",
+        "pendingHint": "Bu tedarikçi kendi kaydıyla geldi ve onay bekliyor. Bilgileri kontrol edip onaylayın.",
+        "pendingNeedsWorkspace": "Bu tedarikçi onay bekliyor. Onaylamadan önce birincil işyerini seçin."
+      }
+    },
+    "rfq": {
+      "detail": {
+        "awardConfirmTitle": "Kazanan teklifi seç",
+        "awardConfirmBody": "{company} kazanan olarak seçilecek; diğer tedarikçilere sonuç bildirilir. Bu işlem geri alınamaz.",
+        "closeConfirmTitle": "Teklif toplamayı kapat",
+        "closeConfirmBody": "Süreç kapanınca tedarikçiler yeni teklif veremez ve teklifler değerlendirmeye açılır."
+      },
+      "quote": {
+        "resultWon": "Tebrikler, teklifiniz kazandı. Sipariş ve teslimat için alıcı sizinle iletişime geçecek.",
+        "resultLost": "Bu RFQ başka bir teklifle sonuçlandı. Gönderdiğiniz teklif aşağıda; katılımınız için teşekkürler."
+      }
+    },
+    "rfi": {
+      "detail": {
+        "closeConfirmTitle": "RFI sürecini kapat",
+        "closeConfirmBody": "Süreç kapanınca tedarikçiler yanıt gönderemez; yanıtlar değerlendirmeye açılır."
+      },
+      "processForm": {
+        "template": "Şablon (soru seti)",
+        "title": "Süreç başlığı",
+        "dueDate": "Son yanıt tarihi",
+        "dueDateHint": "Tedarikçiler bu tarihe kadar yanıt verebilir."
+      }
+    },
+    "participation": {
+      "supplierApplied": "Ön teklifiniz ({amount}) bu kalemde ilk teklifiniz olarak işlendi.",
+      "supplierSkipped": "Ön teklifiniz ({amount}) o anki en iyi teklifi geçmediği için işlenmedi; yeni teklif verebilirsiniz."
+    },
+    "auditLog": {
+      "subtitle": "Sistemdeki tüm ekleme, değişiklik ve silmeler. Satıra tıklayınca eski ve yeni değerler açılır.",
+      "f": {
+        "entity": "Kayıt türü",
+        "user": "Kullanıcı",
+        "userPlaceholder": "Ad veya e-posta",
+        "action": "İşlem",
+        "from": "Başlangıç",
+        "to": "Bitiş",
+        "all": "Tümü",
+        "clear": "Süzgeçleri temizle"
+      }
+    }
+  },
+  "en": {
+    "sectionNav": {
+      "label": "Page sections",
+      "status": "Status",
+      "items": "Items and bids",
+      "evaluation": "Evaluation",
+      "orders": "Orders",
+      "participation": "Participation requests",
+      "terms": "Terms and attachments",
+      "qa": "Q&A",
+      "invitations": "Invitees",
+      "quotes": "Quotes",
+      "matrix": "Comparison",
+      "documents": "Documents",
+      "info": "Details"
+    },
+    "tasks": {
+      "title": "To do",
+      "hint": "Work waiting for you. Click to open the record or a filtered list.",
+      "empty": "Nothing is waiting for you right now.",
+      "items": {
+        "publishApprovals": "{n} auction(s) awaiting your publish approval",
+        "pendingSuppliers": "{n} supplier registration(s) awaiting approval",
+        "awaitingAward": "{n} auction(s) ended and need a winner",
+        "participationRequests": "{n} participation request(s) to review",
+        "openQuestions": "{n} supplier question(s) awaiting an answer",
+        "rfqToAward": "{n} RFQ(s) closed and need a winner",
+        "draftOrders": "{n} draft order(s) waiting to be sent",
+        "expiringDocuments": "{n} supplier document(s) expired or expiring within 30 days",
+        "auctionInvitations": "{n} auction invitation(s) awaiting your response",
+        "rfiInvitations": "{n} RFI invitation(s) awaiting your response",
+        "rfqInvitations": "{n} RFQ invitation(s) awaiting your response",
+        "ordersToConfirm": "{n} order(s) awaiting your confirmation",
+        "pendingParticipation": "{n} of your participation request(s) under review",
+        "myExpiringDocuments": "{n} of your document(s) expired or expiring within 30 days"
+      }
+    },
+    "statusFilter": { "all": "All" },
+    "firms": { "allFirms": "All companies" },
+    "auctions": {
+      "new": "New auction",
+      "subtitle": "Filter auctions by status; click a title to open it.",
+      "emptyFiltered": "No auctions in this status."
+    },
+    "companies": {
+      "detail": {
+        "approve": "Approve and activate",
+        "approved": "Supplier approved; the supplier was notified.",
+        "pendingHint": "This supplier registered themselves and is awaiting approval. Review the details and approve.",
+        "pendingNeedsWorkspace": "This supplier is awaiting approval. Choose a primary workspace before approving."
+      }
+    },
+    "rfq": {
+      "detail": {
+        "awardConfirmTitle": "Select the winning quote",
+        "awardConfirmBody": "{company} will be selected as the winner; the other suppliers will be notified. This cannot be undone.",
+        "closeConfirmTitle": "Close quoting",
+        "closeConfirmBody": "Once closed, suppliers cannot submit quotes and the quotes become available for evaluation."
+      },
+      "quote": {
+        "resultWon": "Congratulations, your quote won. The buyer will contact you about the order and delivery.",
+        "resultLost": "This RFQ was awarded to another quote. Your submitted quote is below; thank you for taking part."
+      }
+    },
+    "rfi": {
+      "detail": {
+        "closeConfirmTitle": "Close the RFI",
+        "closeConfirmBody": "Once closed, suppliers cannot send answers and the answers become available for evaluation."
+      },
+      "processForm": {
+        "template": "Template (question set)",
+        "title": "Process title",
+        "dueDate": "Answer deadline",
+        "dueDateHint": "Suppliers can answer until this date."
+      }
+    },
+    "participation": {
+      "supplierApplied": "Your preliminary offer ({amount}) was entered as your first bid on this item.",
+      "supplierSkipped": "Your preliminary offer ({amount}) did not beat the best bid at the time, so it was not entered; you can bid now."
+    },
+    "auditLog": {
+      "subtitle": "All creations, changes and deletions in the system. Click a row to see old and new values.",
+      "f": {
+        "entity": "Record type",
+        "user": "User",
+        "userPlaceholder": "Name or email",
+        "action": "Action",
+        "from": "From",
+        "to": "To",
+        "all": "All",
+        "clear": "Clear filters"
+      }
+    }
+  }
+}

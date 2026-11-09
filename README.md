@@ -1,17 +1,19 @@
 # ProcureLive — B2B E-Tedarik ve Anlık İhale Sistemi
 
-Faz 1-4 tamamlandı: tam backend (Clean Architecture, CQRS), canlı ihale (SignalR+Redis), RFI/RFQ +
-bildirim merkezi, AI öneri altyapısı, ve Nuxt 3 frontend (Admin Dashboard, Cari Paneli, Canlı İhale Ekranı).
-Plan: `C:\Users\dogan\.claude\plans\keen-drifting-phoenix.md`
+Kurumsal satınalma ekipleri için B2B e-tedarik ve canlı ihale platformu. Alıcılar ihale, RFI ve RFQ açar,
+onaylı tedarikçileri davet eder, gerçek zamanlı ihale yürütür (İngiliz, Hollanda, kapalı zarf), teklifleri
+karşılaştırır ve kazananları satınalma siparişine dönüştürür. Tedarikçiler kayıt olur, davetleri yanıtlar,
+canlı teklif verir ve siparişleri onaylar. Backend .NET 8 (Clean Architecture, CQRS), frontend Nuxt 3.
 
 ## Gereksinimler
 
-Docker Desktop (+ WSL2), Git, .NET 8 SDK ve Node.js 20+ gereklidir. Bu makinede hepsi kurulu.
+Docker Desktop (+ WSL2), Git, .NET 8 SDK ve Node.js 20+ gereklidir.
 
 ## Çalıştırma Adımları
 
 ```powershell
-cd C:\Users\dogan\source\repos\ProcureLive
+git clone https://github.com/dogandincer/ProcureLive.git
+cd ProcureLive
 
 # 1) Postgres + Redis + pgAdmin'i ayağa kaldır
 copy .env.example .env   # şifreleri değiştirmeyi unutmayın
@@ -75,3 +77,7 @@ Uygulama ilk açılışta `InitialAdminSeeder` ile idempotent şekilde bir Admin
 - AutoMapper 13.0.1 için NU1903 uyarısı görünüyor (lisans bildirimi kaynaklı, gerçek bir CVE değil).
 - Frontend `nuxt.config.ts` içinde `srcDir: "app/"` kullanır; Tailwind içerik taraması `tailwind.config.ts`'de bu yapıya göre açıkça tanımlıdır.
 - E-posta gönderimi henüz gerçek bir SMTP sağlayıcısına bağlı değil (`LoggingEmailSender` stub'ı, sadece loglar) — `IEmailSender`'ın gerçek implementasyonuyla değiştirilmesi yeterli.
+
+## Lisans
+
+MIT — ayrıntılar için [LICENSE](LICENSE) dosyasına bakın.

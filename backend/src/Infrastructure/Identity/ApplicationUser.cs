@@ -16,4 +16,7 @@ public class ApplicationUser : IdentityUser<Guid>
 
     /// <summary>Art arda 3'ten fazla hatalı şifre nedeniyle otomatik pasife alındığı an (Admin aktifleştirince temizlenir).</summary>
     public DateTime? LockedOutAt { get; set; }
+
+    /// <summary>Kullanıcı bildirimlerini e-postayla da almak istiyor mu (Profil ekranından kendisi değiştirir).</summary>
+    public bool EmailNotificationsEnabled { get; set; } = true;
 }

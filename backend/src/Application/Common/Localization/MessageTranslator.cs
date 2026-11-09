@@ -134,6 +134,17 @@ public static class MessageTranslator
         ["Bu davet başka bir cariye ait. Davet edilen firmanın hesabıyla giriş yapın."] =
             "This invitation belongs to another company. Sign in with an account of the invited company.",
         ["Geçerli bir e-posta adresi girin."] = "Enter a valid email address.",
+
+        // E-posta ayarları (EmailSettingsFeatures)
+        ["SMTP sunucusu boş olamaz."] = "SMTP server cannot be empty.",
+        ["Port 1 ile 65535 arasında olmalıdır."] = "Port must be between 1 and 65535.",
+        ["Geçersiz bağlantı güvenliği."] = "Invalid connection security.",
+        ["Gönderen e-posta adresi boş olamaz."] = "Sender email address cannot be empty.",
+        ["Gönderen e-posta adresi geçerli değil."] = "Sender email address is not valid.",
+        ["Yanıt adresi geçerli değil."] = "Reply-to address is not valid.",
+        ["Geçersiz bildirim türü."] = "Invalid notification type.",
+        ["Test için geçerli bir alıcı e-posta adresi girin."] = "Enter a valid recipient email address for the test.",
+        ["Yalnızca alıcısı belli olan başarısız e-postalar yeniden denenebilir."] = "Only failed emails with a known recipient can be retried.",
         ["Şifre en az 8 karakter olmalıdır."] = "Password must be at least 8 characters.",
         ["Bu ihaleye zaten katıldınız."] = "You have already joined this auction.",
         ["Yalnızca planlanmış veya canlı ihalelere katılabilirsiniz."] = "You can only join scheduled or live auctions.",
@@ -436,8 +447,8 @@ public static class MessageTranslator
             m => $"Your quote won in RFQ process \"{m.Groups[1].Value}\"."),
 
         // AwardRfqProcessCommandHandler - losing bidders
-        (new Regex(@"^""([^""]+)"" RFQ sürecinde başka bir tedarikçinin teklifi seçildi\.$"),
-            m => $"Another supplier's quote was selected in RFQ process \"{m.Groups[1].Value}\"."),
+        (new Regex(@"^""([^""]+)"" RFQ sürecinde başka bir tedarikçinin teklifi seçildi\.( Katılımınız ve teklifiniz için teşekkür ederiz\.)?$"),
+            m => $"Another supplier's quote was selected in RFQ process \"{m.Groups[1].Value}\"." + (m.Groups[2].Success ? " Thank you for taking part and submitting a quote." : "")),
 
         // InviteCompaniesToRfqCommandHandler
         (new Regex(@"^""([^""]+)"" teklif toplama sürecine davet edildiniz\.$"),

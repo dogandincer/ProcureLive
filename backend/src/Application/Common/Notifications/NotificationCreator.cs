@@ -1,7 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Contracts.Notifications;
-using ProcureLive.Domain.Entities.Companies;
 using ProcureLive.Domain.Entities.Notifications;
 using ProcureLive.Domain.Enums;
 
@@ -9,8 +7,9 @@ namespace ProcureLive.Application.Common.Notifications;
 
 /// <summary>
 /// Shared helper used by invite/award handlers (Auction/RFI/RFQ) to record a Notification, push it
-/// over SignalR immediately (InApp), and queue an Email channel log for the background dispatcher
-/// when the target company has a primary contact with an email address.
+/// over SignalR immediately (InApp), and queue an Email channel log for the background dispatcher.
+/// The queued Email row has no recipient yet: NotificationEmailDispatcher resolves recipients (company users or the
+/// target internal user, honouring their e-mail preference and the Admin's e-mail settings) off the request path.
 /// </summary>
 public static class NotificationCreator
 {
@@ -49,19 +48,7 @@ public static class NotificationCreator
             SentAt = now
         });
 
-        ContactPerson? primaryContact = await context.ContactPersons
-            .Where(c => c.CompanyId == companyId && c.IsPrimary)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (primaryContact is not null)
-        {
-            context.NotificationChannelLogs.Add(new NotificationChannelLog
-            {
-                Notification = notification,
-                Channel = NotificationChannel.Email,
-                Status = NotificationDeliveryStatus.Pending
-            });
-        }
+        QueueEmail(context, notification);
 
         await context.SaveChangesAsync(cancellationToken);
 
@@ -134,6 +121,12 @@ public static class NotificationCreator
             SentAt = now
         });
 
+        // Tüm iç kullanıcılara yayın (userId null) e-postayla çoğaltılmaz; yalnızca kişiye özel bildirim e-posta olur.
+        if (userId is not null)
+        {
+            QueueEmail(context, notification);
+        }
+
         await context.SaveChangesAsync(cancellationToken);
 
         var dto = new NotificationDto(
@@ -144,5 +137,15 @@ public static class NotificationCreator
             await realtimeService.NotifyUserAsync(target, dto, cancellationToken);
         else
             await realtimeService.NotifyInternalUsersAsync(dto, cancellationToken);
+    }
+
+    private static void QueueEmail(IApplicationDbContext context, Notification notification)
+    {
+        context.NotificationChannelLogs.Add(new NotificationChannelLog
+        {
+            Notification = notification,
+            Channel = NotificationChannel.Email,
+            Status = NotificationDeliveryStatus.Pending
+        });
     }
 }

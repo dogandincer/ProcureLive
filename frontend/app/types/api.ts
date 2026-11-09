@@ -25,6 +25,7 @@ export interface CurrentUser {
   lastName: string;
   roles: string[];
   companyId: string | null;
+  emailNotificationsEnabled?: boolean;
 }
 
 export interface WorkspaceDto {
@@ -1034,4 +1035,63 @@ export interface DashboardTaskDto {
   /** Tek kayıt varsa doğrudan o kayda gidilir. */
   targetId: string | null;
   targetKind: "auction" | "rfi" | "rfq" | "order" | "company" | null;
+}
+
+// ---------------------------------------------------------------- E-posta ayarları (Admin)
+
+export type EmailSecurityMode = "None" | "StartTls" | "SslOnConnect" | "Auto";
+export type EmailDeliveryStatus = "Pending" | "Sent" | "Failed" | "Skipped";
+
+export interface EmailSettingsDto {
+  enabled: boolean;
+  host: string;
+  port: number;
+  security: EmailSecurityMode;
+  username: string | null;
+  hasPassword: boolean;
+  fromAddress: string;
+  fromName: string;
+  replyTo: string | null;
+  disabledNotificationTypes: string[];
+  notificationTypes: string[];
+  updatedAt: string | null;
+  updatedBy: string | null;
+}
+
+export interface EmailSettingsRequest {
+  enabled: boolean;
+  host: string;
+  port: number;
+  security: EmailSecurityMode;
+  username: string | null;
+  password: string | null;
+  clearPassword: boolean;
+  fromAddress: string;
+  fromName: string;
+  replyTo: string | null;
+  disabledNotificationTypes: string[];
+}
+
+export interface TestEmailResultDto {
+  succeeded: boolean;
+  error: string | null;
+}
+
+export interface EmailLogDto {
+  id: string;
+  recipient: string | null;
+  subject: string;
+  notificationType: string;
+  status: EmailDeliveryStatus;
+  attemptCount: number;
+  errorMessage: string | null;
+  createdAt: string;
+  sentAt: string | null;
+}
+
+export interface EmailLogSummaryDto {
+  pending: number;
+  sent: number;
+  failed: number;
+  skipped: number;
 }

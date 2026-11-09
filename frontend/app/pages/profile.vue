@@ -1,5 +1,7 @@
 <script setup lang="ts">
-/** Kullanıcının kendi hesabı: kimlik bilgileri ve şifre değiştirme (mevcut şifre gerekir). */
+import type { CurrentUser } from "~/types/api";
+
+/** Kullanıcının kendi hesabı: kimlik bilgileri, bildirim tercihi ve şifre değiştirme (mevcut şifre gerekir). */
 const { currentUser } = useAuth();
 const api = useApi();
 const toast = useToast();
@@ -9,6 +11,38 @@ const roleLabels: Record<string, string> = { Admin: "roles.admin", Buyer: "roles
 const form = reactive({ current: "", next: "", confirm: "" });
 const saving = ref(false);
 const errorMessage = ref("");
+
+// Bildirimleri e-postayla da alma tercihi (sunucuda kullanıcıya kayıtlı; kapalıysa dağıtıcı bu kişiyi atlar).
+const emailNotifications = ref(currentUser.value?.emailNotificationsEnabled ?? true);
+const savingPreference = ref(false);
+watch(() => currentUser.value?.emailNotificationsEnabled, (v) => {
+  if (v !== undefined) emailNotifications.value = v;
+});
+watch(emailNotifications, async (value, previous) => {
+  if (savingPreference.value || value === (currentUser.value?.emailNotificationsEnabled ?? true)) return;
+  savingPreference.value = true;
+  try {
+    await api.put("/api/auth/me/preferences", { emailNotificationsEnabled: value });
+    if (currentUser.value) currentUser.value.emailNotificationsEnabled = value;
+    toast.success(t("profile.preferencesSaved"));
+  } catch (error: any) {
+    emailNotifications.value = previous;
+    toast.error(apiErrorMessage(error, t("profile.preferencesError")));
+  } finally {
+    savingPreference.value = false;
+  }
+});
+
+// Girişte oturum bilgisi tercihi taşımaz; ekranda sunucudaki güncel değer gösterilsin.
+onMounted(async () => {
+  try {
+    const me = await api.get<CurrentUser>("/api/auth/me");
+    if (currentUser.value) currentUser.value.emailNotificationsEnabled = me.emailNotificationsEnabled ?? true;
+    emailNotifications.value = me.emailNotificationsEnabled ?? true;
+  } catch {
+    // Tercih okunamazsa varsayılan (açık) gösterilir; kaydetme yine sunucuya gider.
+  }
+});
 
 async function changePassword() {
   errorMessage.value = "";
@@ -40,6 +74,16 @@ async function changePassword() {
         <div><dt class="text-xs text-slate-500">{{ $t("profile.role") }}</dt><dd class="font-medium text-slate-800">{{ currentUser.roles.map((r) => $t(roleLabels[r] ?? r)).join(", ") }}</dd></div>
       </dl>
       <p class="mt-3 text-xs text-slate-400">{{ $t("profile.nameHint") }}</p>
+    </AppCard>
+
+    <AppCard :title="$t('profile.notifications')">
+      <AppToggle
+        v-model="emailNotifications"
+        :label="$t('profile.emailNotifications')"
+        :description="$t('profile.emailNotificationsHint')"
+        :disabled="savingPreference"
+        data-testid="email-notifications-toggle"
+      />
     </AppCard>
 
     <AppCard :title="$t('profile.changePassword')">

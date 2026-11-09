@@ -1760,6 +1760,69 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.ToTable("RolePermissions", (string)null);
                 });
 
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Notifications.EmailSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int[]>("DisabledNotificationTypes")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("FromAddress")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<string>("FromName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("Host")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<int>("Port")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ReplyTo")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<int>("Security")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SmtpPasswordProtected")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Username")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EmailSettings", (string)null);
+                });
+
             modelBuilder.Entity("ProcureLive.Domain.Entities.Notifications.InvitationResponseLog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1862,6 +1925,9 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Channel")
                         .HasColumnType("integer");
 
@@ -1869,8 +1935,15 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<DateTime?>("NextAttemptAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("NotificationId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Recipient")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
 
                     b.Property<DateTime?>("SentAt")
                         .HasColumnType("timestamp with time zone");
@@ -1881,6 +1954,8 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("NotificationId");
+
+                    b.HasIndex("Channel", "Status");
 
                     b.ToTable("NotificationChannelLogs", (string)null);
                 });
@@ -2710,6 +2785,9 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("EmailNotificationsEnabled")
                         .HasColumnType("boolean");
 
                     b.Property<string>("FirstName")

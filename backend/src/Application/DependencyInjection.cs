@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<Common.Notifications.InternalNotificationAudience>();
         services.AddScoped<Common.Security.IDataScopeService, Common.Security.DataScopeService>();
         services.AddScoped<Common.Security.IPermissionService, Common.Security.PermissionService>();
+        services.AddScoped<Notifications.Email.NotificationEmailDispatcher>();
 
         return services;
     }

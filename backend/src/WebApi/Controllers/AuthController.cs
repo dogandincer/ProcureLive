@@ -100,6 +100,15 @@ public sealed class AuthController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>Oturumdaki kullanıcının kişisel tercihleri (bildirimleri e-postayla da alma).</summary>
+    [HttpPut("me/preferences")]
+    [Authorize]
+    public async Task<IActionResult> UpdatePreferences(UpdateMyPreferencesRequest request, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new UpdateMyPreferencesCommand(request.EmailNotificationsEnabled), cancellationToken);
+        return NoContent();
+    }
+
     [HttpGet("me")]
     [Authorize]
     public async Task<ActionResult<CurrentUserDto>> Me(CancellationToken cancellationToken)

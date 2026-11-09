@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -69,7 +70,17 @@ public static class DependencyInjection
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IAuctionCacheService, AuctionCacheService>();
-        services.AddScoped<IEmailSender, LoggingEmailSender>();
+        // E-posta: Admin'in ekrandan kaydettiği SMTP ayarıyla gönderilir; ayar kapalıyken LoggingEmailSender'a düşer.
+        string? keysPath = configuration["DataProtection:KeysPath"];
+        if (!string.IsNullOrWhiteSpace(keysPath))
+        {
+            services.AddDataProtection().SetApplicationName("ProcureLive").PersistKeysToFileSystem(new DirectoryInfo(keysPath));
+        }
+        services.AddSingleton<ISecretProtector, Services.Email.DataProtectionSecretProtector>();
+        services.AddSingleton<IEmailSettingsProvider, Services.Email.EmailSettingsProvider>();
+        services.AddSingleton<IEmailTransport, Services.Email.MailKitEmailTransport>();
+        services.AddScoped<LoggingEmailSender>();
+        services.AddScoped<IEmailSender, Services.Email.ConfiguredEmailSender>();
         services.AddScoped<IPaymentGateway, MockPaymentGateway>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
         services.AddSingleton<IAppUrlProvider, AppUrlProvider>();

@@ -123,6 +123,8 @@ public class ApplicationDbContext
 
     public DbSet<NotificationChannelLog> NotificationChannelLogs => Set<NotificationChannelLog>();
 
+    public DbSet<EmailSettings> EmailSettings => Set<EmailSettings>();
+
     public DbSet<InvitationResponseLog> InvitationResponseLogs => Set<InvitationResponseLog>();
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();

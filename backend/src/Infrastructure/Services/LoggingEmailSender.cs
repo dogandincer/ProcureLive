@@ -4,9 +4,8 @@ using ProcureLive.Application.Common.Interfaces;
 namespace ProcureLive.Infrastructure.Services;
 
 /// <summary>
-/// Phase 3 stub: no SMTP provider is configured yet, so outbound email is logged instead of sent.
-/// Swap this registration for a real provider (SendGrid, SES, SMTP) in DependencyInjection.cs later —
-/// nothing outside Infrastructure needs to change since callers only depend on IEmailSender.
+/// E-posta ayarı kapalı/eksikken kullanılan yedek: ileti gönderilmez, yalnızca loglanır (geliştirme ortamında
+/// SMTP olmadan akışların denenebilmesi için). Asıl gönderici <see cref="Email.ConfiguredEmailSender"/>.
 /// </summary>
 public sealed class LoggingEmailSender : IEmailSender
 {
@@ -17,10 +16,12 @@ public sealed class LoggingEmailSender : IEmailSender
         _logger = logger;
     }
 
-    public Task SendAsync(string toEmail, string subject, string body, CancellationToken cancellationToken)
+    public Task SendAsync(EmailMessage message, CancellationToken cancellationToken)
     {
         _logger.LogInformation(
-            "[E-POSTA STUB] Alıcı: {ToEmail} | Konu: {Subject} | İçerik: {Body}", toEmail, subject, body);
+            "[E-POSTA STUB] Alıcı: {ToEmail} | Konu: {Subject} | İçerik: {Body} | Bağlantı: {Link}",
+            // Tek satır: log aramaları (ör. test betiklerinin sıfırlama bağlantısını bulması) satır sonunda kopmasın.
+            message.To, message.Subject, message.Body.ReplaceLineEndings(" "), message.ActionUrl);
 
         return Task.CompletedTask;
     }

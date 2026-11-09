@@ -10,5 +10,9 @@ public sealed class NotificationChannelLogConfiguration : IEntityTypeConfigurati
     {
         builder.ToTable("NotificationChannelLogs");
         builder.Property(c => c.ErrorMessage).HasMaxLength(1000);
+        builder.Property(c => c.Recipient).HasMaxLength(320);
+
+        // Dağıtıcının her 10 sn'deki sorgusu: kanal + durum (bekleyen e-postalar).
+        builder.HasIndex(c => new { c.Channel, c.Status });
     }
 }

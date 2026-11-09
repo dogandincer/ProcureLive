@@ -213,6 +213,15 @@ public sealed class IdentityService : IIdentityService
         _ => e.Description,
     }).Distinct().ToArray();
 
+    public async Task<bool> SetEmailNotificationsAsync(Guid userId, bool enabled, CancellationToken cancellationToken)
+    {
+        ApplicationUser? user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null) return false;
+
+        user.EmailNotificationsEnabled = enabled;
+        return (await _userManager.UpdateAsync(user)).Succeeded;
+    }
+
     public async Task<bool> SetActiveAsync(Guid userId, bool isActive, CancellationToken cancellationToken)
     {
         ApplicationUser? user = await _userManager.FindByIdAsync(userId.ToString());
@@ -301,6 +310,7 @@ public sealed class IdentityService : IIdentityService
             user.IsActive,
             user.LastLoginAt,
             roles.ToArray(),
-            user.LockedOutAt);
+            user.LockedOutAt,
+            user.EmailNotificationsEnabled);
     }
 }

@@ -1,5 +1,6 @@
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Models;
@@ -27,12 +28,14 @@ public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswor
     private readonly IIdentityService _identity;
     private readonly IEmailSender _email;
     private readonly IAppUrlProvider _urls;
+    private readonly ILogger<ForgotPasswordCommandHandler> _logger;
 
-    public ForgotPasswordCommandHandler(IIdentityService identity, IEmailSender email, IAppUrlProvider urls)
+    public ForgotPasswordCommandHandler(IIdentityService identity, IEmailSender email, IAppUrlProvider urls, ILogger<ForgotPasswordCommandHandler> logger)
     {
         _identity = identity;
         _email = email;
         _urls = urls;
+        _logger = logger;
     }
 
     public async Task Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
@@ -44,8 +47,18 @@ public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswor
         if (token is null) return;
 
         string link = $"{_urls.FrontendBaseUrl}/reset-password?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(token)}";
-        await _email.SendAsync(user.Email, "Şifre sıfırlama",
-            $"Merhaba {user.FirstName}, şifrenizi yenilemek için bağlantıyı açın (24 saat geçerli): {link}", cancellationToken);
+        try
+        {
+            await _email.SendAsync(new EmailMessage(user.Email, "Şifre sıfırlama",
+                $"Merhaba {user.FirstName},\n\nŞifrenizi yenilemek için aşağıdaki düğmeyi kullanın. Bağlantı 24 saat geçerlidir.\n\n" +
+                "Bu isteği siz yapmadıysanız bu e-postayı yok sayabilirsiniz.",
+                link, "Şifremi yenile"), cancellationToken);
+        }
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            // Yanıt her durumda aynı kalmalı (hesap varlığı ele verilmesin); SMTP hatası yalnızca sunucu loguna yazılır.
+            _logger.LogError(ex, "Şifre sıfırlama e-postası gönderilemedi: {UserId}", user.Id);
+        }
     }
 }
 

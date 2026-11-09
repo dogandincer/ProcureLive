@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Domain.Common;
 using ProcureLive.Domain.Entities.Audit;
+using ProcureLive.Domain.Entities.Notifications;
 using ProcureLive.Domain.Enums;
 
 namespace ProcureLive.Infrastructure.Persistence.Interceptors;
@@ -88,6 +89,11 @@ public sealed class AuditableEntitySaveChangesInterceptor : SaveChangesIntercept
         }
     }
 
+    /// <summary>Denetim kaydına değeri yazılmayan alanlar (şifreli de olsa sır taşıyanlar); yalnızca değiştiği görünür.</summary>
+    private static readonly HashSet<string> MaskedProperties = [nameof(EmailSettings.SmtpPasswordProtected)];
+
+    private static object? Mask(bool masked, object? value) => masked && value is not null ? "***" : value;
+
     private static AuditLog? BuildAuditLog(EntityEntry entry, DateTime utcNow, Guid? userId, string? userName)
     {
         if (entry.Entity is not BaseEntity baseEntity)
@@ -115,18 +121,19 @@ public sealed class AuditableEntitySaveChangesInterceptor : SaveChangesIntercept
         foreach (PropertyEntry property in entry.Properties)
         {
             string propertyName = property.Metadata.Name;
+            bool masked = MaskedProperties.Contains(propertyName);
 
             switch (entry.State)
             {
                 case EntityState.Added:
-                    newValues[propertyName] = property.CurrentValue;
+                    newValues[propertyName] = Mask(masked, property.CurrentValue);
                     break;
                 case EntityState.Deleted:
-                    oldValues[propertyName] = property.OriginalValue;
+                    oldValues[propertyName] = Mask(masked, property.OriginalValue);
                     break;
                 case EntityState.Modified when property.IsModified:
-                    oldValues[propertyName] = property.OriginalValue;
-                    newValues[propertyName] = property.CurrentValue;
+                    oldValues[propertyName] = Mask(masked, property.OriginalValue);
+                    newValues[propertyName] = Mask(masked, property.CurrentValue);
                     affectedColumns.Add(propertyName);
                     break;
             }

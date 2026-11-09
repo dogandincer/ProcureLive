@@ -43,7 +43,10 @@ public sealed record CurrentUserDto(
     string FirstName,
     string LastName,
     IReadOnlyCollection<string> Roles,
-    Guid? CompanyId);
+    Guid? CompanyId,
+    bool EmailNotificationsEnabled = true);
+
+public sealed record UpdateMyPreferencesRequest(bool EmailNotificationsEnabled);
 
 public sealed record ForgotPasswordRequest(string Email);
 

@@ -31,6 +31,9 @@ public interface IIdentityService
 
     Task<bool> SetRolesAsync(Guid userId, IReadOnlyCollection<string> roles, CancellationToken cancellationToken);
 
+    /// <summary>Kullanıcının bildirimleri e-postayla da alıp almayacağı.</summary>
+    Task<bool> SetEmailNotificationsAsync(Guid userId, bool enabled, CancellationToken cancellationToken);
+
     Task<bool> SetActiveAsync(Guid userId, bool isActive, CancellationToken cancellationToken);
 
     /// <summary>

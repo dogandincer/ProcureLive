@@ -24,6 +24,6 @@ public sealed class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQ
             throw new NotFoundException("ApplicationUser", request.UserId);
         }
 
-        return new CurrentUserDto(user.Id, user.Email, user.FirstName, user.LastName, user.Roles, user.CompanyId);
+        return new CurrentUserDto(user.Id, user.Email, user.FirstName, user.LastName, user.Roles, user.CompanyId, user.EmailNotificationsEnabled);
     }
 }

@@ -72,7 +72,8 @@
     "profile": "My profile",
     "orders": "Purchase orders",
     "myOrders": "My orders",
-    "language": "Interface language"
+    "language": "Interface language",
+    "emailSettings": "Email Settings"
   },
   "language": {
     "label": "Language",
@@ -2099,7 +2100,12 @@
     "currentPassword": "Current password",
     "savePassword": "Change password",
     "passwordChanged": "Your password was changed.",
-    "passwordError": "The password could not be changed."
+    "passwordError": "The password could not be changed.",
+    "notifications": "Notification preferences",
+    "emailNotifications": "Also receive notifications by email",
+    "emailNotificationsHint": "If turned off, notifications only appear under the bell icon in the app.",
+    "preferencesSaved": "Your preference was saved.",
+    "preferencesError": "The preference could not be saved."
   },
   "orders": {
     "title": "Purchase orders",
@@ -2277,5 +2283,96 @@
   },
   "statusFilter": {
     "all": "All"
+  },
+  "emailSettings": {
+    "title": "Email Settings",
+    "subtitle": "The SMTP server used to email notifications, the sender details, and which notifications are sent by email.",
+    "enabled": "Email sending is on",
+    "enabledHint": "When off, notifications only appear in the app and no email is sent.",
+    "disabledNote": "Email sending is currently off. Enter the server details, try them with a test email, then turn sending on and save.",
+    "serverSection": "SMTP server",
+    "preset": "Preset",
+    "presetHint": "Fills in the server, port and security; you enter the username and password.",
+    "presets": {
+      "custom": "Custom",
+      "gmail": "Gmail / Google Workspace",
+      "office365": "Microsoft 365 / Outlook",
+      "yandex": "Yandex",
+      "mailpit": "Development (Mailpit)"
+    },
+    "host": "Server",
+    "port": "Port",
+    "security": "Connection security",
+    "securityOptions": {
+      "None": "None",
+      "StartTls": "STARTTLS",
+      "SslOnConnect": "SSL/TLS",
+      "Auto": "Automatic"
+    },
+    "username": "Username",
+    "password": "Password",
+    "passwordSaved": "A password is saved; enter a new one to change it",
+    "passwordHint": "Stored encrypted and never shown on this screen again.",
+    "clearPassword": "Delete the saved password (server without authentication)",
+    "senderSection": "Sender",
+    "fromAddress": "Sender email address",
+    "fromName": "Sender name",
+    "fromNameHint": "Shown in the recipient's inbox and at the top of the email template.",
+    "replyTo": "Reply-to address",
+    "replyToHint": "Where replies go; the sender address is used if empty.",
+    "typesSection": "Notifications sent by email",
+    "typesHint": "Notifications you turn off still appear in the app. Users can turn off their own emails on the Profile screen.",
+    "types": {
+      "AuctionInvitation": "Tender invitation",
+      "AuctionStarting": "Tender starting reminder",
+      "Outbid": "Bid outbid",
+      "RfiInvitation": "RFI invitation",
+      "RfqInvitation": "RFQ invitation",
+      "AwardNotice": "Award / result notice",
+      "System": "System notifications (supplier approval, Plus, etc.)",
+      "InvitationResponded": "Invitation responses",
+      "AuctionStatusChanged": "Tender status changes",
+      "ParticipationRequest": "Participation requests",
+      "PurchaseOrder": "Purchase orders",
+      "ProcessQuestion": "Questions and answers",
+      "DocumentExpiry": "Document expiry warnings",
+      "PublishApproval": "Publish approvals"
+    },
+    "selectAll": "Select all",
+    "selectNone": "None",
+    "saved": "Email settings saved.",
+    "saveError": "Email settings could not be saved.",
+    "loadError": "Email settings could not be loaded.",
+    "lastUpdated": "Last change: {at} · {by}",
+    "unsaved": "There are unsaved changes",
+    "leave": "Leave without saving",
+    "testSection": "Test email",
+    "testHint": "Sends a single email with the settings in the form (without saving); works even while sending is off.",
+    "testTo": "Recipient",
+    "testSend": "Send test email",
+    "testOk": "Test email sent to {to}.",
+    "testFailed": "Could not send: {error}",
+    "logSection": "Delivery log",
+    "logHint": "Per-recipient status of notification emails. Failed sends are retried automatically after 1 and 5 minutes.",
+    "logStatus": {
+      "Pending": "Pending",
+      "Sent": "Sent",
+      "Failed": "Failed",
+      "Skipped": "Skipped"
+    },
+    "logCols": {
+      "date": "Date",
+      "recipient": "Recipient",
+      "subject": "Subject",
+      "status": "Status",
+      "detail": "Details"
+    },
+    "attempts": "{n} attempts",
+    "retry": "Retry",
+    "retried": "The email was queued again.",
+    "retryError": "Could not retry.",
+    "logEmpty": "No email records match this filter.",
+    "logSearch": "Search recipient or subject",
+    "refresh": "Refresh"
   }
 }

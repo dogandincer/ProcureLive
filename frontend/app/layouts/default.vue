@@ -10,6 +10,7 @@ import {
   BanknotesIcon,
   ClipboardDocumentListIcon,
   ArchiveBoxIcon,
+  EnvelopeIcon,
   EnvelopeOpenIcon,
   QuestionMarkCircleIcon,
   DocumentTextIcon,
@@ -178,7 +179,10 @@ const navSections = computed<NavSection[]>(() => {
     ...adminSections,
     {
       sectionKey: "nav.systemGroup",
-      links: [{ to: "/admin/audit-log", labelKey: "nav.auditLog", icon: ClipboardDocumentCheckIcon }],
+      links: [
+        { to: "/admin/email-settings", labelKey: "nav.emailSettings", icon: EnvelopeIcon },
+        { to: "/admin/audit-log", labelKey: "nav.auditLog", icon: ClipboardDocumentCheckIcon },
+      ],
     },
     accountSection,
   ];

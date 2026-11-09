@@ -10,7 +10,8 @@ public sealed record ApplicationUserInfo(
     bool IsActive,
     DateTime? LastLoginAt,
     IReadOnlyCollection<string> Roles,
-    DateTime? LockedOutAt = null);
+    DateTime? LockedOutAt = null,
+    bool EmailNotificationsEnabled = true);
 
 public sealed record IdentityOperationResult(bool Succeeded, Guid? UserId, IReadOnlyCollection<string> Errors)
 {

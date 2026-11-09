@@ -76,7 +76,8 @@ Uygulama ilk açılışta `InitialAdminSeeder` ile idempotent şekilde bir Admin
 - `.editorconfig`, `TryParse` gibi metotlarda inline `out` değişken tanımını belgeler (kod standardı).
 - AutoMapper 13.0.1 için NU1903 uyarısı görünüyor (lisans bildirimi kaynaklı, gerçek bir CVE değil).
 - Frontend `nuxt.config.ts` içinde `srcDir: "app/"` kullanır; Tailwind içerik taraması `tailwind.config.ts`'de bu yapıya göre açıkça tanımlıdır.
-- E-posta gönderimi henüz gerçek bir SMTP sağlayıcısına bağlı değil (`LoggingEmailSender` stub'ı, sadece loglar) — `IEmailSender`'ın gerçek implementasyonuyla değiştirilmesi yeterli.
+- E-posta: Admin, **Sistem → E-posta Ayarları** ekranından SMTP sunucusunu (Gmail / Microsoft 365 / Yandex hazır ayarlarıyla), gönderen bilgisini ve hangi bildirimlerin e-postayla gideceğini belirler; formdaki ayarla test e-postası gönderilebilir. Bildirimler arka planda kuyruktan gönderilir (hatada 1 ve 5 dk sonra yeniden denenir), gönderim kayıtları aynı ekrandadır. Kullanıcı kendi e-postalarını Profil ekranından kapatabilir. SMTP şifresi ASP.NET Data Protection ile şifrelenir; sunucuya taşırken `DataProtection:KeysPath` ile kalıcı anahtar klasörü verin. Ayar kapalıyken e-postalar yalnızca loglanır.
+- Geliştirmede gerçek e-posta göndermeden denemek için `docker compose up -d mailpit`: ayarlarda "Geliştirme (Mailpit)" hazır ayarını seçin, gelen kutusu http://localhost:8025.
 
 ## Lisans
 

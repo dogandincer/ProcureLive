@@ -112,6 +112,8 @@ public interface IApplicationDbContext
 
     DbSet<NotificationChannelLog> NotificationChannelLogs { get; }
 
+    DbSet<EmailSettings> EmailSettings { get; }
+
     DbSet<InvitationResponseLog> InvitationResponseLogs { get; }
 
     DbSet<AuditLog> AuditLogs { get; }

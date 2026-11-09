@@ -253,6 +253,7 @@ onMounted(() => {
         <p class="text-sm text-slate-500">{{ $t("companies.subtitle") }}</p>
       </div>
       <div class="flex gap-2">
+        <ErpImportButton kind="entities" @imported="load" />
         <ExcelImportButton :columns="importColumns" template-filename="cariler-sablon.xlsx" :import-row="importCompanyRow" @imported="load">
           <template #options><WorkspaceField v-model="importWorkspaceId" :label="$t('excelImport.targetWorkspace')" :hint="$t('companies.import.workspaceHint')" /></template>
         </ExcelImportButton>

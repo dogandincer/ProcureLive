@@ -33,6 +33,7 @@ public static class DependencyInjection
         services.AddScoped<Common.Security.IDataScopeService, Common.Security.DataScopeService>();
         services.AddScoped<Common.Security.IPermissionService, Common.Security.PermissionService>();
         services.AddScoped<Notifications.Email.NotificationEmailDispatcher>();
+        services.AddScoped<Erp.ErpSyncDispatcher>();
 
         return services;
     }

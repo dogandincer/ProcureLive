@@ -192,5 +192,7 @@ onMounted(load);
         <textarea v-model="supplierNote" rows="3" maxlength="1000" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm font-normal" data-testid="order-confirm-note" />
       </label>
     </ConfirmDialog>
+
+    <ErpStatusCard v-if="internal" :purchase-order-id="order.id" :order-status="order.status" class="print:hidden" />
   </div>
 </template>

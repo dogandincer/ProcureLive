@@ -32,7 +32,7 @@ export default defineNuxtRouteMiddleware((to) => {
   }
 
   // Firma, İşyeri, Kullanıcı Tanım, Yetki ve Denetim Kaydı ekranları yalnızca Admin'e açık (sunucu da RequireAdmin ile korur).
-  const adminOnly = ["/admin/firms", "/admin/workspaces", "/admin/users", "/admin/permissions", "/admin/audit-log", "/admin/email-settings"];
+  const adminOnly = ["/admin/firms", "/admin/workspaces", "/admin/users", "/admin/permissions", "/admin/audit-log", "/admin/email-settings", "/admin/erp"];
   if (adminOnly.some((p) => to.path.startsWith(p)) && !isAdminRole()) {
     return navigateTo("/admin");
   }

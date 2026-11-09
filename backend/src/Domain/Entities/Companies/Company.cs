@@ -71,6 +71,10 @@ public class Company : AuditableEntity, ISoftDelete
     /// <summary>Firma: satınalmacının yayınladığı ihale Admin onayından sonra planlanır (varsayılan açık).</summary>
     public bool RequirePublishApproval { get; set; } = true;
 
+    /// <summary>ERP (UyumERP) cari kodu ve kimliği — premium ERP entegrasyonu açıksa dolar.</summary>
+    public string? ErpEntityCode { get; set; }
+    public int? ErpEntityId { get; set; }
+
     public Guid? WorkspaceId { get; set; }
 
     public Workspace? Workspace { get; set; }

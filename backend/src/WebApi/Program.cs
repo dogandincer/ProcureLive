@@ -149,9 +149,10 @@ builder.Services.AddScoped<IAuctionNotificationService, SignalRAuctionNotificati
 builder.Services.AddHostedService<AuctionLifecycleHostedService>();
 
 // Faz 3: bildirim merkezi — anlık SignalR push (NotificationCreator içinde senkron tetiklenir) +
-// e-posta kanalını arka planda dağıtan servis (henüz gerçek SMTP yok, LoggingEmailSender stub'ı kullanılıyor).
+// e-posta kanalını arka planda dağıtan servis (Admin'in E-posta Ayarları ekranındaki SMTP ile) + premium ERP eşitlemesi.
 builder.Services.AddScoped<INotificationRealtimeService, SignalRNotificationRealtimeService>();
 builder.Services.AddHostedService<NotificationEmailDispatchHostedService>();
+builder.Services.AddHostedService<ErpSyncHostedService>();
 
 // Faz 4c: kur bilgilerini TCMB'den saatlik otomatik cekme (baslangicta bir kez + her saat).
 builder.Services.AddHostedService<ExchangeRateSyncHostedService>();

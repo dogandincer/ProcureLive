@@ -48,6 +48,9 @@ public class PurchaseOrder : AuditableEntity
 
     public string? SupplierNote { get; set; }
 
+    /// <summary>ERP'de oluşturulan siparişin belge numarası (premium ERP entegrasyonu).</summary>
+    public string? ErpOrderDocNo { get; set; }
+
     public ICollection<PurchaseOrderLine> Lines { get; set; } = new List<PurchaseOrderLine>();
 }
 

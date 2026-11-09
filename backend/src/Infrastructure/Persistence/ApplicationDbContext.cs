@@ -125,6 +125,12 @@ public class ApplicationDbContext
 
     public DbSet<EmailSettings> EmailSettings => Set<EmailSettings>();
 
+    public DbSet<Domain.Entities.Erp.ErpSettings> ErpSettings => Set<Domain.Entities.Erp.ErpSettings>();
+
+    public DbSet<Domain.Entities.Erp.ErpSyncJob> ErpSyncJobs => Set<Domain.Entities.Erp.ErpSyncJob>();
+
+    public DbSet<Domain.Entities.Erp.ErpOfferLink> ErpOfferLinks => Set<Domain.Entities.Erp.ErpOfferLink>();
+
     public DbSet<InvitationResponseLog> InvitationResponseLogs => Set<InvitationResponseLog>();
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();

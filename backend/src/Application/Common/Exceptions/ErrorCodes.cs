@@ -17,6 +17,7 @@ public static class ErrorCodes
     public const string AuctionClosed = "AuctionClosed";
     public const string InvalidStatusTransition = "InvalidStatusTransition";
     public const string AccountLocked = "AccountLocked";
+    public const string PremiumRequired = "PremiumRequired";
     public const string ApprovalRequired = "ApprovalRequired";
     public const string RequestPending = "RequestPending";
     public const string ProcessClosed = "ProcessClosed";

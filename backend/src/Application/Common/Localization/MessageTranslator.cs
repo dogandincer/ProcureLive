@@ -135,6 +135,26 @@ public static class MessageTranslator
             "This invitation belongs to another company. Sign in with an account of the invited company.",
         ["Geçerli bir e-posta adresi girin."] = "Enter a valid email address.",
 
+        // ERP entegrasyonu (ErpFeatures, premium)
+        ["ERP entegrasyonu premium bir özelliktir ve bu kurulumda açık değil."] = "ERP integration is a premium feature and is not enabled in this installation.",
+        ["ERP entegrasyonu kapalı. ERP Entegrasyonu ekranından Simülasyon veya Canlı modu seçin."] = "ERP integration is off. Choose Simulation or Live mode on the ERP Integration screen.",
+        ["ERP bağlantı bilgileri eksik (okuma servisi adresi ve kullanıcı adı)."] = "ERP connection details are missing (read service URL and username).",
+        ["Geçersiz ERP modu."] = "Invalid ERP mode.",
+        ["Okuma servisi adresi geçerli bir http(s) adresi olmalıdır."] = "The read service URL must be a valid http(s) address.",
+        ["Yazma servisi adresi geçerli bir http(s) adresi olmalıdır."] = "The write service URL must be a valid http(s) address.",
+        ["Okuma servisi adresi boş olamaz."] = "The read service URL cannot be empty.",
+        ["ERP kullanıcı adı boş olamaz."] = "The ERP username cannot be empty.",
+        ["ERP şirket kodu boş olamaz."] = "The ERP company code cannot be empty.",
+        ["Canlı modda yazma servisi adresi boş olamaz."] = "The write service URL is required in Live mode.",
+        ["Canlı modda şube kodu boş olamaz."] = "The branch code is required in Live mode.",
+        ["Canlı modda teklif hareket türü kodu boş olamaz."] = "The offer document type code is required in Live mode.",
+        ["Canlı modda sipariş hareket türü kodu boş olamaz."] = "The order document type code is required in Live mode.",
+        ["Aktarılacak kayıt seçin."] = "Select records to import.",
+        ["Aktarılan ürünler için kategori seçin."] = "Select a category for the imported products.",
+        ["Yalnızca tedarikçi cariler ERP'ye gönderilir."] = "Only supplier accounts are sent to the ERP.",
+        ["ERP siparişi yalnızca tedarikçiye gönderilmiş veya onaylanmış siparişten oluşturulur."] = "An ERP order can only be created from an order that was sent to or confirmed by the supplier.",
+        ["Yalnızca başarısız, atlanmış veya simüle edilmiş işler yeniden çalıştırılabilir."] = "Only failed, skipped or simulated jobs can be run again.",
+
         // E-posta ayarları (EmailSettingsFeatures)
         ["SMTP sunucusu boş olamaz."] = "SMTP server cannot be empty.",
         ["Port 1 ile 65535 arasında olmalıdır."] = "Port must be between 1 and 65535.",

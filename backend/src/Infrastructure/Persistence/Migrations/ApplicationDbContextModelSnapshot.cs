@@ -952,6 +952,13 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
+                    b.Property<string>("ErpItemCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int?>("ErpItemId")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -993,6 +1000,10 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("DefaultCurrencyId");
+
+                    b.HasIndex("ErpItemCode")
+                        .IsUnique()
+                        .HasFilter("\"ErpItemCode\" IS NOT NULL");
 
                     b.HasIndex("Sku")
                         .IsUnique();
@@ -1214,6 +1225,13 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.Property<int?>("EmployeeCount")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ErpEntityCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int?>("ErpEntityId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Fax")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
@@ -1300,6 +1318,10 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                     b.HasIndex("Code")
                         .IsUnique()
                         .HasFilter("\"Code\" IS NOT NULL AND NOT \"IsDeleted\"");
+
+                    b.HasIndex("ErpEntityCode")
+                        .IsUnique()
+                        .HasFilter("\"ErpEntityCode\" IS NOT NULL AND NOT \"IsDeleted\"");
 
                     b.HasIndex("TaxNumber")
                         .IsUnique()
@@ -1587,6 +1609,187 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Sectors", (string)null);
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Erp.ErpOfferLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuctionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DocNo")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<int?>("ErpOfferMId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("LastRevisedBidAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LineMapJson")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuctionId", "CompanyId")
+                        .IsUnique();
+
+                    b.ToTable("ErpOfferLinks", (string)null);
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Erp.ErpSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BranchCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("CoCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DocNoPrefix")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("EntityCodePrefix")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<bool>("ExportNewProducts")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ExportNewSuppliers")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("GetServiceUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("Mode")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OfferDocTraCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("OrderDocTraCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("PasswordProtected")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("SaveServiceUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ErpSettings", (string)null);
+                });
+
+            modelBuilder.Entity("ProcureLive.Domain.Entities.Erp.ErpSyncJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("AuctionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("NextAttemptAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PurchaseOrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RequestXml")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ResponseText")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuctionId");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("PurchaseOrderId");
+
+                    b.HasIndex("Status", "NextAttemptAt");
+
+                    b.ToTable("ErpSyncJobs", (string)null);
                 });
 
             modelBuilder.Entity("ProcureLive.Domain.Entities.Finance.Currency", b =>
@@ -1986,6 +2189,10 @@ namespace ProcureLive.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime?>("DeliveryDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ErpOrderDocNo")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(2000)

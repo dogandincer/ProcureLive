@@ -70,7 +70,9 @@ public sealed class AuditableEntitySaveChangesInterceptor : SaveChangesIntercept
                 }
             }
 
-            if (entry.Entity is AuditLog || entry.State is EntityState.Detached or EntityState.Unchanged)
+            // ERP iş kuyruğu ve teklif bağlantıları teknik kayıttır; her durum değişikliği denetim kaydını doldurmasın.
+            if (entry.Entity is AuditLog or Domain.Entities.Erp.ErpSyncJob or Domain.Entities.Erp.ErpOfferLink
+                || entry.State is EntityState.Detached or EntityState.Unchanged)
             {
                 continue;
             }
@@ -90,7 +92,7 @@ public sealed class AuditableEntitySaveChangesInterceptor : SaveChangesIntercept
     }
 
     /// <summary>Denetim kaydına değeri yazılmayan alanlar (şifreli de olsa sır taşıyanlar); yalnızca değiştiği görünür.</summary>
-    private static readonly HashSet<string> MaskedProperties = [nameof(EmailSettings.SmtpPasswordProtected)];
+    private static readonly HashSet<string> MaskedProperties = [nameof(EmailSettings.SmtpPasswordProtected), nameof(Domain.Entities.Erp.ErpSettings.PasswordProtected)];
 
     private static object? Mask(bool masked, object? value) => masked && value is not null ? "***" : value;
 

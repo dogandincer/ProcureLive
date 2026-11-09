@@ -1095,3 +1095,109 @@ export interface EmailLogSummaryDto {
   failed: number;
   skipped: number;
 }
+
+// ---------------------------------------------------------------- Premium ERP (UyumERP) entegrasyonu
+
+export interface ErpSettingsRequest {
+  mode: "Off" | "Simulation" | "Live";
+  getServiceUrl: string;
+  saveServiceUrl: string;
+  username: string;
+  password: string | null;
+  coCode: string;
+  branchCode: string;
+  offerDocTraCode: string;
+  orderDocTraCode: string;
+  docNoPrefix: string;
+  entityCodePrefix: string | null;
+  exportNewSuppliers: boolean;
+  exportNewProducts: boolean;
+}
+
+export interface ErpSettingsDto extends Omit<ErpSettingsRequest, "password"> {
+  hasPassword: boolean;
+  updatedAt: string | null;
+  updatedBy: string | null;
+}
+
+export interface ErpTestResultDto {
+  succeeded: boolean;
+  error: string | null;
+  entityCount: number | null;
+  itemCount: number | null;
+}
+
+export interface ErpEntityDto {
+  id: number;
+  code: string;
+  name: string;
+  taxNo: string | null;
+  phone: string | null;
+  email: string | null;
+  linkedCompanyId: string | null;
+  linkedCompanyName: string | null;
+}
+
+export interface ErpItemDto {
+  id: number;
+  code: string;
+  name: string;
+  unitCode: string | null;
+  brand: string | null;
+  linkedProductId: string | null;
+  linkedProductName: string | null;
+}
+
+export interface ErpImportResultDto {
+  created: number;
+  updated: number;
+  errors: string[];
+}
+
+export interface ErpSyncJobDto {
+  id: string;
+  kind: string;
+  status: string;
+  summary: string;
+  message: string | null;
+  attemptCount: number;
+  createdAt: string;
+  completedAt: string | null;
+  auctionId: string | null;
+  companyId: string | null;
+  productId: string | null;
+  purchaseOrderId: string | null;
+}
+
+export interface ErpSyncJobDetailDto {
+  job: ErpSyncJobDto;
+  requestXml: string | null;
+  responseText: string | null;
+}
+
+export interface ErpSyncSummaryDto {
+  pending: number;
+  simulated: number;
+  done: number;
+  failed: number;
+  skipped: number;
+}
+
+export interface ErpOfferLinkDto {
+  companyId: string;
+  companyName: string;
+  docNo: string;
+  erpOfferMId: number | null;
+  createdAt: string;
+  lastRevisedBidAt: string | null;
+  lastStatus: string | null;
+  lastMessage: string | null;
+}
+
+export interface ErpRecordStatusDto {
+  enabled: boolean;
+  mode: string;
+  erpCode: string | null;
+  jobs: ErpSyncJobDto[];
+  offers: ErpOfferLinkDto[];
+}

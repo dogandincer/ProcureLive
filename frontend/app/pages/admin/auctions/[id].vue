@@ -694,6 +694,8 @@ onBeforeUnmount(() => {
 
     <div id="terms" class="scroll-mt-28">
       <AuctionTermsCard :auction="auction" internal @changed="load" />
+
+      <ErpStatusCard v-if="auction.status !== 'Draft'" :auction-id="auctionId" />
     </div>
 
     <div id="qa-section" class="scroll-mt-28">

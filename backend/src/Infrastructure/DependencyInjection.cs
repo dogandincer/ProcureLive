@@ -81,6 +81,11 @@ public static class DependencyInjection
         services.AddSingleton<IEmailTransport, Services.Email.MailKitEmailTransport>();
         services.AddScoped<LoggingEmailSender>();
         services.AddScoped<IEmailSender, Services.Email.ConfiguredEmailSender>();
+
+        // ERP (UyumERP) entegrasyonu — premium: Features:ErpIntegration kapalıysa hiçbir işlem yapılmaz.
+        services.AddSingleton<IFeatureFlags, Services.Erp.ConfigurationFeatureFlags>();
+        services.AddSingleton<IErpSettingsProvider, Services.Erp.ErpSettingsProvider>();
+        services.AddHttpClient<IErpClient, Services.Erp.UyumErpClient>(client => client.Timeout = TimeSpan.FromSeconds(60));
         services.AddScoped<IPaymentGateway, MockPaymentGateway>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
         services.AddSingleton<IAppUrlProvider, AppUrlProvider>();

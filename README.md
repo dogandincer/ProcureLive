@@ -79,6 +79,23 @@ Uygulama ilk açılışta `InitialAdminSeeder` ile idempotent şekilde bir Admin
 - E-posta: Admin, **Sistem → E-posta Ayarları** ekranından SMTP sunucusunu (Gmail / Microsoft 365 / Yandex hazır ayarlarıyla), gönderen bilgisini ve hangi bildirimlerin e-postayla gideceğini belirler; formdaki ayarla test e-postası gönderilebilir. Bildirimler arka planda kuyruktan gönderilir (hatada 1 ve 5 dk sonra yeniden denenir), gönderim kayıtları aynı ekrandadır. Kullanıcı kendi e-postalarını Profil ekranından kapatabilir. SMTP şifresi ASP.NET Data Protection ile şifrelenir; sunucuya taşırken `DataProtection:KeysPath` ile kalıcı anahtar klasörü verin. Ayar kapalıyken e-postalar yalnızca loglanır.
 - Geliştirmede gerçek e-posta göndermeden denemek için `docker compose up -d mailpit`: ayarlarda "Geliştirme (Mailpit)" hazır ayarını seçin, gelen kutusu http://localhost:8025.
 
+## ERP (UyumERP) Entegrasyonu — Premium
+
+İsteğe bağlıdır; kapalıyken uygulama ERP'siz çalışır. İki anahtarı vardır:
+
+1. **Lisans** (sunucu yapılandırması): `Features:ErpIntegration` (`appsettings.json`'da `false`, geliştirmede `true`). Kapalıysa ERP uçları `403 PremiumRequired` döner, menüde yalnızca tanıtım görünür.
+2. **Mod** (Admin → Sistem → ERP Entegrasyonu): *Kapalı* / *Simülasyon* (ERP'den okunur, yazılacak XML'ler kayda geçer ama gönderilmez) / *Canlı*.
+
+Ne yapar (UyumGetWebService / UyumSaveWebService SOAP servisleri):
+
+- **Cari / ürün aktarımı:** Cariler ve Ürünler ekranındaki "ERP'den Aktar" düğmesi ERP kayıtlarını eşler ya da açar. İsteğe bağlı olarak yeni tedarikçi ve ürünler ERP'ye otomatik açılır (`SaveEntity` / `SaveItem`).
+- **Teklif açma:** İhale yayınlanınca her davetli tedarikçi için ERP'de satınalma teklifi açılır (`SaveOffer`).
+- **Teklif revizyonu:** Tedarikçi teklif verdikçe ERP teklifi revize edilir (`SaveUyumObjectFromXML`, `PSM.OfferM`).
+- **Sipariş:** Sipariş sayfasındaki "ERP'de sipariş oluştur" düğmesi ERP siparişi açar (`SaveOrderM`).
+- **Kayıt ve yeniden deneme:** Her işlem gönderilen XML ve ERP yanıtıyla kayda geçer. Hata olursa 1 ve 5 dakika sonra yeniden denenir.
+
+Gerçek ERP'ye dokunmadan denemek için sahte sunucuyu `python -I qa/erp-fake/fake_erp.py` ile başlatın (kullanıcı `test.user`, şifre `test.pass`, adres `http://127.0.0.1:8099/WebService/ERP/...`). Senaryolar `node qa/e2e/erp.js` ile koşturulur.
+
 ## Lisans
 
 MIT — ayrıntılar için [LICENSE](LICENSE) dosyasına bakın.

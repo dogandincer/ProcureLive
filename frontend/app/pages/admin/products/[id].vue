@@ -460,6 +460,8 @@ onMounted(load);
           </div>
         </div>
       </AppCard>
+
+      <ErpStatusCard :product-id="productId" />
     </div>
   </div>
 </template>

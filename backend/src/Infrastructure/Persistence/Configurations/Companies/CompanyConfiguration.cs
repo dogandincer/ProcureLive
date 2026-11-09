@@ -12,6 +12,7 @@ public sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
         builder.ToTable("Companies");
 
         builder.Property(c => c.Code).HasMaxLength(30);
+        builder.Property(c => c.ErpEntityCode).HasMaxLength(50);
         builder.Property(c => c.Name).HasMaxLength(250).IsRequired();
         builder.Property(c => c.ShortName).HasMaxLength(60);
         builder.Property(c => c.TradeName).HasMaxLength(300);
@@ -32,6 +33,7 @@ public sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
         // Silinmiş kayıtlar ve vergi no'su girilmemiş firmalar benzersizliği bozmaz.
         builder.HasIndex(c => c.TaxNumber).IsUnique().HasFilter("\"TaxNumber\" <> '' AND NOT \"IsDeleted\"");
         builder.HasIndex(c => c.Code).IsUnique().HasFilter("\"Code\" IS NOT NULL AND NOT \"IsDeleted\"");
+        builder.HasIndex(c => c.ErpEntityCode).IsUnique().HasFilter("\"ErpEntityCode\" IS NOT NULL AND NOT \"IsDeleted\"");
 
         builder.HasMany(c => c.Evaluations)
             .WithOne(e => e.Company)

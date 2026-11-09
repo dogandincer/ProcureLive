@@ -135,6 +135,7 @@ onMounted(load);
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-slate-800">{{ $t("products.title") }}</h1>
       <div class="flex gap-2">
+        <ErpImportButton kind="items" @imported="load" />
         <ExcelImportButton :columns="importColumns" template-filename="urunler-sablon.xlsx" :import-row="importProductRow" @imported="load">
           <template #options><WorkspaceField v-model="importWorkspaceId" :label="$t('excelImport.targetWorkspace')" /></template>
         </ExcelImportButton>

@@ -27,6 +27,10 @@ public class Product : AuditableEntity, ISoftDelete
 
     public bool IsActive { get; set; } = true;
 
+    /// <summary>ERP (UyumERP) stok kodu ve kimliği — premium ERP entegrasyonu açıksa dolar.</summary>
+    public string? ErpItemCode { get; set; }
+    public int? ErpItemId { get; set; }
+
     /// <summary>URL of an interactive 3D model (.glb/.gltf) for this product, if one has been set.</summary>
     public string? Model3dUrl { get; set; }
 

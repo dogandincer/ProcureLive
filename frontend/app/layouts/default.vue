@@ -11,6 +11,7 @@ import {
   ClipboardDocumentListIcon,
   ArchiveBoxIcon,
   EnvelopeIcon,
+  ArrowsRightLeftIcon,
   EnvelopeOpenIcon,
   QuestionMarkCircleIcon,
   DocumentTextIcon,
@@ -96,6 +97,8 @@ interface NavLink {
   labelKey: string;
   icon: Component;
   adminOnly?: boolean;
+  /** Premium özellik: lisans yoksa menüde kilit rozetiyle (tanıtım sayfasına) görünür. */
+  premium?: boolean;
 }
 
 interface NavSection {
@@ -159,6 +162,10 @@ const supplierSections: NavSection[] = [
   },
 ];
 
+// Premium özellikler (ERP): lisans yoksa menüdeki ERP bağlantısı "Premium" rozetiyle tanıtım sayfasına gider.
+const { ensure: ensureFeatures, erpLicensed } = useFeatures();
+onMounted(() => ensureFeatures());
+
 // Tedarikçi plan rozeti (Plus / Standart kota) — fiyat sayfası ve katılım sonrası aynı state yenilenir.
 const { subscription, isPlus, refresh: refreshSubscription } = useSubscription();
 
@@ -181,6 +188,7 @@ const navSections = computed<NavSection[]>(() => {
       sectionKey: "nav.systemGroup",
       links: [
         { to: "/admin/email-settings", labelKey: "nav.emailSettings", icon: EnvelopeIcon },
+        { to: "/admin/erp", labelKey: "nav.erp", icon: ArrowsRightLeftIcon, premium: true },
         { to: "/admin/audit-log", labelKey: "nav.auditLog", icon: ClipboardDocumentCheckIcon },
       ],
     },
@@ -403,6 +411,11 @@ onMounted(async () => {
             >
               <component :is="link.icon" class="h-4.5 w-4.5 shrink-0 opacity-80 group-[.router-link-active]:opacity-100" style="height:18px;width:18px" />
               <span class="flex-1" :class="{ 'md:hidden': collapsed }">{{ $t(link.labelKey) }}</span>
+              <span
+                v-if="link.premium && !erpLicensed"
+                class="rounded bg-amber-400/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-amber-300"
+                :class="{ 'md:hidden': collapsed }"
+              >{{ $t("erp.premium") }}</span>
               <ChevronRightIcon class="h-3 w-3 shrink-0 opacity-0 group-hover:opacity-40 transition-opacity" :class="{ 'md:hidden': collapsed }" />
             </NuxtLink>
           </div>

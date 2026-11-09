@@ -73,7 +73,8 @@
     "orders": "Purchase orders",
     "myOrders": "My orders",
     "language": "Interface language",
-    "emailSettings": "Email Settings"
+    "emailSettings": "Email Settings",
+    "erp": "ERP Integration"
   },
   "language": {
     "label": "Language",
@@ -2374,5 +2375,152 @@
     "logEmpty": "No email records match this filter.",
     "logSearch": "Search recipient or subject",
     "refresh": "Refresh"
+  },
+  "erp": {
+    "title": "ERP Integration",
+    "premium": "Premium",
+    "subtitle": "Syncs suppliers, products, tender offers and purchase orders with UyumERP. In Off mode the app works without an ERP.",
+    "loadError": "ERP settings could not be loaded.",
+    "saveError": "ERP settings could not be saved.",
+    "saved": "ERP settings saved.",
+    "refresh": "Refresh",
+    "locked": {
+      "title": "ERP integration is a premium feature",
+      "body": "ERP integration is not enabled in this installation. The app keeps working with all its features without an ERP. With Premium you can:",
+      "f1": "Import and match suppliers and stock items from the ERP in one click",
+      "f2": "Create new suppliers and products in the ERP automatically",
+      "f3": "Open a purchase offer in the ERP for every invitee when a tender is published",
+      "f4": "Revise the ERP offer automatically as suppliers bid",
+      "f5": "Turn a purchase order into an ERP order with one button",
+      "how": "Contact your software provider to enable the premium feature (server setting: Features:ErpIntegration)."
+    },
+    "modeSection": "Mode",
+    "mode": {
+      "Off": "Off",
+      "Simulation": "Simulation",
+      "Live": "Live"
+    },
+    "modeHint": {
+      "Off": "Nothing is done with the ERP; the app works without it.",
+      "Simulation": "Reads from the ERP (imports). Offer/order XML to be written is prepared and logged but not sent.",
+      "Live": "Offers, revisions, suppliers/products and orders are really written to the ERP."
+    },
+    "liveConfirm": {
+      "title": "Switch to Live mode?",
+      "body": "From now on, offers will be opened in the ERP for published tenders, revised as suppliers bid, and orders you choose will be written to the ERP. Make sure you have reviewed the XML in the simulation log first.",
+      "ok": "Go live"
+    },
+    "connectionSection": "Connection",
+    "connectionHint": "UyumERP web service addresses and service user. The password is stored encrypted.",
+    "getUrl": "Read service (UyumGetWebService.asmx)",
+    "saveUrl": "Write service (UyumSaveWebService.asmx)",
+    "username": "Username",
+    "password": "Password",
+    "coCode": "Company code",
+    "branchCode": "Branch code",
+    "documentsSection": "Documents",
+    "documentsHint": "Document type codes of the purchase offer and order opened in the ERP.",
+    "offerDocTra": "Offer document type code",
+    "orderDocTra": "Order document type code",
+    "docNoPrefix": "Document number prefix",
+    "docNoPrefixHint": "E.g. PL- → PL-IH-2026-0004-CARI-0002",
+    "syncSection": "Synchronisation",
+    "entityPrefix": "Account code prefix to import",
+    "entityPrefixHint": "Only ERP accounts whose code starts with this prefix are listed for import (e.g. 320 for vendors). Empty lists all.",
+    "exportSuppliers": "Create new suppliers in the ERP automatically",
+    "exportSuppliersHint": "Active suppliers without an ERP code are sent to the ERP as accounts (code: ProcureLive account code).",
+    "exportProducts": "Create new products in the ERP automatically",
+    "exportProductsHint": "Active products without an ERP code are sent to the ERP as stock items (code: SKU).",
+    "testSection": "Connection test",
+    "testHint": "Only reads from the ERP, using the values in the form (without saving).",
+    "test": "Test connection",
+    "testOk": "Connected: the ERP has {entities} accounts and {items} stock items.",
+    "testFailed": "Could not connect: {error}",
+    "howSection": "How it works",
+    "how": {
+      "s1": "Match ERP records with \"Import from ERP\" on the Suppliers and Products screens.",
+      "s2": "When a tender is published (Scheduled), an unpriced offer is opened in the ERP for each invited supplier, including later joiners.",
+      "s3": "As a supplier bids, their ERP offer is revised with their latest unit prices.",
+      "s4": "On a sent/confirmed purchase order, \"Create ERP order\" opens the order in the ERP.",
+      "s5": "The XML sent and the ERP response of every operation appear in the log below; failures are retried after 1 and 5 minutes."
+    },
+    "jobsSection": "ERP operations",
+    "jobsHint": "Every operation written to the ERP (or prepared in simulation). Open a row to see the XML and run it again.",
+    "jobStatus": {
+      "Pending": "Pending",
+      "Simulated": "Simulated",
+      "Done": "Done",
+      "Failed": "Failed",
+      "Skipped": "Skipped"
+    },
+    "kind": {
+      "EntityExport": "Account export",
+      "ItemExport": "Stock item export",
+      "OfferCreate": "Offer creation",
+      "OfferRevise": "Offer revision",
+      "OrderCreate": "Order creation"
+    },
+    "kindFilter": "Operation type",
+    "allKinds": "All operations",
+    "jobSearch": "Search operations",
+    "jobCol": "Operation",
+    "viewXml": "Details",
+    "request": "Request sent (password masked)",
+    "response": "ERP response",
+    "runAgain": "Run again",
+    "retried": "The operation was queued again.",
+    "retryError": "The operation could not be run again.",
+    "noJobs": "No ERP operations match this filter.",
+    "import": {
+      "button": {
+        "entities": "Import suppliers from ERP",
+        "items": "Import products from ERP"
+      },
+      "title": {
+        "entities": "Import suppliers from the ERP",
+        "items": "Import products from the ERP"
+      },
+      "hint": {
+        "entities": "Selected ERP accounts are imported as suppliers. An existing supplier with the same ERP code, tax number or name is matched instead of duplicated.",
+        "items": "Selected ERP stock items are imported as products. A product with the same SKU is matched instead of duplicated."
+      },
+      "search": {
+        "entities": "Search account code or name",
+        "items": "Search stock code or name"
+      },
+      "searchError": "Could not read from the ERP.",
+      "error": "The import failed.",
+      "empty": "No records found in the ERP.",
+      "linked": "Matched",
+      "category": "Category",
+      "workspaceHint": "Workspace of the newly created records.",
+      "run": "Import {n} records",
+      "done": "Import finished: {created} new, {updated} matched."
+    },
+    "card": {
+      "title": "ERP",
+      "queued": "The ERP operation was queued.",
+      "actionError": "The ERP operation could not be started.",
+      "action": {
+        "company": "Send to ERP",
+        "product": "Send to ERP",
+        "order": "Create ERP order",
+        "auction": ""
+      },
+      "code": {
+        "company": "ERP account code",
+        "product": "ERP stock code",
+        "order": "ERP order document no",
+        "auction": ""
+      },
+      "notLinked": "Not matched",
+      "orderHint": "An ERP order can be created after the order is sent to the supplier.",
+      "auctionHint": "Each invited supplier's purchase offer in the ERP; revised as the supplier bids.",
+      "supplier": "Supplier",
+      "docNo": "ERP document no",
+      "lastRevision": "Last revision",
+      "noOffers": "No ERP offers yet (opened within 10 seconds).",
+      "noJobs": "No ERP operations yet."
+    }
   }
 }

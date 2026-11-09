@@ -12,6 +12,7 @@ public sealed class PurchaseOrderConfiguration : IEntityTypeConfiguration<Purcha
     {
         builder.ToTable("PurchaseOrders");
         builder.Property(o => o.OrderNumber).HasMaxLength(30).IsRequired();
+        builder.Property(o => o.ErpOrderDocNo).HasMaxLength(40);
         builder.HasIndex(o => o.OrderNumber).IsUnique();
         builder.Property(o => o.SourceTitle).HasMaxLength(300);
         builder.Property(o => o.Notes).HasMaxLength(2000);

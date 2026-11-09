@@ -114,6 +114,12 @@ public interface IApplicationDbContext
 
     DbSet<EmailSettings> EmailSettings { get; }
 
+    DbSet<Domain.Entities.Erp.ErpSettings> ErpSettings { get; }
+
+    DbSet<Domain.Entities.Erp.ErpSyncJob> ErpSyncJobs { get; }
+
+    DbSet<Domain.Entities.Erp.ErpOfferLink> ErpOfferLinks { get; }
+
     DbSet<InvitationResponseLog> InvitationResponseLogs { get; }
 
     DbSet<AuditLog> AuditLogs { get; }

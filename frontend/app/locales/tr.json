@@ -73,7 +73,8 @@
     "orders": "Siparişler",
     "myOrders": "Siparişlerim",
     "language": "Arayüz dili",
-    "emailSettings": "E-posta Ayarları"
+    "emailSettings": "E-posta Ayarları",
+    "erp": "ERP Entegrasyonu"
   },
   "language": {
     "label": "Dil",
@@ -2374,5 +2375,152 @@
     "logEmpty": "Bu süzgece uyan e-posta kaydı yok.",
     "logSearch": "Alıcı veya konu ara",
     "refresh": "Yenile"
+  },
+  "erp": {
+    "title": "ERP Entegrasyonu",
+    "premium": "Premium",
+    "subtitle": "UyumERP ile carileri, ürünleri, ihale tekliflerini ve siparişleri eşitler. Kapalı moddayken uygulama ERP'siz çalışır.",
+    "loadError": "ERP ayarları yüklenemedi.",
+    "saveError": "ERP ayarları kaydedilemedi.",
+    "saved": "ERP ayarları kaydedildi.",
+    "refresh": "Yenile",
+    "locked": {
+      "title": "ERP entegrasyonu premium bir özelliktir",
+      "body": "Bu kurulumda ERP entegrasyonu açık değil. Uygulama ERP olmadan tüm özellikleriyle çalışmaya devam eder. Premium ile:",
+      "f1": "ERP'deki carileri ve stok kartlarını tek tıkla aktarın, eşleştirin",
+      "f2": "Yeni tedarikçileri ve ürünleri ERP'ye otomatik açın",
+      "f3": "İhale yayınlanınca her davetli için ERP'de satınalma teklifi açılsın",
+      "f4": "Tedarikçi teklif verdikçe ERP'deki teklifi otomatik revize edin",
+      "f5": "Satınalma siparişini tek düğmeyle ERP siparişine dönüştürün",
+      "how": "Premium özelliği açmak için yazılım sağlayıcınızla görüşün (sunucu yapılandırması: Features:ErpIntegration)."
+    },
+    "modeSection": "Çalışma modu",
+    "mode": {
+      "Off": "Kapalı",
+      "Simulation": "Simülasyon",
+      "Live": "Canlı"
+    },
+    "modeHint": {
+      "Off": "ERP ile hiçbir işlem yapılmaz; uygulama ERP'siz çalışır.",
+      "Simulation": "ERP'den okunur (aktarım). Yazılacak teklif/sipariş XML'leri hazırlanıp kayda geçer ama ERP'ye gönderilmez.",
+      "Live": "Teklifler, revizyonlar, cari/ürün ve siparişler ERP'ye gerçekten yazılır."
+    },
+    "liveConfirm": {
+      "title": "Canlı moda geçilsin mi?",
+      "body": "Bundan sonra yayınlanan ihaleler için ERP'de teklif açılacak, teklifler revize edilecek ve istediğiniz siparişler ERP'ye yazılacak. Önce simülasyon kayıtlarındaki XML'leri kontrol ettiğinizden emin olun.",
+      "ok": "Canlıya geç"
+    },
+    "connectionSection": "Bağlantı",
+    "connectionHint": "UyumERP web servis adresleri ve servis kullanıcısı. Şifre şifrelenerek saklanır.",
+    "getUrl": "Okuma servisi (UyumGetWebService.asmx)",
+    "saveUrl": "Yazma servisi (UyumSaveWebService.asmx)",
+    "username": "Kullanıcı adı",
+    "password": "Şifre",
+    "coCode": "Şirket kodu",
+    "branchCode": "Şube kodu",
+    "documentsSection": "Belgeler",
+    "documentsHint": "ERP'de açılacak satınalma teklifi ve siparişinin hareket türü kodları.",
+    "offerDocTra": "Teklif hareket türü kodu",
+    "orderDocTra": "Sipariş hareket türü kodu",
+    "docNoPrefix": "Belge no öneki",
+    "docNoPrefixHint": "Ör. PL- → PL-IH-2026-0004-CARI-0002",
+    "syncSection": "Eşitleme",
+    "entityPrefix": "Aktarılacak cari kodu öneki",
+    "entityPrefixHint": "Cari aktarımında yalnızca bu önekle başlayan ERP carileri listelenir (ör. satıcılar için 320). Boşsa hepsi.",
+    "exportSuppliers": "Yeni tedarikçileri ERP'ye otomatik aç",
+    "exportSuppliersHint": "ERP kodu olmayan aktif tedarikçiler cari olarak ERP'ye gönderilir (kod: ProcureLive cari kodu).",
+    "exportProducts": "Yeni ürünleri ERP'ye otomatik aç",
+    "exportProductsHint": "ERP kodu olmayan aktif ürünler stok kartı olarak ERP'ye gönderilir (kod: stok kodu).",
+    "testSection": "Bağlantı testi",
+    "testHint": "Formdaki bilgilerle (kaydetmeden) ERP'den yalnızca okuma yapar.",
+    "test": "Bağlantıyı test et",
+    "testOk": "Bağlantı başarılı: ERP'de {entities} cari, {items} stok kartı var.",
+    "testFailed": "Bağlanılamadı: {error}",
+    "howSection": "Nasıl çalışır?",
+    "how": {
+      "s1": "Cariler ve Ürünler ekranındaki \"ERP'den Aktar\" ile ERP kayıtlarını eşleştirin.",
+      "s2": "İhale yayınlanınca (Planlandı) her davetli tedarikçi için ERP'de fiyatsız teklif açılır; sonradan katılanlar için de.",
+      "s3": "Tedarikçi teklif verdikçe kendi ERP teklifi en son birim fiyatlarla revize edilir.",
+      "s4": "Gönderilmiş/onaylanmış siparişin sayfasında \"ERP'de sipariş oluştur\" ile ERP siparişi açılır.",
+      "s5": "Her işlemin gönderilen XML'i ve ERP yanıtı aşağıdaki kayıtlarda görünür; hata olursa 1 ve 5 dk sonra yeniden denenir."
+    },
+    "jobsSection": "ERP işlemleri",
+    "jobsHint": "ERP'ye yazılan (veya simülasyonda hazırlanan) her işlem. XML'i görmek ve yeniden çalıştırmak için satırı açın.",
+    "jobStatus": {
+      "Pending": "Bekliyor",
+      "Simulated": "Simüle edildi",
+      "Done": "Tamam",
+      "Failed": "Başarısız",
+      "Skipped": "Atlandı"
+    },
+    "kind": {
+      "EntityExport": "Cari gönderimi",
+      "ItemExport": "Stok kartı gönderimi",
+      "OfferCreate": "Teklif açma",
+      "OfferRevise": "Teklif revizyonu",
+      "OrderCreate": "Sipariş oluşturma"
+    },
+    "kindFilter": "İşlem türü",
+    "allKinds": "Tüm işlemler",
+    "jobSearch": "İşlem ara",
+    "jobCol": "İşlem",
+    "viewXml": "Ayrıntı",
+    "request": "Gönderilen istek (şifre maskeli)",
+    "response": "ERP yanıtı",
+    "runAgain": "Yeniden çalıştır",
+    "retried": "İşlem yeniden kuyruğa alındı.",
+    "retryError": "İşlem yeniden çalıştırılamadı.",
+    "noJobs": "Bu süzgece uyan ERP işlemi yok.",
+    "import": {
+      "button": {
+        "entities": "ERP'den Cari Aktar",
+        "items": "ERP'den Ürün Aktar"
+      },
+      "title": {
+        "entities": "ERP'den cari aktar",
+        "items": "ERP'den ürün aktar"
+      },
+      "hint": {
+        "entities": "Seçtiğiniz ERP carileri tedarikçi olarak aktarılır. ERP kodu, vergi numarası ya da unvanı eşleşen cari yeniden açılmaz, eşlenir.",
+        "items": "Seçtiğiniz ERP stok kartları ürün olarak aktarılır. Stok kodu eşleşen ürün yeniden açılmaz, eşlenir."
+      },
+      "search": {
+        "entities": "Cari kodu veya unvan ara",
+        "items": "Stok kodu veya adı ara"
+      },
+      "searchError": "ERP'den okunamadı.",
+      "error": "Aktarım yapılamadı.",
+      "empty": "ERP'de kayıt bulunamadı.",
+      "linked": "Eşleşmiş",
+      "category": "Kategori",
+      "workspaceHint": "Yeni açılan kayıtların işyeri.",
+      "run": "{n} kaydı aktar",
+      "done": "Aktarım tamamlandı: {created} yeni, {updated} eşlendi."
+    },
+    "card": {
+      "title": "ERP",
+      "queued": "ERP işlemi kuyruğa alındı.",
+      "actionError": "ERP işlemi başlatılamadı.",
+      "action": {
+        "company": "ERP'ye gönder",
+        "product": "ERP'ye gönder",
+        "order": "ERP'de sipariş oluştur",
+        "auction": ""
+      },
+      "code": {
+        "company": "ERP cari kodu",
+        "product": "ERP stok kodu",
+        "order": "ERP sipariş belge no",
+        "auction": ""
+      },
+      "notLinked": "Eşleşmemiş",
+      "orderHint": "ERP siparişi, sipariş tedarikçiye gönderildikten sonra oluşturulabilir.",
+      "auctionHint": "Her davetli tedarikçinin ERP'deki satınalma teklifi; tedarikçi teklif verdikçe revize edilir.",
+      "supplier": "Tedarikçi",
+      "docNo": "ERP belge no",
+      "lastRevision": "Son revizyon",
+      "noOffers": "Henüz ERP teklifi yok (en geç 10 sn içinde açılır).",
+      "noJobs": "Henüz ERP işlemi yok."
+    }
   }
 }

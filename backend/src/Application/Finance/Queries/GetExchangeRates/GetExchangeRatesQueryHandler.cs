@@ -1,8 +1,7 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Mappings;
 using ProcureLive.Contracts.Finance;
 using ProcureLive.Domain.Entities.Finance;
 
@@ -12,12 +11,10 @@ public sealed class GetExchangeRatesQueryHandler
     : IRequestHandler<GetExchangeRatesQuery, IReadOnlyCollection<ExchangeRateDto>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetExchangeRatesQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetExchangeRatesQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<IReadOnlyCollection<ExchangeRateDto>> Handle(
@@ -38,7 +35,7 @@ public sealed class GetExchangeRatesQueryHandler
 
         return await query
             .OrderByDescending(r => r.RateDate)
-            .ProjectTo<ExchangeRateDto>(_mapper.ConfigurationProvider)
+            .Select(Projections.ExchangeRate)
             .ToListAsync(cancellationToken);
     }
 }

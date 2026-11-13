@@ -16,7 +16,7 @@ namespace ProcureLive.Application.Common.Interfaces;
 
 /// <summary>
 /// Read-side abstraction over the EF Core context. Query handlers project directly
-/// off these IQueryable sets (ProjectTo&lt;TDto&gt;) instead of going through repositories.
+/// off these IQueryable sets (Select(Projections.X)) instead of going through repositories.
 /// </summary>
 public interface IApplicationDbContext
 {

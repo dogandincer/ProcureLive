@@ -1,8 +1,7 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Mappings;
 using ProcureLive.Contracts.Catalog;
 using ProcureLive.Contracts.Common;
 using ProcureLive.Domain.Entities.Catalog;
@@ -13,13 +12,11 @@ namespace ProcureLive.Application.Catalog.Products.Queries.GetProductsList;
 public sealed class GetProductsListQueryHandler : IRequestHandler<GetProductsListQuery, PagedResult<ProductDto>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
     private readonly IDataScopeService _scope;
 
-    public GetProductsListQueryHandler(IApplicationDbContext context, IMapper mapper, IDataScopeService scope)
+    public GetProductsListQueryHandler(IApplicationDbContext context, IDataScopeService scope)
     {
         _context = context;
-        _mapper = mapper;
         _scope = scope;
     }
 
@@ -68,7 +65,7 @@ public sealed class GetProductsListQueryHandler : IRequestHandler<GetProductsLis
             .OrderBy(p => p.Name)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
+            .Select(Projections.Product)
             .ToListAsync(cancellationToken);
 
         return new PagedResult<ProductDto>(items, totalCount, page, pageSize);

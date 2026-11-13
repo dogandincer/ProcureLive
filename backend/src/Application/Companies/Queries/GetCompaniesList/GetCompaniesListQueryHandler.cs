@@ -1,8 +1,7 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Mappings;
 using ProcureLive.Contracts.Common;
 using ProcureLive.Contracts.Companies;
 using ProcureLive.Domain.Entities.Companies;
@@ -14,13 +13,11 @@ namespace ProcureLive.Application.Companies.Queries.GetCompaniesList;
 public sealed class GetCompaniesListQueryHandler : IRequestHandler<GetCompaniesListQuery, PagedResult<CompanyDto>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
     private readonly IDataScopeService _scope;
 
-    public GetCompaniesListQueryHandler(IApplicationDbContext context, IMapper mapper, IDataScopeService scope)
+    public GetCompaniesListQueryHandler(IApplicationDbContext context, IDataScopeService scope)
     {
         _context = context;
-        _mapper = mapper;
         _scope = scope;
     }
 
@@ -101,7 +98,7 @@ public sealed class GetCompaniesListQueryHandler : IRequestHandler<GetCompaniesL
             .OrderBy(c => c.Name)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ProjectTo<CompanyDto>(_mapper.ConfigurationProvider)
+            .Select(Projections.Company)
             .ToListAsync(cancellationToken);
 
         // Fill rating aggregates with a single grouped query over the page's companies.

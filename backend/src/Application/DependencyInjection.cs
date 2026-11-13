@@ -23,7 +23,6 @@ public static class DependencyInjection
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
-        services.AddAutoMapper(assembly);
 
         services.AddScoped<Common.Interfaces.ISubscriptionService, Subscriptions.SubscriptionService>();
         services.AddScoped<Common.Interfaces.ISupplierAccessService, Common.Security.SupplierAccessService>();

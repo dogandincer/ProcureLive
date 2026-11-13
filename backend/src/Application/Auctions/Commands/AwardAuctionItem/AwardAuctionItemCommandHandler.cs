@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ProcureLive.Application.Auctions.Reserve;
 using ProcureLive.Application.Auctions.Status;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
@@ -70,6 +71,29 @@ public sealed class AwardAuctionItemCommandHandler : IRequestHandler<AwardAuctio
             throw new NotFoundException(nameof(Bid), request.WinningBidId);
         }
 
+        // Rezerv fiyat: bu seçimle oluşacak ihale toplamı sınırı karşılamıyorsa açık onay gerekir.
+        List<Guid> itemIds = auction.Items.Select(i => i.Id).ToList();
+        List<Bid> auctionBids = auction.ReservePrice is > 0
+            ? await _context.Bids.Where(b => itemIds.Contains(b.AuctionItemId)).ToListAsync(cancellationToken)
+            : new List<Bid>();
+        ReserveEvaluation reserve = await ReservePriceEvaluator.EvaluateAsync(
+            _context, auction, auction.Items.ToList(), auctionBids, winningBid, cancellationToken);
+        bool reserveNotMet = reserve.Status == ReserveStatus.NotMet;
+
+        if (reserveNotMet && !request.AcknowledgeReserveNotMet)
+        {
+            throw new ConflictException(
+                "Bu seçimle ihale toplamı rezerv fiyatı karşılamıyor. Devam etmek için rezerv fiyat uyarısını onaylayın.",
+                ErrorCodes.ReserveNotMet);
+        }
+
+        string? notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
+        if (reserveNotMet)
+        {
+            const string marker = "Rezerv fiyat karşılanmadan seçildi.";
+            notes = notes is null ? marker : $"{notes} ({marker})";
+        }
+
         DateTime now = _dateTime.UtcNow;
 
         _context.AuctionAwards.Add(new AuctionAward
@@ -80,7 +104,7 @@ public sealed class AwardAuctionItemCommandHandler : IRequestHandler<AwardAuctio
             AwardedCompanyId = winningBid.CompanyId,
             AwardedByUserId = _currentUserService.UserId ?? Guid.Empty,
             AwardedAt = now,
-            Notes = request.Notes
+            Notes = notes
         });
 
         await _context.SaveChangesAsync(cancellationToken);

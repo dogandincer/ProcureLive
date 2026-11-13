@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ProcureLive.Application.Auctions.Participation;
+using ProcureLive.Application.Auctions.Reserve;
 using ProcureLive.Application.Common.Exceptions;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Security;
@@ -119,14 +120,14 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
 
         // Kapalı zarfta tedarikçi rakiplerin tutarını ve sırasını görmez; hedef fiyat iç bilgidir.
         bool sealedType = auction.AuctionType is AuctionType.SealedBid or AuctionType.ReverseSealed;
-        bool higherIsBetter = auction.AuctionType == AuctionType.English;
+        bool higherIsBetter = BidRanking.HigherIsBetter(auction.AuctionType);
 
         List<AuctionItemDto> itemDtos = auction.Items
             .OrderBy(i => i.SortOrder)
             .Select(item =>
             {
                 List<Bid> bids = bidsByItem.TryGetValue(item.Id, out List<Bid>? b) ? b : new List<Bid>();
-                Bid? best = bids.FirstOrDefault(x => x.Status == BidStatus.Winning);
+                Bid? best = BidRanking.Best(bids, auction.AuctionType);
                 if (isInternalUser)
                 {
                     return new AuctionItemDto(
@@ -166,6 +167,11 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
             .Select(a => new AuctionAttachmentDto(a.Id, a.FileName, a.Url, a.ContentType, a.SizeBytes))
             .ToList();
 
+        ReserveEvaluation? reserve = isInternalUser
+            ? await ReservePriceEvaluator.EvaluateAsync(
+                _context, auction, auction.Items.ToList(), bidsByItem.Values.SelectMany(x => x).ToList(), null, cancellationToken)
+            : null;
+
         return new AuctionDetailDto(
             auction.Id,
             auction.Title,
@@ -204,7 +210,10 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
             WorkspaceId: isInternalUser ? auction.WorkspaceId : null,
             WorkspaceName: workspaceName,
             ResponsibleUserId: isInternalUser ? auction.ResponsibleUserId : null,
-            ResponsibleUserName: responsibleName);
+            ResponsibleUserName: responsibleName,
+            ReserveStatus: reserve?.Status.ToString(),
+            ReserveTotal: reserve?.Total,
+            ReserveCoveredItems: reserve?.CoveredItems ?? 0);
     }
 
     /// <summary>

@@ -8,4 +8,5 @@ public sealed record AwardAuctionItemCommand(
     Guid AuctionId,
     Guid AuctionItemId,
     Guid WinningBidId,
-    string? Notes) : IRequest, IAuctionScopedRequest;
+    string? Notes,
+    bool AcknowledgeReserveNotMet = false) : IRequest, IAuctionScopedRequest;

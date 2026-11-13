@@ -79,6 +79,7 @@ public static class MessageTranslator
         ["Bu değişiklik kategori ağacında bir döngü oluşturur."] = "This change would create a cycle in the category tree.",
         ["Bu ihaleye teklif vermek için davetin kabul edilmiş olması gerekir."] = "The invitation must be accepted to bid on this auction.",
         ["Bu kalem için zaten bir kazanan seçilmiş."] = "A winner has already been selected for this item.",
+        ["Bu seçimle ihale toplamı rezerv fiyatı karşılamıyor. Devam etmek için rezerv fiyat uyarısını onaylayın."] = "With this selection the tender total does not meet the reserve price. Acknowledge the reserve price warning to continue.",
         ["E-posta veya şifre hatalı."] = "Incorrect email or password.",
         ["Geçersiz veya süresi dolmuş refresh token."] = "Invalid or expired refresh token.",
         ["Kullanıcı bulunamadı veya pasif."] = "User not found or inactive.",

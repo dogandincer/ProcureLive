@@ -65,7 +65,11 @@ public sealed record AuctionDetailDto(
     Guid? WorkspaceId = null,
     string? WorkspaceName = null,
     Guid? ResponsibleUserId = null,
-    string? ResponsibleUserName = null);
+    string? ResponsibleUserName = null,
+    // Rezerv fiyat değerlendirmesi (yalnızca iç kullanıcı): NotSet | NoBids | Met | NotMet | Incomplete; toplam ihale para birimindedir.
+    string? ReserveStatus = null,
+    decimal? ReserveTotal = null,
+    int ReserveCoveredItems = 0);
 
 public sealed record AuctionItemDto(
     Guid Id,
@@ -164,4 +168,5 @@ public sealed record ExtendAuctionRequest(DateTime NewEndAt, string Reason);
 
 public sealed record PlaceBidRequest(decimal Amount, Guid CurrencyId);
 
-public sealed record AwardAuctionItemRequest(Guid WinningBidId, string? Notes);
+/// <param name="AcknowledgeReserveNotMet">Rezerv fiyat karşılanmadığı halde kazanan seçmek için açık onay.</param>
+public sealed record AwardAuctionItemRequest(Guid WinningBidId, string? Notes, bool AcknowledgeReserveNotMet = false);

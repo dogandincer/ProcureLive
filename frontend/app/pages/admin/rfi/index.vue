@@ -142,8 +142,8 @@ watch(() => route.query.status, (v) => { status.value = typeof v === "string" ? 
     </div>
 
     <form v-if="showTemplateForm" class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-surface p-5 sm:grid-cols-2" @submit.prevent="createTemplate">
-      <input v-model="templateForm.name" :placeholder="$t('rfi.templateForm.name')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-      <input v-model="templateForm.description" :placeholder="$t('rfi.templateForm.description')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      <input v-model="templateForm.name" :placeholder="$t('rfi.templateForm.name')" :aria-label="$t('rfi.templateForm.name')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      <input v-model="templateForm.description" :placeholder="$t('rfi.templateForm.description')" :aria-label="$t('rfi.templateForm.description')" class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
       <AppButton type="submit" variant="secondary" class="sm:col-span-2">{{ $t("rfi.templateForm.save") }}</AppButton>
       <p class="text-xs text-slate-400 sm:col-span-2">{{ $t("rfi.templateForm.hint") }}</p>
     </form>
@@ -171,11 +171,11 @@ watch(() => route.query.status, (v) => { status.value = typeof v === "string" ? 
               </ol>
 
               <form class="grid grid-cols-1 gap-2 sm:grid-cols-2" @submit.prevent="addQuestion(tpl)">
-                <input v-model="questionForm.questionText" :placeholder="$t('rfi.questionForm.text')" required class="sm:col-span-2 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-                <select v-model="questionForm.questionType" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+                <input v-model="questionForm.questionText" :placeholder="$t('rfi.questionForm.text')" :aria-label="$t('rfi.questionForm.text')" required class="sm:col-span-2 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+                <select v-model="questionForm.questionType" :aria-label="$t('rfi.questionForm.type')" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
                   <option v-for="qt in questionTypes" :key="qt" :value="qt">{{ $t(`enums.questionType.${qt}`) }}</option>
                 </select>
-                <input v-model.number="questionForm.weight" type="number" min="0" step="0.5" :placeholder="$t('rfi.questionForm.weight')" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+                <input v-model.number="questionForm.weight" type="number" min="0" step="0.5" :placeholder="$t('rfi.questionForm.weight')" :aria-label="$t('rfi.questionForm.weight')" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
                 <textarea
                   v-if="questionForm.questionType === 'MultipleChoice'"
                   v-model="questionForm.optionsText"

@@ -347,7 +347,8 @@
       "form": {
         "description": "Description",
         "quantity": "Quantity",
-        "targetPrice": "Target Price (optional)"
+        "targetPrice": "Target Price (optional)",
+        "unit": "Unit"
       },
       "add": "Add",
       "invitedCompanies": "Invited Companies",
@@ -576,7 +577,7 @@
       "partialYes": "Bids on some of the items are allowed",
       "partialNo": "All items must be bid",
       "alternatives": "Alternative products allowed",
-      "reserve": "Reserve price (internal only)",
+      "reserve": "Reserve price (tender total, internal only)",
       "attachments": "Attachments",
       "noAttachments": "This auction has no attachments.",
       "requestedDelivery": "Requested delivery",
@@ -630,7 +631,29 @@
       "plannedStart": "Start: {date}"
     },
     "subtitle": "Filter auctions by status; click a title to open it.",
-    "emptyFiltered": "No auctions in this status."
+    "emptyFiltered": "No auctions in this status.",
+    "reserve": {
+      "title": "Reserve price",
+      "total": "Current total",
+      "coverage": "{covered} of {total} items have bids",
+      "status": {
+        "NoBids": "No bids yet",
+        "Met": "Met",
+        "NotMet": "Not met",
+        "Incomplete": "Not final"
+      },
+      "explain": {
+        "NoBids": "The total is compared with the reserve price as bids arrive.",
+        "Met": "The total of the best bids meets the reserve price.",
+        "NotMet": "The total of the best bids does not meet the reserve price. Selecting a winner will ask for an extra confirmation.",
+        "Incomplete": "The total is below the reserve for now, but some items have no bids; it becomes final once every item has a bid."
+      },
+      "confirmTitle": "Reserve price not met",
+      "confirmBody": "With this selection the tender total does not meet the reserve price. Do you still want to select this winner?",
+      "confirmNote": "The selection is recorded with the note “selected without meeting the reserve price”.",
+      "confirmAnyway": "Select Winner Anyway",
+      "reserveLabel": "Reserve price"
+    }
   },
   "currencies": {
     "title": "Currencies & Exchange Rates",
@@ -995,7 +1018,8 @@
       "weight": "Weight",
       "optionsPlaceholder": "One option per line",
       "requiredLabel": "Required question",
-      "add": "Add Question"
+      "add": "Add Question",
+      "type": "Question type"
     },
     "emptyTemplates": "No templates yet",
     "processForm": {
@@ -1089,7 +1113,11 @@
     "new": "+ New RFQ",
     "stepInfo": "Process Information",
     "form": {
-      "title": "Title"
+      "title": "Title",
+      "titlePlaceholder": "E.g. Office consumables quote request",
+      "currency": "Currency",
+      "dueDate": "Quote deadline",
+      "dueDateHint": "Suppliers can submit quotes until this date."
     },
     "createAndContinue": "Create and Continue (Items → Invite → Publish)",
     "table": {
@@ -1334,10 +1362,10 @@
     "wizard": {
       "title": "New Tender / RFQ",
       "refError": "Failed to load reference data.",
-      "created": "Tender created.",
+      "created": "Tender draft created. Suppliers are invited once you publish it.",
       "createError": "Failed to create tender.",
       "creating": "Creating...",
-      "submit": "Launch Tender",
+      "submit": "Create & Publish",
       "fixErrors": "Please complete the required fields (title, dates, at least one line and one supplier).",
       "openPool": "Open Product Pool",
       "specPlaceholder": "Technical specification / notes...",
@@ -1346,7 +1374,7 @@
         "vendors": "Suppliers",
         "lines": "Line Items",
         "settings": "Settings & Files",
-        "review": "Review & Launch"
+        "review": "Review & Create"
       },
       "f": {
         "title": "Tender Name",
@@ -1360,7 +1388,7 @@
         "currency": "Currency",
         "startAt": "Start",
         "endAt": "End",
-        "reserve": "Reserve Price",
+        "reserve": "Reserve Price (tender total)",
         "paymentTerm": "Payment Term",
         "deliveryTerm": "Delivery Term",
         "none": "Not set",
@@ -1375,7 +1403,8 @@
         "workspace": "Workspace",
         "workspaceDefault": "Firm's default workspace",
         "noWorkspace": "Firm has no workspace",
-        "workspaceHint": "Uninvited suppliers are approved for this workspace."
+        "workspaceHint": "Uninvited suppliers are approved for this workspace.",
+        "reserveHint": "Optional internal limit; suppliers never see it. In tenders where the lowest bid wins it is the highest total you will accept, in English (ascending) tenders the lowest. If it is not met, selecting a winner asks for an extra confirmation."
       },
       "sniper": {
         "title": "Dynamic Extension (Sniper Protection)",
@@ -1391,7 +1420,15 @@
         "clear": "Clear",
         "count": "{shown} shown · {selected} selected",
         "empty": "No suppliers found."
-      }
+      },
+      "saveDraft": "Save as Draft",
+      "published": "Tender created and published; invited suppliers have been notified.",
+      "sentForApproval": "Tender created and sent for publish approval.",
+      "publishFailed": "The tender was created as a draft but could not be published: {reason}",
+      "publishNotAllowed": "The tender was created as a draft. It stayed a draft because you are not allowed to publish.",
+      "publishHint": "“Create & Publish” notifies the invited suppliers; the tender goes live by itself at the start time. If your firm requires publish approval, the tender is sent to an Admin for approval.",
+      "draftHint": "A tender created with “Save as Draft” is not visible to suppliers; you can publish it later from the Status section of the tender page.",
+      "startInPast": "The start time is in the past. Pick a later time in the General Information step to publish, or save as a draft."
     },
     "grid": {
       "addLine": "Add Line",

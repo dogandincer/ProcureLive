@@ -94,12 +94,18 @@ watch(() => route.query.status, (v) => { status.value = typeof v === "string" ? 
     <form v-if="showForm" class="space-y-4 rounded-xl border border-slate-200 bg-surface p-5" @submit.prevent="create">
       <StepBadge :step="1" :total="4" :label="$t('rfq.stepInfo')" />
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <input v-model="form.title" :placeholder="$t('rfq.form.title')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
+        <FormField :label="$t('rfq.form.title')" required class="sm:col-span-2">
+          <input v-model="form.title" :placeholder="$t('rfq.form.titlePlaceholder')" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" data-testid="rfq-title" />
+        </FormField>
         <FirmWorkspaceSelect v-model:owner="form.ownerCompanyId" v-model:workspace="form.workspaceId" />
-        <select v-model="form.currencyId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm">
-          <option v-for="c in currencies" :key="c.id" :value="c.id">{{ c.code }}</option>
-        </select>
-        <input v-model="form.dueDate" type="datetime-local" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+        <FormField :label="$t('rfq.form.currency')" required>
+          <select v-model="form.currencyId" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" data-testid="rfq-currency">
+            <option v-for="c in currencies" :key="c.id" :value="c.id">{{ c.code }}</option>
+          </select>
+        </FormField>
+        <FormField :label="$t('rfq.form.dueDate')" required :hint="$t('rfq.form.dueDateHint')">
+          <input v-model="form.dueDate" type="datetime-local" required class="rounded-md border border-slate-300 px-3 py-2 text-sm" data-testid="rfq-due-date" />
+        </FormField>
       </div>
       <AppButton type="submit" class="sm:col-span-2">
         {{ $t("rfq.createAndContinue") }}

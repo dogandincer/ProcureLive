@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ProcureLive.Application.Auctions.Reserve;
 using ProcureLive.Application.Common.Currencies;
 using ProcureLive.Application.Common.Interfaces;
 using ProcureLive.Application.Common.Security;
@@ -75,9 +76,9 @@ public sealed class GetMonitoringStatsQueryHandler
 
         var liveSummaries = liveAuctions.Select(a =>
         {
-            // Kalem liderleri (Winning): en çok kalemde önde olan firma lider; tutar = liderlerin birim fiyat × miktar toplamı.
+            // Kalem liderleri (en iyi teklif; kapalı zarfta tutara göre): en çok kalemde önde olan firma lider; tutar = liderlerin birim fiyat × miktar toplamı.
             var leaders = a.Items
-                .Select(i => new { Item = i, Bid = i.Bids.FirstOrDefault(b => b.Status == BidStatus.Winning) })
+                .Select(i => new { Item = i, Bid = BidRanking.Best(i.Bids, a.AuctionType) })
                 .Where(x => x.Bid is not null)
                 .ToList();
             string? leadingCompany = leaders

@@ -266,18 +266,32 @@ async function loadComparison(itemId: string) {
   });
 }
 
+// Rezerv fiyat karşılanmıyorsa sunucu seçimi 409 ReserveNotMet ile durdurur; pencere uyarıya döner ve ikinci onay
+// "yine de seç" anlamına gelir (karar sunucudadır, istemci toplamı kendisi hesaplamaz).
+const reserveWarning = ref(false);
+function closeAward() {
+  pendingAward.value = null;
+  reserveWarning.value = false;
+}
+
 async function confirmAward() {
   const p = pendingAward.value;
   if (!p) return;
   awarding.value = true;
-  await runAction(async () => {
-    await api.post(`/api/auctions/${auctionId}/items/${p.item.id}/award`, { winningBidId: p.bid.bidId, notes: null });
+  try {
+    await api.post(`/api/auctions/${auctionId}/items/${p.item.id}/award`, {
+      winningBidId: p.bid.bidId, notes: null, acknowledgeReserveNotMet: reserveWarning.value,
+    });
     toast.success(t("auctions.detail.winnerSelectedToast"));
-    pendingAward.value = null;
+    closeAward();
     await load();
     await loadComparison(p.item.id);
-  });
-  awarding.value = false;
+  } catch (error: any) {
+    if (apiErrorCode(error) === "ReserveNotMet") reserveWarning.value = true;
+    else toast.error(apiErrorMessage(error, t("auctions.detail.actionError")));
+  } finally {
+    awarding.value = false;
+  }
 }
 
 // Canlı akış sayfa açılınca son tekliflerle dolar; sonrası SignalR ile gelir.
@@ -429,7 +443,7 @@ onBeforeUnmount(() => {
     </div>
 
     <div id="items" class="scroll-mt-28 space-y-6">
-
+    <AuctionReserveNote :auction="auction" />
 
     <!-- ============================================================ -->
     <!-- EVALUATION MODE: Ended / Awarded                            -->
@@ -471,11 +485,12 @@ onBeforeUnmount(() => {
 
       <ConfirmDialog
         :open="!!pendingAward"
-        :title="$t('auctions.evaluation.confirmTitle')"
-        :confirm-label="$t('auctions.evaluation.selectWinner')"
+        :title="reserveWarning ? $t('auctions.reserve.confirmTitle') : $t('auctions.evaluation.confirmTitle')"
+        :confirm-label="reserveWarning ? $t('auctions.reserve.confirmAnyway') : $t('auctions.evaluation.selectWinner')"
+        :tone="reserveWarning ? 'danger' : 'primary'"
         :loading="awarding"
         @confirm="confirmAward"
-        @cancel="pendingAward = null"
+        @cancel="closeAward"
       >
         <template v-if="pendingAward">
           <p>{{ $t("auctions.evaluation.confirmBody", { company: pendingAward.bid.companyName, item: pendingAward.item.description }) }}</p>
@@ -483,6 +498,13 @@ onBeforeUnmount(() => {
             {{ formatMoney(pendingAward.bid.amount, pendingAward.bid.currencyCode) }} × {{ pendingAward.item.quantity.toLocaleString() }}
             = {{ formatMoney(pendingAward.bid.amount * pendingAward.item.quantity, pendingAward.bid.currencyCode) }}
           </p>
+          <div v-if="reserveWarning" role="alert" class="mt-3 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700" data-testid="reserve-warning">
+            <p class="font-medium">{{ $t("auctions.reserve.confirmBody") }}</p>
+            <p class="mt-1 text-xs">
+              {{ $t("auctions.reserve.reserveLabel") }}: <span class="font-mono">{{ formatMoney(auction.reservePrice, auction.currencyCode) }}</span>
+              · {{ $t("auctions.reserve.confirmNote") }}
+            </p>
+          </div>
           <p class="mt-2 text-xs text-amber-700">{{ $t("auctions.evaluation.confirmIrreversible") }}</p>
         </template>
       </ConfirmDialog>
@@ -591,6 +613,7 @@ onBeforeUnmount(() => {
               <input
                 v-model="newItem.description"
                 :placeholder="$t('auctions.detail.form.description')"
+                :aria-label="$t('auctions.detail.form.description')"
                 required
                 class="sm:col-span-2 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
               />
@@ -600,10 +623,11 @@ onBeforeUnmount(() => {
                 min="0.01"
                 step="0.01"
                 :placeholder="$t('auctions.detail.form.quantity')"
+                :aria-label="$t('auctions.detail.form.quantity')"
                 required
                 class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
               />
-              <select v-model="newItem.unitOfMeasure" class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+              <select v-model="newItem.unitOfMeasure" :aria-label="$t('auctions.detail.form.unit')" class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
                 <option v-for="u in unitOfMeasures" :key="u" :value="u">{{ unitLabel(u) }}</option>
               </select>
             </div>
@@ -614,6 +638,7 @@ onBeforeUnmount(() => {
                 min="0"
                 step="0.01"
                 :placeholder="$t('auctions.detail.form.targetPrice')"
+                :aria-label="$t('auctions.detail.form.targetPrice')"
                 class="w-40 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
               />
               <AppButton type="submit" variant="secondary">

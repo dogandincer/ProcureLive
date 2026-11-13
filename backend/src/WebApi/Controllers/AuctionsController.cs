@@ -396,7 +396,7 @@ public sealed class AuctionsController : ControllerBase
     [Authorize(Policy = Policies.RequireInternalUser)]
     public async Task<IActionResult> AwardItem(Guid id, Guid itemId, AwardAuctionItemRequest request, CancellationToken cancellationToken)
     {
-        await _sender.Send(new AwardAuctionItemCommand(id, itemId, request.WinningBidId, request.Notes), cancellationToken);
+        await _sender.Send(new AwardAuctionItemCommand(id, itemId, request.WinningBidId, request.Notes, request.AcknowledgeReserveNotMet), cancellationToken);
         return NoContent();
     }
 

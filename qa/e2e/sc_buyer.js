@@ -88,21 +88,20 @@ module.exports = (run) => [
     await t.shot(p, "step4");
     await p.getByRole("button", { name: "İleri" }).click();
     await t.shot(p, "step5");
-    await p.getByRole("button", { name: "İhaleyi Başlat" }).click();
+    t.step("özet adımında iki seçenek var: Oluştur ve Yayınla / Taslak Olarak Kaydet",
+      (await p.getByTestId("tender-create-publish").innerText()).includes("Oluştur ve Yayınla") && (await p.getByTestId("tender-create-draft").innerText()).includes("Taslak Olarak Kaydet"));
+    await p.getByTestId("tender-create-publish").click();
     await p.waitForURL(/\/admin\/auctions\/[0-9a-f-]{36}/, { timeout: 15000 });
     await t.settle(p, 800);
     const id = p.url().split("/").pop();
     const d = await api("GET", `/api/auctions/${id}`, await token("ahmet.yilmaz@kuzey.local"));
     t.step("ihale oluştu (3 kalem, 2 davet, 1 ek, Plus listeli)", d.data.items.length === 3 && d.data.invitations.length === 2 && d.data.attachments.length >= 1 && d.data.isListedForPlus,
       `${d.data.items.length} kalem, ${d.data.invitations.length} davet, ${d.data.attachments.length} ek, plus=${d.data.isListedForPlus}`);
-    // Holding firmasında yayın Admin onayına gider
-    const req = p.getByTestId("approval-request");
-    if (await req.count()) {
-      await req.click();
-      await p.locator("form").filter({ hasText: "Yayın onayı iste" }).getByRole("button", { name: "Yayın onayı iste" }).click();
-      t.step("Holding'de yayın onaya gönderildi", await toastSeen(p, "Yayın onayı istendi"));
-      await api("POST", `/api/auctions/${id}/publish-approval/approve`, await token("admin@procurelive.local"));
-    }
+    // Holding firmasında yayın Admin onayı ister: "Oluştur ve Yayınla" taslağı oluşturup onaya gönderir.
+    const st = await api("GET", `/api/auctions/${id}/status`, await token("ahmet.yilmaz@kuzey.local"));
+    t.step("Holding'de sihirbaz yayını onaya gönderdi", st.data.status === "Draft" && !!st.data.approvalRequestedAt, `${st.data.status} ${st.data.approvalRequestedAt}`);
+    t.step("ihale sayfasında bekleyen onay görünüyor", (await p.getByTestId("approval-pending").count()) === 1);
+    await api("POST", `/api/auctions/${id}/publish-approval/approve`, await token("admin@procurelive.local"));
     const d2 = await api("GET", `/api/auctions/${id}`, await token("ahmet.yilmaz@kuzey.local"));
     t.step("ihale Planlandı", d2.data.status === "Scheduled", d2.data.status);
     const n = await notifications("teklif@egebilisim.example");

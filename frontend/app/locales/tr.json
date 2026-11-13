@@ -347,7 +347,8 @@
       "form": {
         "description": "Açıklama",
         "quantity": "Miktar",
-        "targetPrice": "Hedef Fiyat (opsiyonel)"
+        "targetPrice": "Hedef Fiyat (opsiyonel)",
+        "unit": "Birim"
       },
       "add": "Ekle",
       "invitedCompanies": "Davetli Cariler",
@@ -576,7 +577,7 @@
       "partialYes": "Kalemlerin bir kısmına teklif verilebilir",
       "partialNo": "Tüm kalemlere teklif verilmeli",
       "alternatives": "Muadil ürün teklif edilebilir",
-      "reserve": "Rezerv fiyat (yalnız iç kullanıcı)",
+      "reserve": "Rezerv fiyat (ihale toplamı, yalnız iç kullanıcı)",
       "attachments": "Ekler",
       "noAttachments": "Bu ihalede ek yok.",
       "requestedDelivery": "İstenen teslim",
@@ -630,7 +631,29 @@
       "plannedStart": "Başlangıç: {date}"
     },
     "subtitle": "İhaleleri durumuna göre süzün, başlığa tıklayarak detayına gidin.",
-    "emptyFiltered": "Bu durumda ihale yok."
+    "emptyFiltered": "Bu durumda ihale yok.",
+    "reserve": {
+      "title": "Rezerv fiyat",
+      "total": "Güncel toplam",
+      "coverage": "{covered} / {total} kalemde teklif var",
+      "status": {
+        "NoBids": "Henüz teklif yok",
+        "Met": "Karşılandı",
+        "NotMet": "Karşılanmadı",
+        "Incomplete": "Kesin değil"
+      },
+      "explain": {
+        "NoBids": "Teklif geldikçe toplam, rezerv fiyatla karşılaştırılır.",
+        "Met": "En iyi tekliflerin toplamı rezerv fiyatı karşılıyor.",
+        "NotMet": "En iyi tekliflerin toplamı rezerv fiyatı karşılamıyor. Kazanan seçerken ayrıca onayınız istenir.",
+        "Incomplete": "Toplam şimdilik rezervin altında, ancak teklifsiz kalemler var; tüm kalemlere teklif gelince kesinleşir."
+      },
+      "confirmTitle": "Rezerv fiyat karşılanmıyor",
+      "confirmBody": "Bu seçimle ihale toplamı rezerv fiyatı karşılamıyor. Yine de kazanan olarak seçmek istiyor musunuz?",
+      "confirmNote": "Seçim, “rezerv fiyat karşılanmadan seçildi” notuyla kayda geçer.",
+      "confirmAnyway": "Yine de Kazanan Seç",
+      "reserveLabel": "Rezerv fiyat"
+    }
   },
   "currencies": {
     "title": "Para Birimleri & Kurlar",
@@ -995,7 +1018,8 @@
       "weight": "Ağırlık",
       "optionsPlaceholder": "Her satıra bir seçenek",
       "requiredLabel": "Zorunlu soru",
-      "add": "Soru Ekle"
+      "add": "Soru Ekle",
+      "type": "Soru tipi"
     },
     "emptyTemplates": "Henüz şablon yok",
     "processForm": {
@@ -1089,7 +1113,11 @@
     "new": "+ Yeni RFQ",
     "stepInfo": "Süreç Bilgileri",
     "form": {
-      "title": "Başlık"
+      "title": "Başlık",
+      "titlePlaceholder": "Örn: Ofis sarf malzemeleri teklif talebi",
+      "currency": "Para birimi",
+      "dueDate": "Son teklif tarihi",
+      "dueDateHint": "Tedarikçiler bu tarihe kadar teklif verebilir."
     },
     "createAndContinue": "Oluştur ve Devam Et (Kalem → Davet → Yayınla)",
     "table": {
@@ -1334,10 +1362,10 @@
     "wizard": {
       "title": "Yeni İhale / Teklif Talebi",
       "refError": "Referans verileri yüklenemedi.",
-      "created": "İhale oluşturuldu.",
+      "created": "İhale taslağı oluşturuldu. Tedarikçiler, ihaleyi yayınladığınızda davet alır.",
       "createError": "İhale oluşturulamadı.",
       "creating": "Oluşturuluyor...",
-      "submit": "İhaleyi Başlat",
+      "submit": "Oluştur ve Yayınla",
       "fixErrors": "Lütfen eksik/hatalı alanları tamamlayın (başlık, tarihler, en az bir kalem ve bir tedarikçi).",
       "openPool": "Ürün Havuzunu Aç",
       "specPlaceholder": "Teknik şartname / açıklama...",
@@ -1346,7 +1374,7 @@
         "vendors": "Tedarikçiler",
         "lines": "Kalemler",
         "settings": "Ayarlar & Ekler",
-        "review": "Özet & Başlat"
+        "review": "Özet & Oluştur"
       },
       "f": {
         "title": "İhale Adı",
@@ -1360,7 +1388,7 @@
         "currency": "Para Birimi",
         "startAt": "Başlangıç",
         "endAt": "Bitiş",
-        "reserve": "Rezerv Fiyat",
+        "reserve": "Rezerv Fiyat (ihale toplamı)",
         "paymentTerm": "Ödeme Vadesi",
         "deliveryTerm": "Teslimat Şekli",
         "none": "Belirtilmedi",
@@ -1375,7 +1403,8 @@
         "workspace": "İşyeri",
         "workspaceDefault": "Firmanın varsayılan işyeri",
         "noWorkspace": "Firmanın işyeri yok",
-        "workspaceHint": "Davetsiz tedarikçinin cari onayı bu işyerine verilir."
+        "workspaceHint": "Davetsiz tedarikçinin cari onayı bu işyerine verilir.",
+        "reserveHint": "İsteğe bağlı iç sınır; tedarikçiler görmez. Düşük teklifin kazandığı ihalede kabul edeceğiniz en yüksek toplam, İngiliz (artan) ihalede en düşük toplamdır. Karşılanmazsa kazanan seçerken ayrıca onay istenir."
       },
       "sniper": {
         "title": "Dinamik Süre Uzatma (Sniper Koruması)",
@@ -1391,7 +1420,15 @@
         "clear": "Temizle",
         "count": "{shown} listelendi · {selected} seçili",
         "empty": "Cari bulunamadı."
-      }
+      },
+      "saveDraft": "Taslak Olarak Kaydet",
+      "published": "İhale oluşturuldu ve yayınlandı; davetli tedarikçilere bildirim gitti.",
+      "sentForApproval": "İhale oluşturuldu ve yayın onayına gönderildi.",
+      "publishFailed": "İhale taslak olarak oluşturuldu ancak yayınlanamadı: {reason}",
+      "publishNotAllowed": "İhale taslak olarak oluşturuldu. Yayınlama yetkiniz olmadığı için taslakta kaldı.",
+      "publishHint": "“Oluştur ve Yayınla” davetli tedarikçilere bildirim gönderir; ihale başlangıç zamanında kendiliğinden canlıya geçer. Firmanız yayın onayı istiyorsa ihale Admin onayına gönderilir.",
+      "draftHint": "“Taslak Olarak Kaydet” ile oluşturulan ihaleyi tedarikçiler görmez; ihale sayfasındaki Durum bölümünden daha sonra yayınlayabilirsiniz.",
+      "startInPast": "Başlangıç zamanı geçmişte kaldı. Yayınlamak için Genel Bilgiler adımında ileri bir zaman seçin ya da taslak olarak kaydedin."
     },
     "grid": {
       "addLine": "Kalem Ekle",

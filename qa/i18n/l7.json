@@ -1,0 +1,138 @@
+{
+  "tr": {
+    "tender": {
+      "wizard": {
+        "submit": "Oluştur ve Yayınla",
+        "saveDraft": "Taslak Olarak Kaydet",
+        "created": "İhale taslağı oluşturuldu. Tedarikçiler, ihaleyi yayınladığınızda davet alır.",
+        "published": "İhale oluşturuldu ve yayınlandı; davetli tedarikçilere bildirim gitti.",
+        "sentForApproval": "İhale oluşturuldu ve yayın onayına gönderildi.",
+        "publishFailed": "İhale taslak olarak oluşturuldu ancak yayınlanamadı: {reason}",
+        "publishNotAllowed": "İhale taslak olarak oluşturuldu. Yayınlama yetkiniz olmadığı için taslakta kaldı.",
+        "publishHint": "“Oluştur ve Yayınla” davetli tedarikçilere bildirim gönderir; ihale başlangıç zamanında kendiliğinden canlıya geçer. Firmanız yayın onayı istiyorsa ihale Admin onayına gönderilir.",
+        "draftHint": "“Taslak Olarak Kaydet” ile oluşturulan ihaleyi tedarikçiler görmez; ihale sayfasındaki Durum bölümünden daha sonra yayınlayabilirsiniz.",
+        "startInPast": "Başlangıç zamanı geçmişte kaldı. Yayınlamak için Genel Bilgiler adımında ileri bir zaman seçin ya da taslak olarak kaydedin.",
+        "steps": {
+          "review": "Özet & Oluştur"
+        },
+        "f": {
+          "reserve": "Rezerv Fiyat (ihale toplamı)",
+          "reserveHint": "İsteğe bağlı iç sınır; tedarikçiler görmez. Düşük teklifin kazandığı ihalede kabul edeceğiniz en yüksek toplam, İngiliz (artan) ihalede en düşük toplamdır. Karşılanmazsa kazanan seçerken ayrıca onay istenir."
+        }
+      }
+    },
+    "auctions": {
+      "terms": {
+        "reserve": "Rezerv fiyat (ihale toplamı, yalnız iç kullanıcı)"
+      },
+      "reserve": {
+        "title": "Rezerv fiyat",
+        "total": "Güncel toplam",
+        "coverage": "{covered} / {total} kalemde teklif var",
+        "status": {
+          "NoBids": "Henüz teklif yok",
+          "Met": "Karşılandı",
+          "NotMet": "Karşılanmadı",
+          "Incomplete": "Kesin değil"
+        },
+        "explain": {
+          "NoBids": "Teklif geldikçe toplam, rezerv fiyatla karşılaştırılır.",
+          "Met": "En iyi tekliflerin toplamı rezerv fiyatı karşılıyor.",
+          "NotMet": "En iyi tekliflerin toplamı rezerv fiyatı karşılamıyor. Kazanan seçerken ayrıca onayınız istenir.",
+          "Incomplete": "Toplam şimdilik rezervin altında, ancak teklifsiz kalemler var; tüm kalemlere teklif gelince kesinleşir."
+        },
+        "confirmTitle": "Rezerv fiyat karşılanmıyor",
+        "confirmBody": "Bu seçimle ihale toplamı rezerv fiyatı karşılamıyor. Yine de kazanan olarak seçmek istiyor musunuz?",
+        "confirmNote": "Seçim, “rezerv fiyat karşılanmadan seçildi” notuyla kayda geçer.",
+        "confirmAnyway": "Yine de Kazanan Seç",
+        "reserveLabel": "Rezerv fiyat"
+      },
+      "detail": {
+        "form": {
+          "unit": "Birim"
+        }
+      }
+    },
+    "rfq": {
+      "form": {
+        "titlePlaceholder": "Örn: Ofis sarf malzemeleri teklif talebi",
+        "currency": "Para birimi",
+        "dueDate": "Son teklif tarihi",
+        "dueDateHint": "Tedarikçiler bu tarihe kadar teklif verebilir."
+      }
+    },
+    "rfi": {
+      "questionForm": {
+        "type": "Soru tipi"
+      }
+    }
+  },
+  "en": {
+    "tender": {
+      "wizard": {
+        "submit": "Create & Publish",
+        "saveDraft": "Save as Draft",
+        "created": "Tender draft created. Suppliers are invited once you publish it.",
+        "published": "Tender created and published; invited suppliers have been notified.",
+        "sentForApproval": "Tender created and sent for publish approval.",
+        "publishFailed": "The tender was created as a draft but could not be published: {reason}",
+        "publishNotAllowed": "The tender was created as a draft. It stayed a draft because you are not allowed to publish.",
+        "publishHint": "“Create & Publish” notifies the invited suppliers; the tender goes live by itself at the start time. If your firm requires publish approval, the tender is sent to an Admin for approval.",
+        "draftHint": "A tender created with “Save as Draft” is not visible to suppliers; you can publish it later from the Status section of the tender page.",
+        "startInPast": "The start time is in the past. Pick a later time in the General Information step to publish, or save as a draft.",
+        "steps": {
+          "review": "Review & Create"
+        },
+        "f": {
+          "reserve": "Reserve Price (tender total)",
+          "reserveHint": "Optional internal limit; suppliers never see it. In tenders where the lowest bid wins it is the highest total you will accept, in English (ascending) tenders the lowest. If it is not met, selecting a winner asks for an extra confirmation."
+        }
+      }
+    },
+    "auctions": {
+      "terms": {
+        "reserve": "Reserve price (tender total, internal only)"
+      },
+      "reserve": {
+        "title": "Reserve price",
+        "total": "Current total",
+        "coverage": "{covered} of {total} items have bids",
+        "status": {
+          "NoBids": "No bids yet",
+          "Met": "Met",
+          "NotMet": "Not met",
+          "Incomplete": "Not final"
+        },
+        "explain": {
+          "NoBids": "The total is compared with the reserve price as bids arrive.",
+          "Met": "The total of the best bids meets the reserve price.",
+          "NotMet": "The total of the best bids does not meet the reserve price. Selecting a winner will ask for an extra confirmation.",
+          "Incomplete": "The total is below the reserve for now, but some items have no bids; it becomes final once every item has a bid."
+        },
+        "confirmTitle": "Reserve price not met",
+        "confirmBody": "With this selection the tender total does not meet the reserve price. Do you still want to select this winner?",
+        "confirmNote": "The selection is recorded with the note “selected without meeting the reserve price”.",
+        "confirmAnyway": "Select Winner Anyway",
+        "reserveLabel": "Reserve price"
+      },
+      "detail": {
+        "form": {
+          "unit": "Unit"
+        }
+      }
+    },
+    "rfq": {
+      "form": {
+        "titlePlaceholder": "E.g. Office consumables quote request",
+        "currency": "Currency",
+        "dueDate": "Quote deadline",
+        "dueDateHint": "Suppliers can submit quotes until this date."
+      }
+    },
+    "rfi": {
+      "questionForm": {
+        "type": "Question type"
+      }
+    }
+  }
+}

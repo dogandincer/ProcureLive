@@ -381,7 +381,14 @@ export interface AuctionDetailDto {
   workspaceName: string | null;
   responsibleUserId: string | null;
   responsibleUserName: string | null;
+  /** Rezerv fiyat değerlendirmesi (yalnızca iç kullanıcı; tedarikçide null). Toplam ihale para birimindedir. */
+  reserveStatus: ReserveStatus | null;
+  reserveTotal: number | null;
+  reserveCoveredItems: number;
 }
+
+/** Incomplete: düşük teklifin kazandığı ihalede toplam rezervin altında ama teklifsiz kalem var. */
+export type ReserveStatus = "NotSet" | "NoBids" | "Met" | "NotMet" | "Incomplete";
 
 export type ParticipationStatus = "Pending" | "CompanyApproved" | "Accepted" | "Rejected";
 

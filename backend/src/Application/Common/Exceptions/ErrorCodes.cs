@@ -26,4 +26,5 @@ public static class ErrorCodes
     public const string AccountInactive = "AccountInactive";
     public const string PermissionDenied = "PermissionDenied";
     public const string PublishApprovalRequired = "PublishApprovalRequired";
+    public const string ReserveNotMet = "ReserveNotMet";
 }

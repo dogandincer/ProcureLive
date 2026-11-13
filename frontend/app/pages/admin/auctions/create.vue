@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useDebounceFn } from "@vueuse/core";
-import type { CompanyDto, CurrencyDto, PagedResult } from "~/types/api";
+import type { AuctionStatusPanelDto, CompanyDto, CurrencyDto, PagedResult } from "~/types/api";
 import {
   ChevronLeftIcon, ChevronRightIcon, CheckCircleIcon, XMarkIcon,
   CubeIcon, BuildingStorefrontIcon, DocumentArrowUpIcon, TrashIcon, RocketLaunchIcon,
@@ -155,25 +155,53 @@ function prev() { if (activeStep.value > 1) activeStep.value--; }
 function goTo(n: number) { if (n <= activeStep.value || stepValid.value[activeStep.value]) activeStep.value = n; }
 
 // ---- Submit ----
-const submitting = ref(false);
-async function submit() {
-  if (!isValid.value || submitting.value) return;
-  submitting.value = true; // çift tıklamada mükerrer ihale açılmasın
+// "Oluştur ve Yayınla": taslak oluşur, ardından sunucunun izin verdiği yoldan yayınlanır (doğrudan ya da Admin onayına).
+// "Taslak Olarak Kaydet": yalnızca taslak; tedarikçiler görmez. Yayın koşulu: başlangıç zamanı gelecekte olmalı.
+const submitting = ref<"publish" | "draft" | null>(null);
+const nowTick = ref(Date.now());
+let nowTimer: ReturnType<typeof setInterval> | null = null;
+const startInFuture = computed(() => !!master.startAt && new Date(master.startAt).getTime() > nowTick.value);
+
+async function publishCreated(id: string, dates: { newStartAt: string | null; newEndAt: string | null }) {
   try {
-    const id = await api.post<string>("/api/auctions/tender", buildPayload());
-    toast.success(t("tender.wizard.created"));
+    const panel = await api.get<AuctionStatusPanelDto>(`/api/auctions/${id}/status`);
+    if (panel.transitions.some((o) => o.to === "Scheduled")) {
+      await api.post(`/api/auctions/${id}/status`, { status: "Scheduled", reason: null, ...dates });
+      toast.success(t("tender.wizard.published"));
+    } else if (panel.publishApprovalRequired && !panel.approvalRequestedAt) {
+      await api.post(`/api/auctions/${id}/publish-approval`, dates);
+      toast.success(t("tender.wizard.sentForApproval"));
+    } else {
+      toast.info(t("tender.wizard.publishNotAllowed"));
+    }
+  } catch (error: any) {
+    // İhale oluştu; yayın adımı başarısızsa taslak sayfasına gidilir ve neden gösterilir.
+    toast.error(t("tender.wizard.publishFailed", { reason: apiErrorMessage(error, t("auctions.status.saveError")) }));
+  }
+}
+
+async function submit(publish: boolean) {
+  if (!isValid.value || submitting.value || (publish && !startInFuture.value)) return;
+  submitting.value = publish ? "publish" : "draft"; // çift tıklamada mükerrer ihale açılmasın
+  try {
+    const payload = buildPayload();
+    const id = await api.post<string>("/api/auctions/tender", payload);
     resetForm();
+    if (publish) await publishCreated(id, { newStartAt: payload.master.startAt, newEndAt: payload.master.endAt });
+    else toast.success(t("tender.wizard.created"));
     await router.push(`/admin/auctions/${id}`);
   } catch (error: any) {
     toast.error(apiErrorMessage(error, t("tender.wizard.createError")));
-    submitting.value = false; // başarıda true kalır (yönlendirme sürerken kilitli)
+    submitting.value = null; // başarıda dolu kalır (yönlendirme sürerken kilitli)
   }
 }
 
 onMounted(async () => {
   restoreDraft();
+  nowTimer = setInterval(() => { nowTick.value = Date.now(); }, 30_000);
   await Promise.all([loadReference(), searchVendors("")]);
 });
+onBeforeUnmount(() => { if (nowTimer) clearInterval(nowTimer); });
 </script>
 
 <template>
@@ -250,8 +278,9 @@ onMounted(async () => {
           <input v-model="master.endAt" type="datetime-local" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
         </div>
         <div>
-          <label class="mb-1 block text-xs font-medium text-slate-600">{{ $t("tender.wizard.f.reserve") }}</label>
-          <input v-model.number="master.reservePrice" type="number" min="0" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" :placeholder="$t('tender.grid.optional')" />
+          <label for="tender-reserve" class="mb-1 block text-xs font-medium text-slate-600">{{ $t("tender.wizard.f.reserve") }}</label>
+          <input id="tender-reserve" v-model.number="master.reservePrice" type="number" min="0" step="0.01" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" :placeholder="$t('tender.grid.optional')" aria-describedby="tender-reserve-hint" data-testid="tender-reserve" />
+          <p id="tender-reserve-hint" class="mt-1 text-[11px] text-slate-400">{{ $t("tender.wizard.f.reserveHint") }}</p>
         </div>
       </div>
 
@@ -394,14 +423,30 @@ onMounted(async () => {
         <div><dt class="text-xs text-slate-400">{{ $t("tender.wizard.sniper.title") }}</dt><dd class="text-slate-700">{{ master.sniper.enabled ? `${master.sniper.triggerMinutes}/${master.sniper.durationMinutes}/${master.sniper.maxExtensionMinutes} dk` : $t("tender.wizard.f.none") }}</dd></div>
       </dl>
       <p v-if="!isValid" class="mt-3 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700">{{ $t("tender.wizard.fixErrors") }}</p>
-      <button
-        type="button" :disabled="!isValid || submitting || uploadingAttachments"
-        class="mt-4 flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-        @click="submit"
-      >
-        <RocketLaunchIcon class="h-4 w-4" />
-        {{ submitting ? $t("tender.wizard.creating") : $t("tender.wizard.submit") }}
-      </button>
+      <p v-else-if="!startInFuture" class="mt-3 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700" data-testid="tender-start-past">{{ $t("tender.wizard.startInPast") }}</p>
+      <div class="mt-4 flex flex-wrap items-center gap-2">
+        <button
+          type="button" :disabled="!isValid || !!submitting || uploadingAttachments || !startInFuture"
+          class="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+          data-testid="tender-create-publish"
+          @click="submit(true)"
+        >
+          <RocketLaunchIcon class="h-4 w-4" />
+          {{ submitting === "publish" ? $t("tender.wizard.creating") : $t("tender.wizard.submit") }}
+        </button>
+        <button
+          type="button" :disabled="!isValid || !!submitting || uploadingAttachments"
+          class="rounded-lg border border-slate-300 bg-surface px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          data-testid="tender-create-draft"
+          @click="submit(false)"
+        >
+          {{ submitting === "draft" ? $t("tender.wizard.creating") : $t("tender.wizard.saveDraft") }}
+        </button>
+      </div>
+      <ul class="mt-3 space-y-1 text-xs text-slate-500">
+        <li>{{ $t("tender.wizard.publishHint") }}</li>
+        <li>{{ $t("tender.wizard.draftHint") }}</li>
+      </ul>
     </AppCard>
 
     <!-- Nav -->

@@ -114,8 +114,31 @@ async function confirmRevoke() {
 }
 
 const assetUrl = useAssetUrl();
+const { formatDate, formatNumber } = useDateFormat();
 const answerText = (r: RfiResponseDto) =>
   r.selectedOptionText ?? (r.answerBool !== null ? (r.answerBool ? t("common.yes") : t("common.no")) : (r.answerNumber ?? r.answerText ?? r.attachmentUrl ?? ""));
+
+/** Yanıtlar tedarikçi başına gruplanır; sorular şablondaki sırayla, yanıtsız sorular "—" ile gösterilir. */
+const responsesBySupplier = computed(() => {
+  const questions = process.value?.questions ?? [];
+  const groups = new Map<string, { companyId: string; companyName: string; answers: Map<string, RfiResponseDto> }>();
+  for (const r of responses.value) {
+    if (!groups.has(r.companyId)) groups.set(r.companyId, { companyId: r.companyId, companyName: r.companyName, answers: new Map() });
+    groups.get(r.companyId)!.answers.set(r.rfiQuestionId, r);
+  }
+  return [...groups.values()]
+    .map((g) => ({
+      ...g,
+      rows: questions.map((q) => ({ question: q, response: g.answers.get(q.id) ?? null })),
+      answered: questions.filter((q) => g.answers.has(q.id)).length,
+      evaluation: evaluations.value.find((e) => e.companyId === g.companyId) ?? null,
+    }))
+    .sort((a, b) => a.companyName.localeCompare(b.companyName, "tr"));
+});
+
+const inviteOpen = computed(() => !!process.value && ["Draft", "Sent", "InProgress"].includes(process.value.status));
+// Puanlanabilecekler: daveti reddetmemiş davetliler.
+const evaluable = computed(() => (process.value?.invitations ?? []).filter((i) => i.status !== "Declined"));
 
 async function exportResponses() {
   if (!process.value) return;
@@ -148,31 +171,31 @@ onMounted(async () => {
   <LoadingSpinner v-else-if="loading" />
 
   <div v-else-if="process" class="space-y-6">
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-xl font-bold text-slate-800">{{ process.title }}</h1>
-        <p class="text-sm text-slate-500">
-          {{ $t("rfi.detail.templateLabel") }}: {{ process.templateName }} · {{ $t("rfi.detail.statusLabel") }}: {{ $t(`enums.processStatus.${process.status}`) }}
-        </p>
-        <ProcessWorkspace
-          kind="rfi"
-          :process-id="process.id"
-          :owner-company-id="process.ownerCompanyId"
-          :workspace-id="process.workspaceId"
-          :workspace-name="process.workspaceName"
-          :status="process.status"
-          @changed="load"
-        />
-      </div>
-      <div class="flex gap-2">
+    <ProcessHeader
+      :title="process.title"
+      :status="process.status"
+      back-to="/admin/rfi"
+      :back-label="$t('nav.rfi')"
+      :meta="[process.ownerCompanyName, `${$t('rfi.detail.templateLabel')}: ${process.templateName}`, `${$t('rfi.answer.dueDate')}: ${formatDate(process.dueDate)}`]"
+    >
+      <ProcessWorkspace
+        kind="rfi"
+        :process-id="process.id"
+        :owner-company-id="process.ownerCompanyId"
+        :workspace-id="process.workspaceId"
+        :workspace-name="process.workspaceName"
+        :status="process.status"
+        @changed="load"
+      />
+      <template #actions>
         <AppButton v-if="!['Closed', 'Evaluated', 'Cancelled'].includes(process.status)" variant="secondary" @click="close">
           {{ $t("rfi.detail.closeProcess") }}
         </AppButton>
         <AppButton v-if="cancellable" variant="danger-outline" data-testid="cancel-process" @click="showCancel = true; cancelReason = ''">
           {{ $t("rfx.edit.cancel") }}
         </AppButton>
-      </div>
-    </div>
+      </template>
+    </ProcessHeader>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <AppCard>
@@ -193,7 +216,7 @@ onMounted(async () => {
           </li>
         </ul>
         <EmptyState v-else class="mt-3">{{ $t("rfi.detail.emptyInvites") }}</EmptyState>
-        <div class="mt-3 flex gap-2">
+        <div v-if="inviteOpen" class="mt-3 flex gap-2">
           <LookupField
             v-model="inviteCompanyId"
             class="min-w-0 flex-1"
@@ -225,41 +248,53 @@ onMounted(async () => {
           <ArrowDownTrayIcon class="h-4 w-4" />{{ $t("auctions.export.button") }}
         </button>
       </h3>
-      <div class="mt-3 overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
-              <th class="pb-2">{{ $t("rfi.detail.responseTable.company") }}</th>
-              <th class="pb-2">{{ $t("rfi.detail.responseTable.question") }}</th>
-              <th class="pb-2">{{ $t("rfi.detail.responseTable.answer") }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(r, i) in responses" :key="i" class="border-b border-slate-50">
-              <td class="py-2 text-slate-700">{{ r.companyName }}</td>
-              <td class="py-2 text-slate-500">{{ r.questionText }}</td>
-              <td class="py-2 text-slate-700">
-                <a v-if="r.attachmentUrl" :href="assetUrl(r.attachmentUrl) ?? r.attachmentUrl" target="_blank" rel="noopener" class="text-indigo-600 hover:underline">{{ $t("rfi.detail.openAttachment") }}</a>
+      <div class="mt-3 space-y-3">
+        <details
+          v-for="g in responsesBySupplier"
+          :key="g.companyId"
+          :open="responsesBySupplier.length <= 3"
+          class="group rounded-lg border border-slate-100"
+          data-testid="rfi-supplier-responses"
+        >
+          <summary class="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 px-3 py-2">
+            <span class="font-medium text-slate-700">{{ g.companyName }}</span>
+            <span class="flex items-center gap-2 text-xs text-slate-500">
+              <AppBadge v-if="g.evaluation" tone="indigo">{{ $t("rfi.detail.scoreBadge", { score: formatNumber(g.evaluation.totalScore, 1) }) }}</AppBadge>
+              <span>{{ $t("rfi.detail.answeredCount", { n: g.answered, total: g.rows.length }) }}</span>
+            </span>
+          </summary>
+          <dl class="divide-y divide-slate-50 border-t border-slate-100 px-3 text-sm">
+            <div v-for="{ question: q, response: r } in g.rows" :key="q.id" class="grid gap-1 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-4">
+              <dt class="text-slate-500">{{ q.questionText }}</dt>
+              <dd class="text-slate-700">
+                <span v-if="!r" class="text-slate-300">—</span>
+                <a v-else-if="r.attachmentUrl" :href="assetUrl(r.attachmentUrl) ?? r.attachmentUrl" target="_blank" rel="noopener" class="text-indigo-600 hover:underline">{{ $t("rfi.detail.openAttachment") }}</a>
                 <template v-else>{{ answerText(r) }}</template>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </dd>
+            </div>
+          </dl>
+        </details>
         <EmptyState v-if="responses.length === 0">{{ $t("rfi.detail.emptyResponses") }}</EmptyState>
       </div>
     </AppCard>
 
     <AppCard>
       <h3 class="text-sm font-semibold text-slate-700">{{ $t("rfi.detail.scoredEvaluation") }}</h3>
-      <div class="mt-3 flex flex-wrap items-end gap-3">
-        <select v-model="evalForm.companyId" :aria-label="$t('rfi.detail.selectCompany')" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
-          <option value="" disabled>{{ $t("rfi.detail.selectCompany") }}</option>
-          <option v-for="inv in process.invitations" :key="inv.companyId" :value="inv.companyId">{{ inv.companyName }}</option>
-        </select>
-        <input v-model.number="evalForm.totalScore" type="number" min="0" max="100" step="0.5" :placeholder="$t('rfi.detail.scorePlaceholder')" class="w-32 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-        <input v-model="evalForm.comments" :placeholder="$t('rfi.detail.commentPlaceholder')" class="flex-1 min-w-[200px] rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
-        <AppButton @click="submitEvaluation">{{ $t("rfi.detail.score") }}</AppButton>
-      </div>
+      <form class="mt-3 flex flex-wrap items-end gap-3" data-testid="rfi-eval-form" @submit.prevent="submitEvaluation">
+        <FormField :label="$t('rfi.detail.evalTable.company')" required class="min-w-[200px]">
+          <select v-model="evalForm.companyId" required class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+            <option value="" disabled>{{ $t("rfi.detail.selectCompany") }}</option>
+            <option v-for="inv in evaluable" :key="inv.companyId" :value="inv.companyId">{{ inv.companyName }}</option>
+          </select>
+        </FormField>
+        <FormField :label="$t('rfi.detail.scorePlaceholder')" required>
+          <input v-model.number="evalForm.totalScore" type="number" min="0" max="100" step="0.5" required class="w-32 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+        </FormField>
+        <FormField :label="$t('rfi.detail.commentPlaceholder')" class="min-w-[200px] flex-1">
+          <input v-model="evalForm.comments" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+        </FormField>
+        <AppButton type="submit" :disabled="!evalForm.companyId">{{ $t("rfi.detail.score") }}</AppButton>
+      </form>
 
       <div class="mt-4 overflow-x-auto">
         <table class="w-full text-sm">
@@ -273,7 +308,7 @@ onMounted(async () => {
           <tbody>
             <tr v-for="e in evaluations" :key="e.id" class="border-b border-slate-50">
               <td class="py-2 text-slate-700">{{ e.companyName }}</td>
-              <td class="py-2 font-mono font-semibold text-indigo-700">{{ e.totalScore }}</td>
+              <td class="py-2 font-mono font-semibold text-indigo-700">{{ formatNumber(e.totalScore, 1) }}</td>
               <td class="py-2 text-slate-500">{{ e.comments }}</td>
             </tr>
           </tbody>

@@ -320,6 +320,8 @@ export interface AuctionItemDto {
   myBestAmount?: number | null;
   myRank?: number | null;
   competitorCount?: number | null;
+  /** Yalnızca iç kullanıcıya: en iyi teklifi veren firma. */
+  currentBestCompanyName?: string | null;
 }
 
 export interface AuctionAttachmentDto {

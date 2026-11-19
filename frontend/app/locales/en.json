@@ -384,7 +384,8 @@
       "workspace": "Workspace",
       "responsible": "Responsible buyer",
       "startsIn": "Starts in {time}",
-      "currentBestUnit": "Current best (unit)"
+      "currentBestUnit": "Current best (unit)",
+      "leader": "Leader"
     },
     "status": {
       "title": "Status Management",
@@ -1076,7 +1077,9 @@
       "closedToast": "RFI process closed.",
       "openAttachment": "Open file",
       "closeConfirmTitle": "Close the RFI",
-      "closeConfirmBody": "Once closed, suppliers cannot send answers and the answers become available for evaluation."
+      "closeConfirmBody": "Once closed, suppliers cannot send answers and the answers become available for evaluation.",
+      "answeredCount": "{n}/{total} questions answered",
+      "scoreBadge": "Score: {score}"
     },
     "supplierList": {
       "title": "My RFI Invites",
@@ -1105,7 +1108,10 @@
       "required": "Required",
       "requiredField": "This question is required.",
       "requiredLegend": "Required question",
-      "fileUrlPlaceholder": "File link (https://...)"
+      "fileUrlPlaceholder": "File link (https://...)",
+      "questionsPreview": "Questions you are asked to answer",
+      "previewHint": "Once you accept the invitation you can answer these questions. Questions marked * are required.",
+      "noAnswers": "You did not submit answers for this process."
     }
   },
   "rfq": {
@@ -1149,7 +1155,9 @@
         "company": "Company",
         "unitPrice": "Unit Price",
         "normalized": "Normalized",
-        "leadTime": "Lead Time (days)"
+        "leadTime": "Lead Time (days)",
+        "lineTotal": "Line total",
+        "best": "Best"
       },
       "emptyMatrix": "No quotes received yet.",
       "quotes": "Quotes",
@@ -1186,7 +1194,13 @@
       "awardConfirmTitle": "Select the winning quote",
       "awardConfirmBody": "{company} will be selected as the winner; the other suppliers will be notified. This cannot be undone.",
       "closeConfirmTitle": "Close quoting",
-      "closeConfirmBody": "Once closed, suppliers cannot submit quotes and the quotes become available for evaluation."
+      "closeConfirmBody": "Once closed, suppliers cannot submit quotes and the quotes become available for evaluation.",
+      "normalizedIn": "Normalized amounts are in the base currency {code}; line total = normalized unit price × quantity.",
+      "quoteTotal": "Total (normalized)",
+      "lowestTotal": "Lowest total",
+      "pricedLines": "{n}/{total} lines priced",
+      "maxLeadTime": "Longest lead time: {n} days",
+      "submittedAt": "Submitted: {date}"
     },
     "supplierList": {
       "title": "My RFQ Invites",
@@ -1214,7 +1228,16 @@
       "declinedToast": "Invitation declined.",
       "quoteSavedToast": "Your quote was saved.",
       "resultWon": "Congratulations, your quote won. The buyer will contact you about the order and delivery.",
-      "resultLost": "This RFQ was awarded to another quote. Your submitted quote is below; thank you for taking part."
+      "resultLost": "This RFQ was awarded to another quote. Your submitted quote is below; thank you for taking part.",
+      "linesPreview": "Requested lines",
+      "previewHint": "Once you accept the invitation you can quote for these lines.",
+      "currency": "Currency",
+      "lineTotal": "Line total",
+      "item": "Line",
+      "quantity": "Quantity",
+      "myQuote": "Your quote",
+      "total": "Total",
+      "noQuote": "You did not submit a quote for this process."
     }
   },
   "auditLog": {

@@ -86,7 +86,9 @@ public sealed record AuctionItemDto(
     // Tedarikçiye özel: kendi en iyi birim fiyatı; açık ihalede sırası (1 = lider) ve teklif veren firma sayısı.
     decimal? MyBestAmount = null,
     int? MyRank = null,
-    int? CompetitorCount = null);
+    int? CompetitorCount = null,
+    // Yalnızca iç kullanıcıya: en iyi teklifi veren firma.
+    string? CurrentBestCompanyName = null);
 
 public sealed record AuctionAttachmentDto(
     Guid Id,

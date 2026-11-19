@@ -541,6 +541,9 @@ onBeforeUnmount(() => {
                 <div v-if="item.currentBestAmount != null" class="text-[11px] text-slate-400">
                   {{ $t("auctions.evaluation.lineTotal") }}: {{ formatMoney(item.currentBestAmount * item.quantity, auction.currencyCode) }}
                 </div>
+                <div v-if="item.currentBestCompanyName" class="mt-0.5 max-w-[16rem] truncate text-xs text-slate-600" data-testid="item-leader" :title="item.currentBestCompanyName">
+                  {{ $t("auctions.detail.leader") }}: <span class="font-medium">{{ item.currentBestCompanyName }}</span>
+                </div>
               </div>
             </div>
 

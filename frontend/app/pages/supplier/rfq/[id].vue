@@ -6,7 +6,20 @@ const processId = route.params.id as string;
 const api = useApi();
 const toast = useToast();
 const { t } = useI18n();
-const { formatDate } = useDateFormat();
+const { formatDate, formatMoney, formatNumber } = useDateFormat();
+const unitLabel = (u: string) => t(`enums.unitOfMeasure.${u}`);
+const currencyCode = (id: string) => currencies.value.find((c) => c.id === id)?.code ?? "";
+const lineTotal = (liId: string, quantity: number) => {
+  const p = lines[liId]?.unitPrice;
+  return typeof p === "number" && !Number.isNaN(p) ? p * quantity : null;
+};
+// Gönderilmiş teklifin toplamı yalnızca tüm kalemler tek para birimindeyse anlamlıdır.
+const quoteTotal = computed(() => {
+  const items = process.value?.lineItems ?? [];
+  const codes = new Set(items.map((li) => lines[li.id]?.currencyId));
+  if (codes.size !== 1 || items.some((li) => lineTotal(li.id, li.quantity) === null)) return null;
+  return { value: items.reduce((s, li) => s + (lineTotal(li.id, li.quantity) ?? 0), 0), code: currencyCode([...codes][0]!) };
+});
 const { currentUser } = useAuth();
 const { isPlus, refresh: refreshSubscription } = useSubscription();
 
@@ -122,12 +135,13 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
   <LoadingSpinner v-else-if="loading && !process" />
 
   <div v-else-if="process" class="space-y-6">
-    <div>
-      <h1 class="text-xl font-bold text-slate-800">{{ process.title }}</h1>
-      <p class="text-sm text-slate-500">
-        {{ process.ownerCompanyName }} · {{ $t("rfq.quote.dueDate") }}: {{ formatDate(process.dueDate) }}
-      </p>
-    </div>
+    <ProcessHeader
+      :title="process.title"
+      :status="process.status"
+      back-to="/supplier/rfq"
+      :back-label="$t('nav.rfqInvites')"
+      :meta="[process.ownerCompanyName, `${$t('rfq.detail.currencyLabel')}: ${process.currencyCode}`, `${$t('rfq.quote.dueDate')}: ${formatDate(process.dueDate)}`]"
+    />
 
     <RestrictedOverlay
       v-if="restricted"
@@ -151,7 +165,8 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
       <p class="text-sm font-medium text-slate-600">{{ $t("rfq.quote.declinedBanner") }}</p>
     </div>
 
-    <div v-else-if="myInvitation?.status === 'Invited'" class="rounded-xl border border-amber-200 bg-amber-50 p-5">
+    <template v-else-if="myInvitation?.status === 'Invited'">
+    <div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
       <p class="text-sm font-medium text-amber-800">{{ $t("rfq.quote.invitedBanner") }}</p>
       <div class="mt-3 flex gap-2">
         <AppButton @click="accept">{{ $t("common.accept") }}</AppButton>
@@ -162,6 +177,17 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
         <AppButton variant="danger" @click="decline">{{ $t("common.confirm") }}</AppButton>
       </div>
     </div>
+
+    <!-- Davet aşamasında da talep edilen kalemler görünür: tedarikçi neyi kabul ettiğini bilerek karar verir. -->
+    <AppCard :title="$t('rfq.quote.linesPreview')" :description="$t('rfq.quote.previewHint')">
+      <ul class="divide-y divide-slate-50 text-sm" data-testid="rfq-lines-preview">
+        <li v-for="li in process.lineItems" :key="li.id" class="flex justify-between gap-3 py-2">
+          <span class="text-slate-700">{{ li.description }}</span>
+          <span class="shrink-0 text-slate-500">{{ formatNumber(li.quantity) }} {{ unitLabel(li.unitOfMeasure) }}</span>
+        </li>
+      </ul>
+    </AppCard>
+    </template>
 
     <form v-else-if="accepted" class="space-y-4 rounded-xl border border-slate-200 bg-surface p-5" @submit.prevent="submitQuote">
       <!-- Durum: sonuç / kapalı süreç / gönderildi (Standart: revizyon Plus'a özel) / Plus: revize edilebilir -->
@@ -176,27 +202,70 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
 
       <p v-if="canSubmit" class="text-xs text-slate-400">{{ $t("rfq.quote.multiCurrencyHint") }}</p>
 
-      <fieldset :disabled="!canSubmit" class="space-y-4 disabled:opacity-80">
-        <div v-for="li in process.lineItems" :key="li.id" class="rounded-lg border border-slate-100 p-3">
-          <div class="text-sm font-medium text-slate-700">{{ li.description }}</div>
-          <div class="text-xs text-slate-500">{{ li.quantity }} {{ $t(`enums.unitOfMeasure.${li.unitOfMeasure}`) }}</div>
-          <div class="mt-2 flex flex-wrap gap-2">
-            <input
-              v-model.number="lines[li.id].unitPrice"
-              type="number"
-              step="0.01"
-              :placeholder="$t('rfq.quote.unitPricePlaceholder')"
-              :aria-label="`${$t('rfq.quote.unitPricePlaceholder')} — ${li.description}`"
-              required
-              class="w-32 rounded-md border border-slate-300 px-2 py-1.5 text-sm disabled:bg-slate-50"
-            />
-            <select v-model="lines[li.id].currencyId" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm disabled:bg-slate-50">
-              <option v-for="c in currencies" :key="c.id" :value="c.id">{{ c.code }}</option>
-            </select>
-            <input v-model.number="lines[li.id].leadTimeDays" type="number" :placeholder="$t('rfq.quote.leadTimePlaceholder')" class="w-32 rounded-md border border-slate-300 px-2 py-1.5 text-sm disabled:bg-slate-50" />
+      <!-- Teklif verilebiliyorsa etiketli form; değilse gönderilen teklif salt okunur tablo olarak gösterilir. -->
+      <div v-if="canSubmit" class="space-y-4">
+        <div v-for="li in process.lineItems" :key="li.id" class="rounded-lg border border-slate-100 p-3" data-testid="rfq-quote-line">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <div class="text-sm font-medium text-slate-700">{{ li.description }}</div>
+            <div class="text-xs text-slate-500">{{ formatNumber(li.quantity) }} {{ unitLabel(li.unitOfMeasure) }}</div>
+          </div>
+          <div class="mt-2 flex flex-wrap items-end gap-2">
+            <FormField :label="$t('rfq.quote.unitPricePlaceholder')" required>
+              <input
+                v-model.number="lines[li.id].unitPrice"
+                type="number"
+                step="0.01"
+                min="0.01"
+                required
+                class="w-36 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+              />
+            </FormField>
+            <FormField :label="$t('rfq.quote.currency')">
+              <select v-model="lines[li.id].currencyId" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+                <option v-for="c in currencies" :key="c.id" :value="c.id">{{ c.code }}</option>
+              </select>
+            </FormField>
+            <FormField :label="$t('rfq.quote.leadTimePlaceholder')">
+              <input v-model.number="lines[li.id].leadTimeDays" type="number" min="0" class="w-28 rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+            </FormField>
+            <div class="ml-auto text-right text-xs text-slate-500">
+              {{ $t("rfq.quote.lineTotal") }}
+              <div class="font-mono text-sm font-semibold text-slate-700">{{ formatMoney(lineTotal(li.id, li.quantity), currencyCode(lines[li.id].currencyId)) }}</div>
+            </div>
           </div>
         </div>
-      </fieldset>
+      </div>
+
+      <div v-else-if="process.hasSubmitted" class="overflow-x-auto" data-testid="rfq-my-quote">
+        <h3 class="text-sm font-semibold text-slate-700">{{ $t("rfq.quote.myQuote") }}</h3>
+        <table class="mt-2 w-full min-w-[520px] text-sm">
+          <thead>
+            <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
+              <th class="pb-1">{{ $t("rfq.quote.item") }}</th>
+              <th class="pb-1 text-right">{{ $t("rfq.quote.quantity") }}</th>
+              <th class="pb-1 text-right">{{ $t("rfq.quote.unitPricePlaceholder") }}</th>
+              <th class="pb-1 text-right">{{ $t("rfq.quote.leadTimePlaceholder") }}</th>
+              <th class="pb-1 text-right">{{ $t("rfq.quote.lineTotal") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="li in process.lineItems" :key="li.id" class="border-b border-slate-50">
+              <td class="py-1.5 text-slate-700">{{ li.description }}</td>
+              <td class="py-1.5 text-right text-slate-500">{{ formatNumber(li.quantity) }} {{ unitLabel(li.unitOfMeasure) }}</td>
+              <td class="py-1.5 text-right font-mono">{{ formatMoney(lines[li.id].unitPrice, currencyCode(lines[li.id].currencyId)) }}</td>
+              <td class="py-1.5 text-right">{{ lines[li.id].leadTimeDays ?? "—" }}</td>
+              <td class="py-1.5 text-right font-mono text-slate-700">{{ formatMoney(lineTotal(li.id, li.quantity), currencyCode(lines[li.id].currencyId)) }}</td>
+            </tr>
+          </tbody>
+          <tfoot v-if="quoteTotal">
+            <tr>
+              <td colspan="4" class="pt-2 text-right text-xs font-semibold uppercase text-slate-500">{{ $t("rfq.quote.total") }}</td>
+              <td class="pt-2 text-right font-mono font-semibold text-slate-800" data-testid="rfq-my-total">{{ formatMoney(quoteTotal.value, quoteTotal.code) }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <p v-else class="text-sm text-slate-500">{{ $t("rfq.quote.noQuote") }}</p>
 
       <AppButton v-if="canSubmit" type="submit" :loading="submitting">
         {{ submitting ? $t("rfq.quote.submitting") : process.hasSubmitted ? $t("rfx.reviseQuote") : $t("rfq.quote.submit") }}

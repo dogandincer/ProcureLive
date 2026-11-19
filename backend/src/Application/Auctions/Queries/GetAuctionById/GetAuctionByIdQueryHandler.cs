@@ -122,6 +122,20 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
         bool sealedType = auction.AuctionType is AuctionType.SealedBid or AuctionType.ReverseSealed;
         bool higherIsBetter = BidRanking.HigherIsBetter(auction.AuctionType);
 
+        // İç kullanıcı için kalem liderinin firma adı (tek sorguda).
+        Dictionary<Guid, string> leaderNames = new();
+        if (isInternalUser)
+        {
+            List<Guid> leaderIds = bidsByItem.Values
+                .Select(list => BidRanking.Best(list, auction.AuctionType)?.CompanyId)
+                .OfType<Guid>()
+                .Distinct()
+                .ToList();
+            leaderNames = await _context.Companies
+                .Where(c => leaderIds.Contains(c.Id))
+                .ToDictionaryAsync(c => c.Id, c => c.Name, cancellationToken);
+        }
+
         List<AuctionItemDto> itemDtos = auction.Items
             .OrderBy(i => i.SortOrder)
             .Select(item =>
@@ -133,7 +147,8 @@ public sealed class GetAuctionByIdQueryHandler : IRequestHandler<GetAuctionByIdQ
                     return new AuctionItemDto(
                         item.Id, item.ProductId, item.Description, item.Quantity, item.UnitOfMeasure.ToString(),
                         item.TargetPrice, item.RequestedDeliveryDate, item.Specification, item.SortOrder,
-                        best?.Amount.Amount, bids.Count);
+                        best?.Amount.Amount, bids.Count,
+                        CurrentBestCompanyName: best is null ? null : leaderNames.GetValueOrDefault(best.CompanyId));
                 }
 
                 // Firma başına en iyi birim fiyat → kendi en iyisi ve sırası.

@@ -19,14 +19,6 @@ const statusOptions = computed(() =>
 
 const form = reactive({ title: "", ownerCompanyId: "", workspaceId: "", currencyId: "", dueDate: "" });
 
-const statusTone: Record<string, "slate" | "amber" | "emerald" | "indigo" | "rose"> = {
-  Draft: "slate",
-  Sent: "amber",
-  InProgress: "amber",
-  Closed: "slate",
-  Awarded: "indigo",
-};
-
 // Başlıktaki firma/işyeri art arda kurulur; geç dönen eski yanıt yenisinin üzerine yazmasın (yalnızca son istek uygulanır).
 let loadSeq = 0;
 const { page: listPage, total: listTotal, search: listSearch, pageSize: listPageSize, params: listParams, resetAndLoad } = usePagedList(() => load());
@@ -137,7 +129,7 @@ watch(() => route.query.status, (v) => { status.value = typeof v === "string" ? 
                 {{ p.ownerCompanyName }}
                 <span v-if="p.workspaceName" class="block text-[11px] text-slate-400">{{ p.workspaceName }}</span>
               </td>
-              <td class="py-2"><AppBadge :tone="statusTone[p.status]">{{ $t(`enums.processStatus.${p.status}`) }}</AppBadge></td>
+              <td class="py-2"><AppBadge :tone="processStatusTone[p.status]">{{ $t(`enums.processStatus.${p.status}`) }}</AppBadge></td>
               <td class="py-2 text-slate-500">{{ p.lineItemCount }}</td>
               <td class="py-2 text-slate-500">{{ p.quoteCount }}</td>
               <td class="py-2 text-right"><NuxtLink :to="`/admin/rfq/${p.id}`" class="text-indigo-600 hover:underline">{{ $t("common.detail") }}</NuxtLink></td>

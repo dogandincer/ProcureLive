@@ -384,7 +384,8 @@
       "workspace": "İşyeri",
       "responsible": "Sorumlu satınalmacı",
       "startsIn": "{time} sonra başlar",
-      "currentBestUnit": "Güncel en iyi (birim)"
+      "currentBestUnit": "Güncel en iyi (birim)",
+      "leader": "Lider"
     },
     "status": {
       "title": "Durum Yönetimi",
@@ -1076,7 +1077,9 @@
       "closedToast": "RFI süreci kapatıldı.",
       "openAttachment": "Dosyayı aç",
       "closeConfirmTitle": "RFI sürecini kapat",
-      "closeConfirmBody": "Süreç kapanınca tedarikçiler yanıt gönderemez; yanıtlar değerlendirmeye açılır."
+      "closeConfirmBody": "Süreç kapanınca tedarikçiler yanıt gönderemez; yanıtlar değerlendirmeye açılır.",
+      "answeredCount": "{n}/{total} soru yanıtlandı",
+      "scoreBadge": "Puan: {score}"
     },
     "supplierList": {
       "title": "RFI Davetlerim",
@@ -1105,7 +1108,10 @@
       "required": "Zorunlu",
       "requiredField": "Bu soru zorunlu.",
       "requiredLegend": "Zorunlu soru",
-      "fileUrlPlaceholder": "Dosya bağlantısı (https://...)"
+      "fileUrlPlaceholder": "Dosya bağlantısı (https://...)",
+      "questionsPreview": "Yanıtlamanız istenen sorular",
+      "previewHint": "Daveti kabul ettiğinizde bu soruları yanıtlayabilirsiniz. * işaretli sorular zorunludur.",
+      "noAnswers": "Bu sürece yanıt göndermediniz."
     }
   },
   "rfq": {
@@ -1149,7 +1155,9 @@
         "company": "Cari",
         "unitPrice": "Birim Fiyat",
         "normalized": "Normalize",
-        "leadTime": "Termin (gün)"
+        "leadTime": "Termin (gün)",
+        "lineTotal": "Satır toplamı",
+        "best": "En iyi"
       },
       "emptyMatrix": "Henüz teklif gelmedi.",
       "quotes": "Teklifler",
@@ -1186,7 +1194,13 @@
       "awardConfirmTitle": "Kazanan teklifi seç",
       "awardConfirmBody": "{company} kazanan olarak seçilecek; diğer tedarikçilere sonuç bildirilir. Bu işlem geri alınamaz.",
       "closeConfirmTitle": "Teklif toplamayı kapat",
-      "closeConfirmBody": "Süreç kapanınca tedarikçiler yeni teklif veremez ve teklifler değerlendirmeye açılır."
+      "closeConfirmBody": "Süreç kapanınca tedarikçiler yeni teklif veremez ve teklifler değerlendirmeye açılır.",
+      "normalizedIn": "Normalize tutarlar baz para birimi {code} cinsindendir; satır toplamı = normalize birim fiyat × miktar.",
+      "quoteTotal": "Toplam (normalize)",
+      "lowestTotal": "En düşük toplam",
+      "pricedLines": "{n}/{total} kalem fiyatlı",
+      "maxLeadTime": "En uzun termin: {n} gün",
+      "submittedAt": "Gönderim: {date}"
     },
     "supplierList": {
       "title": "RFQ Davetlerim",
@@ -1214,7 +1228,16 @@
       "declinedToast": "Davet reddedildi.",
       "quoteSavedToast": "Teklifiniz kaydedildi.",
       "resultWon": "Tebrikler, teklifiniz kazandı. Sipariş ve teslimat için alıcı sizinle iletişime geçecek.",
-      "resultLost": "Bu RFQ başka bir teklifle sonuçlandı. Gönderdiğiniz teklif aşağıda; katılımınız için teşekkürler."
+      "resultLost": "Bu RFQ başka bir teklifle sonuçlandı. Gönderdiğiniz teklif aşağıda; katılımınız için teşekkürler.",
+      "linesPreview": "Talep edilen kalemler",
+      "previewHint": "Daveti kabul ettiğinizde bu kalemler için teklif verebilirsiniz.",
+      "currency": "Para birimi",
+      "lineTotal": "Satır toplamı",
+      "item": "Kalem",
+      "quantity": "Miktar",
+      "myQuote": "Teklifiniz",
+      "total": "Toplam",
+      "noQuote": "Bu sürece teklif göndermediniz."
     }
   },
   "auditLog": {

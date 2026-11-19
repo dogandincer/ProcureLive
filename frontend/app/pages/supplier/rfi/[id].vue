@@ -85,6 +85,19 @@ async function decline() {
   }
 }
 
+const { formatNumber } = useDateFormat();
+/** Salt okunur görünüm için yanıt metni; yanıtsız soru "—". */
+function answerDisplay(q: RfiProcessDetailDto["questions"][number]): string {
+  const a = answers[q.id];
+  switch (q.questionType) {
+    case "Number": return a.number === null || a.number === undefined ? "—" : formatNumber(a.number);
+    case "Boolean": return a.bool === null ? "—" : a.bool ? t("common.yes") : t("common.no");
+    case "MultipleChoice": return q.options?.find((o) => o.id === a.optionId)?.optionText ?? "—";
+    case "FileUpload": return "—";
+    default: return a.text?.trim() || "—";
+  }
+}
+
 // Zorunlu sorular boş geçilemez (sunucu da aynı kuralı uygular).
 const missingRequired = ref<string[]>([]);
 function isAnswered(q: { id: string; questionType: string }) {
@@ -137,12 +150,13 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
   <LoadingSpinner v-else-if="loading && !process" />
 
   <div v-else-if="process" class="space-y-6">
-    <div>
-      <h1 class="text-xl font-bold text-slate-800">{{ process.title }}</h1>
-      <p class="text-sm text-slate-500">
-        {{ process.ownerCompanyName }} · {{ $t("rfi.answer.dueDate") }}: {{ formatDate(process.dueDate) }}
-      </p>
-    </div>
+    <ProcessHeader
+      :title="process.title"
+      :status="process.status"
+      back-to="/supplier/rfi"
+      :back-label="$t('nav.rfiInvites')"
+      :meta="[process.ownerCompanyName, `${$t('rfi.answer.dueDate')}: ${formatDate(process.dueDate)}`]"
+    />
 
     <RestrictedOverlay
       v-if="restricted"
@@ -166,7 +180,8 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
       <p class="text-sm font-medium text-slate-600">{{ $t("rfi.answer.declinedBanner") }}</p>
     </div>
 
-    <div v-else-if="myInvitation?.status === 'Invited'" class="rounded-xl border border-amber-200 bg-amber-50 p-5">
+    <template v-else-if="myInvitation?.status === 'Invited'">
+    <div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
       <p class="text-sm font-medium text-amber-800">{{ $t("rfi.answer.invitedBanner") }}</p>
       <div class="mt-3 flex gap-2">
         <AppButton @click="accept">{{ $t("common.accept") }}</AppButton>
@@ -177,6 +192,16 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
         <AppButton variant="danger" @click="decline">{{ $t("common.confirm") }}</AppButton>
       </div>
     </div>
+    <!-- Davet aşamasında da sorular görünür: tedarikçi neyi yanıtlayacağını bilerek karar verir. -->
+    <AppCard :title="$t('rfi.answer.questionsPreview')" :description="$t('rfi.answer.previewHint')">
+      <ol class="list-decimal space-y-1.5 pl-5 text-sm text-slate-700" data-testid="rfi-questions-preview">
+        <li v-for="q in process.questions" :key="q.id">
+          {{ q.questionText }}<span v-if="q.isRequired" class="ml-0.5 text-rose-600" :title="$t('rfi.answer.required')">*</span>
+          <span class="ml-1 text-xs text-slate-400">({{ $t(`enums.questionType.${q.questionType}`) }})</span>
+        </li>
+      </ol>
+    </AppCard>
+    </template>
 
     <form v-else-if="accepted" class="space-y-4 rounded-xl border border-slate-200 bg-surface p-5" @submit.prevent="submitAnswers">
       <!-- Durum: kapalı süreç / gönderildi (Standart: revizyon Plus'a özel) / Plus: revize edilebilir -->
@@ -187,7 +212,19 @@ onMounted(() => Promise.all([load(), refreshSubscription()]));
       </div>
       <p v-else-if="process.hasSubmitted" class="rounded-md bg-indigo-50 px-3 py-2 text-xs text-indigo-700">{{ $t("rfx.submittedPlus") }}</p>
 
-      <fieldset :disabled="!canSubmit" class="space-y-4 disabled:opacity-80">
+      <!-- Yanıt verilemiyorsa (gönderildi / kapandı) form yerine verilen yanıtlar salt okunur listelenir. -->
+      <dl v-if="!canSubmit" class="divide-y divide-slate-50 text-sm" data-testid="rfi-my-answers">
+        <div v-for="q in process.questions" :key="q.id" class="grid gap-1 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-4">
+          <dt class="text-slate-500">{{ q.questionText }}</dt>
+          <dd class="text-slate-800">
+            <a v-if="q.questionType === 'FileUpload' && answers[q.id].attachmentUrl" :href="assetUrl(answers[q.id].attachmentUrl) ?? answers[q.id].attachmentUrl" target="_blank" rel="noopener" class="font-medium text-indigo-600 hover:underline">{{ $t("rfi.detail.openAttachment") }}</a>
+            <template v-else>{{ answerDisplay(q) }}</template>
+          </dd>
+        </div>
+        <div v-if="!process.hasSubmitted" class="pt-2 text-sm text-slate-500">{{ $t("rfi.answer.noAnswers") }}</div>
+      </dl>
+
+      <fieldset v-else class="space-y-4">
         <div v-for="q in process.questions" :key="q.id">
           <label :for="`q-${q.id}`" class="mb-1 block text-sm font-medium text-slate-700">
             {{ q.questionText }}<span v-if="q.isRequired" class="ml-0.5 text-rose-600" :title="$t('rfi.answer.required')">*</span>

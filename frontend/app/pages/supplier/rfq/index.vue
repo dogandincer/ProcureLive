@@ -53,7 +53,7 @@ onMounted(load);
                 </div>
                 <span v-if="p.myInvitationStatus" class="text-[11px] font-normal text-slate-400">{{ $t(`enums.invitationStatus.${p.myInvitationStatus}`) }}</span>
               </td>
-              <td class="py-2 text-slate-500">{{ $t(`enums.processStatus.${p.status}`) }}</td>
+              <td class="py-2"><AppBadge :tone="processStatusTone[p.status] ?? 'slate'">{{ $t(`enums.processStatus.${p.status}`) }}</AppBadge></td>
               <td class="py-2 text-slate-500">{{ formatDate(p.dueDate) }}</td>
               <td class="py-2 text-right">
                 <!-- Standart kota dolu, davet kabul edilmemiş: içerik sunucuda düşürüldü → Plus alınız -->

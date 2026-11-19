@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RfqAiRecommendationDto, RfqComparisonRowDto, RfqProcessDetailDto, RfqQuoteDto } from "~/types/api";
+import type { CurrencyDto, RfqAiRecommendationDto, RfqComparisonRowDto, RfqProcessDetailDto, RfqQuoteDto } from "~/types/api";
 import { ArrowDownTrayIcon, SparklesIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import type { ExcelColumn } from "~/composables/useExcelImport";
 
@@ -51,13 +51,63 @@ async function runAction(action: () => Promise<void>) {
 const unitOfMeasures = ["Piece", "Kilogram", "Gram", "Liter", "Meter", "SquareMeter", "CubicMeter", "Box", "Pallet", "Hour", "Service"];
 const unitLabel = (u: string) => t(`enums.unitOfMeasure.${u}`);
 
+const { formatDate, formatDateTime, formatMoney, formatNumber } = useDateFormat();
+// Normalize tutarlar sistemin baz para birimindedir; başlıklarda kodu gösterilir.
+const baseCurrencyCode = ref<string | null>(null);
+
+/**
+ * Karşılaştırma kalem kalem (aynı açıklamalı iki kalem karışmasın diye kimliğe göre) gruplanır; her grupta teklifler
+ * normalize birim fiyata göre sıralanır, satır toplamı = normalize birim fiyat × miktar, en düşük fiyat işaretlenir.
+ */
 const groupedMatrix = computed(() => {
-  const groups: Record<string, RfqComparisonRowDto[]> = {};
+  const lines = process.value?.lineItems ?? [];
+  const byLine = new Map<string, RfqComparisonRowDto[]>();
   for (const row of matrix.value) {
-    groups[row.lineItemDescription] ??= [];
-    groups[row.lineItemDescription].push(row);
+    if (!byLine.has(row.rfqLineItemId)) byLine.set(row.rfqLineItemId, []);
+    byLine.get(row.rfqLineItemId)!.push(row);
   }
-  return groups;
+  return [...byLine.entries()]
+    .map(([lineId, rows]) => {
+      const line = lines.find((l) => l.id === lineId);
+      const sorted = [...rows].sort((a, b) => a.normalizedUnitPriceInBaseCurrency - b.normalizedUnitPriceInBaseCurrency);
+      const best = sorted[0]?.normalizedUnitPriceInBaseCurrency;
+      return {
+        lineId,
+        description: line?.description ?? rows[0].lineItemDescription,
+        quantity: line?.quantity ?? null,
+        unit: line?.unitOfMeasure ?? null,
+        sortOrder: line?.sortOrder ?? 0,
+        rows: sorted.map((r) => ({
+          ...r,
+          isBest: r.normalizedUnitPriceInBaseCurrency === best,
+          lineTotal: line ? r.normalizedUnitPriceInBaseCurrency * line.quantity : null,
+        })),
+      };
+    })
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+});
+
+/** Gönderilmiş teklif özetleri: normalize toplam (Σ birim × miktar), fiyatlı kalem sayısı, en uzun termin; toplama göre sıralı. */
+const quoteSummaries = computed(() => {
+  const lines = process.value?.lineItems ?? [];
+  const qty = new Map(lines.map((l) => [l.id, l.quantity]));
+  const list = quotes.value
+    .filter((q) => q.status === "Submitted")
+    .map((q) => {
+      const priced = q.lineItems.filter((l) => qty.has(l.rfqLineItemId));
+      const leads = priced.map((l) => l.leadTimeDays).filter((d): d is number => d !== null && d !== undefined);
+      return {
+        quote: q,
+        total: priced.reduce((sum, l) => sum + l.normalizedUnitPriceInBaseCurrency * (qty.get(l.rfqLineItemId) ?? 0), 0),
+        pricedLines: priced.length,
+        maxLead: leads.length ? Math.max(...leads) : null,
+      };
+    })
+    .sort((a, b) => a.total - b.total);
+  // "En düşük toplam" yalnızca tüm kalemleri fiyatlayan teklifler arasında anlamlıdır.
+  const complete = list.filter((s) => s.pricedLines === lines.length);
+  const lowestId = complete.length > 1 ? complete[0].quote.id : null;
+  return list.map((s) => ({ ...s, isLowest: s.quote.id === lowestId }));
 });
 
 async function load() {
@@ -236,11 +286,18 @@ async function close() {
   });
 }
 
+async function loadBaseCurrency() {
+  try {
+    baseCurrencyCode.value = (await api.get<CurrencyDto[]>("/api/currencies")).find((c) => c.isBaseCurrency)?.code ?? null;
+  } catch {
+    // Kod yalnızca başlık bilgisidir; alınamazsa tutarlar kodsuz gösterilir.
+  }
+}
+
 onMounted(async () => {
   await load();
   if (!process.value) return;
-  await loadMatrix();
-  await loadQuotes();
+  await Promise.all([loadMatrix(), loadQuotes(), loadBaseCurrency()]);
 });
 </script>
 
@@ -249,23 +306,23 @@ onMounted(async () => {
   <LoadingSpinner v-else-if="loading" />
 
   <div v-else-if="process" class="space-y-6">
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-xl font-bold text-slate-800">{{ process.title }}</h1>
-        <p class="text-sm text-slate-500">
-          {{ $t("rfq.detail.statusLabel") }}: {{ $t(`enums.processStatus.${process.status}`) }} · {{ $t("rfq.detail.currencyLabel") }}: {{ process.currencyCode }}
-        </p>
-        <ProcessWorkspace
-          kind="rfq"
-          :process-id="process.id"
-          :owner-company-id="process.ownerCompanyId"
-          :workspace-id="process.workspaceId"
-          :workspace-name="process.workspaceName"
-          :status="process.status"
-          @changed="load"
-        />
-      </div>
-      <div class="flex gap-2">
+    <ProcessHeader
+      :title="process.title"
+      :status="process.status"
+      back-to="/admin/rfq"
+      :back-label="$t('nav.rfq')"
+      :meta="[process.ownerCompanyName, `${$t('rfq.detail.currencyLabel')}: ${process.currencyCode}`, `${$t('rfq.quote.dueDate')}: ${formatDate(process.dueDate)}`]"
+    >
+      <ProcessWorkspace
+        kind="rfq"
+        :process-id="process.id"
+        :owner-company-id="process.ownerCompanyId"
+        :workspace-id="process.workspaceId"
+        :workspace-name="process.workspaceName"
+        :status="process.status"
+        @changed="load"
+      />
+      <template #actions>
         <AppButton v-if="process.status === 'Sent'" @click="publish">
           {{ $t("rfq.detail.publishStep4") }}
         </AppButton>
@@ -275,8 +332,8 @@ onMounted(async () => {
         <AppButton v-if="cancellable" variant="danger-outline" data-testid="cancel-process" @click="showCancel = true; cancelReason = ''">
           {{ $t("rfx.edit.cancel") }}
         </AppButton>
-      </div>
-    </div>
+      </template>
+    </ProcessHeader>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <AppCard>
@@ -292,7 +349,7 @@ onMounted(async () => {
         </div>
         <ul v-if="process.lineItems.length > 0" class="mt-3 space-y-1 text-sm text-slate-600">
           <li v-for="li in process.lineItems" :key="li.id" class="flex items-center justify-between gap-2">
-            <span>{{ li.description }} — {{ li.quantity }} {{ unitLabel(li.unitOfMeasure) }}</span>
+            <span>{{ li.description }} — {{ formatNumber(li.quantity) }} {{ unitLabel(li.unitOfMeasure) }}</span>
             <button
               v-if="['Draft', 'Sent'].includes(process.status)"
               type="button"
@@ -357,23 +414,32 @@ onMounted(async () => {
           <ArrowDownTrayIcon class="h-4 w-4" />{{ $t("auctions.export.button") }}
         </button>
       </h3>
-      <div v-for="(rows, description) in groupedMatrix" :key="description" class="mt-4 overflow-x-auto">
-        <div class="text-xs font-semibold uppercase text-slate-500">{{ description }}</div>
-        <table class="mt-1 w-full text-sm">
+      <p v-if="matrix.length && baseCurrencyCode" class="mt-1 text-xs text-slate-400">{{ $t("rfq.detail.normalizedIn", { code: baseCurrencyCode }) }}</p>
+      <div v-for="g in groupedMatrix" :key="g.lineId" class="mt-4 overflow-x-auto" data-testid="matrix-line">
+        <div class="text-xs font-semibold uppercase text-slate-500">
+          {{ g.description }}
+          <span v-if="g.quantity !== null" class="font-normal normal-case text-slate-400">· {{ formatNumber(g.quantity) }} {{ unitLabel(g.unit!) }}</span>
+        </div>
+        <table class="mt-1 w-full min-w-[560px] text-sm">
           <thead>
             <tr class="border-b border-slate-100 text-left text-xs uppercase text-slate-400">
               <th class="pb-1">{{ $t("rfq.detail.matrixTable.company") }}</th>
-              <th class="pb-1">{{ $t("rfq.detail.matrixTable.unitPrice") }}</th>
-              <th class="pb-1">{{ $t("rfq.detail.matrixTable.normalized") }}</th>
-              <th class="pb-1">{{ $t("rfq.detail.matrixTable.leadTime") }}</th>
+              <th class="pb-1 text-right">{{ $t("rfq.detail.matrixTable.unitPrice") }}</th>
+              <th class="pb-1 text-right">{{ $t("rfq.detail.matrixTable.normalized") }}</th>
+              <th class="pb-1 text-right">{{ $t("rfq.detail.matrixTable.lineTotal") }}</th>
+              <th class="pb-1 text-right">{{ $t("rfq.detail.matrixTable.leadTime") }}</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in rows.sort((a, b) => a.normalizedUnitPriceInBaseCurrency - b.normalizedUnitPriceInBaseCurrency)" :key="row.companyId" class="border-b border-slate-50">
-              <td class="py-1">{{ row.companyName }}</td>
-              <td class="py-1 font-mono">{{ row.unitPrice }} {{ row.currencyCode }}</td>
-              <td class="py-1 font-mono font-semibold text-emerald-700">{{ row.normalizedUnitPriceInBaseCurrency.toFixed(2) }}</td>
-              <td class="py-1">{{ row.leadTimeDays ?? "-" }}</td>
+            <tr v-for="row in g.rows" :key="row.companyId" class="border-b border-slate-50" :class="{ 'bg-emerald-50/60': row.isBest }">
+              <td class="py-1">
+                {{ row.companyName }}
+                <AppBadge v-if="row.isBest && g.rows.length > 1" tone="emerald" class="ml-1" data-testid="matrix-best">{{ $t("rfq.detail.matrixTable.best") }}</AppBadge>
+              </td>
+              <td class="py-1 text-right font-mono">{{ formatMoney(row.unitPrice, row.currencyCode) }}</td>
+              <td class="py-1 text-right font-mono" :class="row.isBest ? 'font-semibold text-emerald-700' : 'text-slate-600'">{{ formatMoney(row.normalizedUnitPriceInBaseCurrency) }}</td>
+              <td class="py-1 text-right font-mono text-slate-700">{{ formatMoney(row.lineTotal) }}</td>
+              <td class="py-1 text-right">{{ row.leadTimeDays ?? "—" }}</td>
             </tr>
           </tbody>
         </table>
@@ -449,7 +515,7 @@ onMounted(async () => {
                 <td class="py-1.5 pr-3 text-right font-mono text-indigo-700">{{ s.totalScore.toFixed(1) }}</td>
                 <td class="py-1.5 pr-3 text-right font-mono text-slate-600">{{ s.priceScore.toFixed(1) }}</td>
                 <td class="py-1.5 pr-3 text-right font-mono text-slate-600">{{ s.leadTimeScore.toFixed(1) }}</td>
-                <td class="py-1.5 text-right font-mono text-slate-500">{{ s.totalNormalizedCost.toFixed(2) }}</td>
+                <td class="py-1.5 text-right font-mono text-slate-500">{{ formatMoney(s.totalNormalizedCost) }}</td>
               </tr>
             </tbody>
           </table>
@@ -470,14 +536,29 @@ onMounted(async () => {
       <p v-if="process.status === 'Awarded'" class="mt-1 text-xs text-emerald-700">
         {{ $t("rfq.detail.winner") }}: {{ quotes.find((q) => q.id === process!.winningQuoteId)?.companyName ?? "-" }}
       </p>
-      <ul v-if="quotes.filter((q) => q.status === 'Submitted').length > 0" class="mt-3 space-y-2 text-sm">
+      <ul v-if="quoteSummaries.length > 0" class="mt-3 space-y-2 text-sm">
         <li
-          v-for="q in quotes.filter((q) => q.status === 'Submitted')"
+          v-for="{ quote: q, total, pricedLines, maxLead, isLowest } in quoteSummaries"
           :key="q.id"
-          class="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
+          class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-100 px-3 py-2"
           :class="{ 'border-emerald-300 bg-emerald-50': q.id === process.winningQuoteId }"
+          data-testid="quote-summary"
         >
-          <span>{{ q.companyName }}</span>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-medium text-slate-700">{{ q.companyName }}</span>
+              <AppBadge v-if="isLowest" tone="emerald">{{ $t("rfq.detail.lowestTotal") }}</AppBadge>
+            </div>
+            <div class="mt-0.5 flex flex-wrap gap-x-3 text-xs text-slate-500">
+              <span>{{ $t("rfq.detail.pricedLines", { n: pricedLines, total: process.lineItems.length }) }}</span>
+              <span v-if="maxLead !== null">{{ $t("rfq.detail.maxLeadTime", { n: maxLead }) }}</span>
+              <span v-if="q.submittedAt">{{ $t("rfq.detail.submittedAt", { date: formatDateTime(q.submittedAt) }) }}</span>
+            </div>
+          </div>
+          <div class="ml-auto text-right">
+            <div class="text-[11px] text-slate-400">{{ $t("rfq.detail.quoteTotal") }}</div>
+            <div class="font-mono font-semibold text-slate-800" data-testid="quote-total">{{ formatMoney(total, baseCurrencyCode) }}</div>
+          </div>
           <button
             v-if="process.status === 'Closed' && can('rfq.award')"
             class="rounded bg-indigo-600 px-2 py-1 text-xs font-semibold text-white"

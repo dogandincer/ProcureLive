@@ -31,8 +31,8 @@ public interface IIdentityService
 
     Task<bool> SetRolesAsync(Guid userId, IReadOnlyCollection<string> roles, CancellationToken cancellationToken);
 
-    /// <summary>Kullanıcının bildirimleri e-postayla da alıp almayacağı.</summary>
-    Task<bool> SetEmailNotificationsAsync(Guid userId, bool enabled, CancellationToken cancellationToken);
+    /// <summary>Kişisel tercihler: bildirimleri e-postayla da alma ve arayüz dili; null alan değişmez.</summary>
+    Task<bool> SetPreferencesAsync(Guid userId, bool? emailNotificationsEnabled, string? language, CancellationToken cancellationToken);
 
     Task<bool> SetActiveAsync(Guid userId, bool isActive, CancellationToken cancellationToken);
 

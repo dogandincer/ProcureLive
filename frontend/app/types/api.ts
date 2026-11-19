@@ -26,6 +26,8 @@ export interface CurrentUser {
   roles: string[];
   companyId: string | null;
   emailNotificationsEnabled?: boolean;
+  /** Sunucuda saklanan arayüz dili ("tr" / "en"); bildirim e-postaları bu dilde gider. */
+  language?: string;
 }
 
 export interface WorkspaceDto {

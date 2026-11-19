@@ -13,7 +13,10 @@ docker exec procurelive-postgres psql -q -U procurelive_user -d postgres -c "DRO
 docker exec procurelive-postgres pg_restore -U procurelive_user -d procurelive --no-owner /tmp/seeded.dump
 docker exec procurelive-redis redis-cli FLUSHALL > /dev/null
 cd "$QA/../backend"
-dotnet ef database update --no-build --project src/Infrastructure --startup-project src/WebApi 2>&1 | grep -E "Applying|error" || true
+# dotnet-ef genel araç klasöründe; etkileşimsiz kabukta PATH'te olmayabilir. Araç bulunamazsa göç atlanmasın, açıkça söylensin.
+export PATH="$PATH:$HOME/.dotnet/tools"
+command -v dotnet-ef > /dev/null || echo "UYARI: dotnet-ef bulunamadı, bekleyen migration'lar uygulanmadı"
+dotnet ef database update --no-build --project src/Infrastructure --startup-project src/WebApi 2>&1 | grep -E "Applying|error|Could not" || true
 # Tarihleri bugüne kaydır (anlık görüntü eskidikçe ihaleler API açılırken kendiliğinden bitmesin).
 docker exec -i procurelive-postgres psql -q -U procurelive_user -d procurelive < "$QA/scripts/shift_dates.sql" 2>&1 | sed 's/^.*NOTICE: */  /'
 echo "restored: $(docker exec procurelive-postgres psql -tA -U procurelive_user -d procurelive -c 'select count(*) from "PurchaseOrders";') sipariş"

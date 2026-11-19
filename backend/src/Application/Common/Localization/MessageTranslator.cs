@@ -180,6 +180,7 @@ public static class MessageTranslator
         ["Bu durum değişikliği için gerekçe zorunludur."] = "A reason is required for this status change.",
         ["Gerekçe en fazla 500 karakter olabilir."] = "The reason can be at most 500 characters.",
         ["Bitiş zamanı en az 1 dakika ileride olmalıdır."] = "The end time must be at least 1 minute in the future.",
+        ["Dil 'tr' ya da 'en' olmalıdır."] = "Language must be 'tr' or 'en'.",
         ["İhaleyi yeniden açmak için yeni bir bitiş zamanı girin."] = "Enter a new end time to reopen the auction.",
         ["Kazanan seçilmiş kalemleri olan ihale yeniden açılamaz."] = "An auction with awarded items cannot be reopened.",
         ["Kazanan seçilmiş kalemleri olan ihale iptal edilemez."] = "An auction with awarded items cannot be cancelled.",

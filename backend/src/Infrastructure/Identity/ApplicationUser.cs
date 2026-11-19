@@ -19,4 +19,7 @@ public class ApplicationUser : IdentityUser<Guid>
 
     /// <summary>Kullanıcı bildirimlerini e-postayla da almak istiyor mu (Profil ekranından kendisi değiştirir).</summary>
     public bool EmailNotificationsEnabled { get; set; } = true;
+
+    /// <summary>Arayüz dili ("tr" / "en"); kullanıcı dil değiştirdikçe güncellenir. Bildirim e-postaları bu dilde gönderilir.</summary>
+    public string PreferredLanguage { get; set; } = "tr";
 }

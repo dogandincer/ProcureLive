@@ -2164,7 +2164,7 @@
     "passwordError": "Şifre değiştirilemedi.",
     "notifications": "Bildirim tercihleri",
     "emailNotifications": "Bildirimleri e-postayla da al",
-    "emailNotificationsHint": "Kapatırsanız bildirimler yalnızca uygulamadaki zil simgesinde görünür.",
+    "emailNotificationsHint": "Kapatırsanız bildirimler yalnızca uygulamadaki zil simgesinde görünür. E-postalar seçtiğiniz arayüz dilinde gönderilir.",
     "preferencesSaved": "Tercihiniz kaydedildi.",
     "preferencesError": "Tercih kaydedilemedi."
   },

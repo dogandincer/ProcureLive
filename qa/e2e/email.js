@@ -224,6 +224,45 @@ const GOOD = { enabled: true, host: "localhost", port: 1025, security: "None", u
     await t.shot(e, "ingilizce");
   });
 
+  await scenario("M-07", "Dil tercihi: İngilizce kullanan tedarikçiye e-posta ve anlık bildirim İngilizce gelir", async (t) => {
+    await mail.clear();
+    const lang = () => sql(`select "PreferredLanguage" from "AspNetUsers" where "Email" = 'teklif@egebilisim.example'`);
+    sql(`update "AspNetUsers" set "EmailNotificationsEnabled" = true, "PreferredLanguage" = 'tr' where "Email" like '%@egebilisim.example'`);
+    const s = await t.login("teklif@egebilisim.example");
+    await t.settle(s);
+    const pref = s.waitForResponse((r) => r.url().endsWith("/api/auth/me/preferences") && r.request().method() === "PUT");
+    await s.getByRole("button", { name: "English", exact: true }).first().click();
+    t.step("Dil değişince tercih sunucuya yazılır (204)", (await pref).status() === 204);
+    t.step("Veritabanında dil 'en'", lang() === "en", lang());
+
+    const rfqId = sql(`select p."Id" from "RfqInvitations" i join "RfqProcesses" p on p."Id"=i."RfqProcessId" join "Companies" c on c."Id"=i."CompanyId" where c."Name" like 'Ege Bilişim%' and p."Status" = 1 limit 1`);
+    const ege = await token("teklif@egebilisim.example", "Test1234!");
+    const ask = await api("POST", `/api/processes/rfq/${rfqId}/questions`, ege, { question: "Teslim adresi neresi? (dil testi)" });
+    const answer = await api("PUT", `/api/process-questions/${String(ask.data).replace(/"/g, "")}/answer`, adminToken, { answer: "Ataşehir deposu.", isPublic: false });
+    t.step("Soru soruldu ve cevaplandı", (ask.status === 200 || ask.status === 201) && answer.status === 204, `${ask.status}/${answer.status}`);
+
+    const got = await mail.waitFor((m) => to(m).includes("teklif@egebilisim.example"));
+    t.step("İngilizce konu", got.length === 1 && got[0].Subject === "Your Question Was Answered", got.map((m) => m.Subject).join(" | "));
+    const detail = got.length ? await (await fetch(`${MAILPIT}/message/${got[0].ID}`)).json() : { HTML: "", Text: "" };
+    t.step("İngilizce gövde ve düğme", /Your question about .* was answered/.test(detail.Text) && /Open record: http/.test(detail.Text), detail.Text.slice(0, 160));
+    t.step("Şablon metinleri İngilizce", /lang="en"/.test(detail.HTML) && /This e-mail was sent automatically/.test(detail.HTML));
+
+    // Sayfa açıkken gelen anlık bildirim zil panelinde İngilizce görünür (yeniden yüklemeden).
+    await s.getByRole("button", { name: "Notifications" }).first().click();
+    const panel = s.getByTestId("notification-panel");
+    await panel.waitFor();
+    const ok = await panel.getByText("Your Question Was Answered").first().waitFor({ timeout: 10000 }).then(() => true, () => false);
+    t.step("Anlık bildirim İngilizce listelenir", ok, (await panel.innerText()).slice(0, 160));
+    await t.shot(s, "ingilizce-bildirim");
+
+    // Geri Türkçe: tercih tekrar 'tr' olur (sonraki koşular için).
+    await s.keyboard.press("Escape");
+    const back = s.waitForResponse((r) => r.url().endsWith("/api/auth/me/preferences") && r.request().method() === "PUT");
+    await s.getByRole("button", { name: "Türkçe", exact: true }).first().click();
+    await back;
+    t.step("Türkçeye dönünce tercih 'tr'", lang() === "tr", lang());
+  });
+
   await run.stop();
   const ok = run.results.filter((r) => r.ok).length;
   console.log(`\n${ok}/${run.results.length} senaryo geçti; bulgu: ${run.results.reduce((n, r) => n + r.findings.length, 0)}`);

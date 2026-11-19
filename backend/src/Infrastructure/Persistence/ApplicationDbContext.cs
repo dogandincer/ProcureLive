@@ -158,6 +158,8 @@ public class ApplicationDbContext
 
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
+        builder.Entity<ApplicationUser>().Property(u => u.PreferredLanguage).HasMaxLength(5).HasDefaultValue("tr");
+
         builder.Entity<Company>().HasQueryFilter(c => !c.IsDeleted);
         builder.Entity<Product>().HasQueryFilter(p => !p.IsDeleted);
 

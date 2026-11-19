@@ -3,7 +3,8 @@ using ProcureLive.Domain.Enums;
 namespace ProcureLive.Application.Common.Interfaces;
 
 /// <summary>Giden e-posta. <paramref name="ActionUrl"/> verilirse şablonda "kaydı aç" düğmesi olarak gösterilir.</summary>
-public sealed record EmailMessage(string To, string Subject, string Body, string? ActionUrl = null, string? ActionLabel = null);
+/// <param name="Language">Şablonun sabit metinlerinin (alt bilgi, yedek bağlantı) dili: "tr" ya da "en".</param>
+public sealed record EmailMessage(string To, string Subject, string Body, string? ActionUrl = null, string? ActionLabel = null, string Language = "tr");
 
 /// <summary>
 /// Uygulamanın e-posta gönderme noktası. Admin'in kaydettiği SMTP ayarı açıksa gerçekten gönderir, hata olursa istisna fırlatır;

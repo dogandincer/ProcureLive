@@ -23,6 +23,9 @@ public class NotificationChannelLog : BaseEntity
     /// </summary>
     public string? Recipient { get; set; }
 
+    /// <summary>E-posta alıcısının dili ("tr" / "en"); alıcı çözülürken kullanıcı tercihinden yazılır, hesapsız alıcıda null (Türkçe).</summary>
+    public string? Language { get; set; }
+
     public int AttemptCount { get; set; }
 
     /// <summary>Geçici hatadan sonra yeniden denenecek en erken an; null ise hemen.</summary>

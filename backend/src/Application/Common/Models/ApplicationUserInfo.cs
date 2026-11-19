@@ -11,7 +11,8 @@ public sealed record ApplicationUserInfo(
     DateTime? LastLoginAt,
     IReadOnlyCollection<string> Roles,
     DateTime? LockedOutAt = null,
-    bool EmailNotificationsEnabled = true);
+    bool EmailNotificationsEnabled = true,
+    string Language = "tr");
 
 public sealed record IdentityOperationResult(bool Succeeded, Guid? UserId, IReadOnlyCollection<string> Errors)
 {

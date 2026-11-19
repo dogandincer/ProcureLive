@@ -1,0 +1,12 @@
+{
+  "tr": {
+    "profile": {
+      "emailNotificationsHint": "Kapatırsanız bildirimler yalnızca uygulamadaki zil simgesinde görünür. E-postalar seçtiğiniz arayüz dilinde gönderilir."
+    }
+  },
+  "en": {
+    "profile": {
+      "emailNotificationsHint": "If you turn this off, notifications only appear under the bell icon in the app. E-mails are sent in the interface language you choose."
+    }
+  }
+}

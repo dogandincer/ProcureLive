@@ -18,7 +18,7 @@ public static partial class EmailTemplate
         var text = new StringBuilder(message.Body.Trim());
         if (!string.IsNullOrWhiteSpace(message.ActionUrl))
         {
-            text.Append("\n\n").Append(message.ActionLabel ?? "Aç").Append(": ").Append(message.ActionUrl);
+            text.Append("\n\n").Append(message.ActionLabel ?? (message.Language == "en" ? "Open" : "Aç")).Append(": ").Append(message.ActionUrl);
         }
 
         return text.ToString();
@@ -26,7 +26,12 @@ public static partial class EmailTemplate
 
     public static string RenderHtml(EmailMessage message, string brandName)
     {
+        bool en = message.Language == "en";
         string brand = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(brandName) ? "e-İhale" : brandName);
+        string fallbackLabel = en ? "If the button does not work:" : "Düğme çalışmazsa:";
+        string footer = en
+            ? $"This e-mail was sent automatically by {brand}. You can turn off notification e-mails on your Profile page."
+            : $"Bu e-posta {brand} tarafından otomatik gönderilmiştir. Bildirim e-postalarını Profil ekranından kapatabilirsiniz.";
         string title = WebUtility.HtmlEncode(message.Subject);
 
         string paragraphs = string.Join("", ParagraphSplit().Split(message.Body.Replace("\r\n", "\n").Trim())
@@ -36,13 +41,13 @@ public static partial class EmailTemplate
         string button = string.IsNullOrWhiteSpace(message.ActionUrl)
             ? ""
             : $"""
-               <p style="margin:24px 0 8px;"><a href="{WebUtility.HtmlEncode(message.ActionUrl)}" style="display:inline-block;background:{Accent};color:#ffffff;text-decoration:none;font-weight:600;padding:10px 20px;border-radius:6px;">{WebUtility.HtmlEncode(message.ActionLabel ?? "Aç")}</a></p>
-               <p style="margin:0;font-size:12px;color:#64748b;">Düğme çalışmazsa: <a href="{WebUtility.HtmlEncode(message.ActionUrl)}" style="color:{Accent};word-break:break-all;">{WebUtility.HtmlEncode(message.ActionUrl)}</a></p>
+               <p style="margin:24px 0 8px;"><a href="{WebUtility.HtmlEncode(message.ActionUrl)}" style="display:inline-block;background:{Accent};color:#ffffff;text-decoration:none;font-weight:600;padding:10px 20px;border-radius:6px;">{WebUtility.HtmlEncode(message.ActionLabel ?? (en ? "Open" : "Aç"))}</a></p>
+               <p style="margin:0;font-size:12px;color:#64748b;">{fallbackLabel} <a href="{WebUtility.HtmlEncode(message.ActionUrl)}" style="color:{Accent};word-break:break-all;">{WebUtility.HtmlEncode(message.ActionUrl)}</a></p>
                """;
 
         return $"""
             <!doctype html>
-            <html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title></head>
+            <html lang="{(en ? "en" : "tr")}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title></head>
             <body style="margin:0;padding:0;background:#f1f5f9;font-family:Segoe UI,Helvetica,Arial,sans-serif;color:#1e293b;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 12px;">
                 <tr><td align="center">
@@ -53,7 +58,7 @@ public static partial class EmailTemplate
                       {paragraphs}
                       {button}
                     </td></tr>
-                    <tr><td style="padding:14px 24px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;">Bu e-posta {brand} tarafından otomatik gönderilmiştir. Bildirim e-postalarını Profil ekranından kapatabilirsiniz.</td></tr>
+                    <tr><td style="padding:14px 24px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;">{footer}</td></tr>
                   </table>
                 </td></tr>
               </table>

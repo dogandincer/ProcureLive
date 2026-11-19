@@ -213,12 +213,13 @@ public sealed class IdentityService : IIdentityService
         _ => e.Description,
     }).Distinct().ToArray();
 
-    public async Task<bool> SetEmailNotificationsAsync(Guid userId, bool enabled, CancellationToken cancellationToken)
+    public async Task<bool> SetPreferencesAsync(Guid userId, bool? emailNotificationsEnabled, string? language, CancellationToken cancellationToken)
     {
         ApplicationUser? user = await _userManager.FindByIdAsync(userId.ToString());
         if (user is null) return false;
 
-        user.EmailNotificationsEnabled = enabled;
+        if (emailNotificationsEnabled is bool enabled) user.EmailNotificationsEnabled = enabled;
+        if (language is not null) user.PreferredLanguage = language;
         return (await _userManager.UpdateAsync(user)).Succeeded;
     }
 
@@ -311,6 +312,7 @@ public sealed class IdentityService : IIdentityService
             user.LastLoginAt,
             roles.ToArray(),
             user.LockedOutAt,
-            user.EmailNotificationsEnabled);
+            user.EmailNotificationsEnabled,
+            user.PreferredLanguage);
     }
 }

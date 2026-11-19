@@ -100,12 +100,12 @@ public sealed class AuthController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>Oturumdaki kullanıcının kişisel tercihleri (bildirimleri e-postayla da alma).</summary>
+    /// <summary>Oturumdaki kullanıcının kişisel tercihleri (bildirimleri e-postayla da alma, arayüz dili); gönderilmeyen alan değişmez.</summary>
     [HttpPut("me/preferences")]
     [Authorize]
     public async Task<IActionResult> UpdatePreferences(UpdateMyPreferencesRequest request, CancellationToken cancellationToken)
     {
-        await _sender.Send(new UpdateMyPreferencesCommand(request.EmailNotificationsEnabled), cancellationToken);
+        await _sender.Send(new UpdateMyPreferencesCommand(request.EmailNotificationsEnabled, request.Language), cancellationToken);
         return NoContent();
     }
 

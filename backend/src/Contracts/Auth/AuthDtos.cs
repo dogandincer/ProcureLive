@@ -44,9 +44,11 @@ public sealed record CurrentUserDto(
     string LastName,
     IReadOnlyCollection<string> Roles,
     Guid? CompanyId,
-    bool EmailNotificationsEnabled = true);
+    bool EmailNotificationsEnabled = true,
+    string Language = "tr");
 
-public sealed record UpdateMyPreferencesRequest(bool EmailNotificationsEnabled);
+/// <summary>Gönderilmeyen (null) alan değişmez.</summary>
+public sealed record UpdateMyPreferencesRequest(bool? EmailNotificationsEnabled = null, string? Language = null);
 
 public sealed record ForgotPasswordRequest(string Email);
 

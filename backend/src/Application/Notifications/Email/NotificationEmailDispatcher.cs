@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ProcureLive.Application.Common.Interfaces;
+using ProcureLive.Application.Common.Localization;
 using ProcureLive.Application.Common.Models;
 using ProcureLive.Contracts.Common;
 using ProcureLive.Domain.Entities.Companies;
@@ -80,22 +81,24 @@ public sealed class NotificationEmailDispatcher
                 continue;
             }
 
-            IReadOnlyList<string> recipients = await ResolveRecipientsAsync(log.Notification, cancellationToken);
+            IReadOnlyList<EmailRecipient> recipients = await ResolveRecipientsAsync(log.Notification, cancellationToken);
             if (recipients.Count == 0)
             {
                 Skip(log, "E-posta almak isteyen alıcı bulunamadı.");
                 continue;
             }
 
-            log.Recipient = recipients[0];
-            foreach (string recipient in recipients.Skip(1))
+            log.Recipient = recipients[0].Email;
+            log.Language = recipients[0].Language;
+            foreach (EmailRecipient recipient in recipients.Skip(1))
             {
                 _context.NotificationChannelLogs.Add(new NotificationChannelLog
                 {
                     NotificationId = log.NotificationId,
                     Channel = NotificationChannel.Email,
                     Status = NotificationDeliveryStatus.Pending,
-                    Recipient = recipient
+                    Recipient = recipient.Email,
+                    Language = recipient.Language
                 });
             }
         }
@@ -129,10 +132,13 @@ public sealed class NotificationEmailDispatcher
             Notification n = log.Notification;
             bool internalRecipient = n.CompanyId is null;
             string? path = NotificationLinks.For(n.Type, n.RelatedEntityType, n.RelatedEntityId, internalRecipient);
+            // Bildirim metni Türkçe saklanır; alıcının dil tercihine göre gönderim anında çevrilir.
+            string language = log.Language ?? "tr";
             var message = new EmailMessage(
-                log.Recipient!, n.Title, n.Body,
+                log.Recipient!, MessageTranslator.Translate(n.Title, language), MessageTranslator.Translate(n.Body, language),
                 path is null ? null : _urls.FrontendBaseUrl + path,
-                path is null ? null : "Kaydı aç");
+                path is null ? null : language == "en" ? "Open record" : "Kaydı aç",
+                language);
 
             log.AttemptCount++;
             try
@@ -167,21 +173,25 @@ public sealed class NotificationEmailDispatcher
         return sent;
     }
 
-    private async Task<IReadOnlyList<string>> ResolveRecipientsAsync(Notification notification, CancellationToken cancellationToken)
+    private sealed record EmailRecipient(string Email, string? Language);
+
+    private async Task<IReadOnlyList<EmailRecipient>> ResolveRecipientsAsync(Notification notification, CancellationToken cancellationToken)
     {
-        var emails = new List<string>();
+        var emails = new List<EmailRecipient>();
 
         if (notification.UserId is Guid userId)
         {
             ApplicationUserInfo? user = await _identity.FindByIdAsync(userId, cancellationToken);
-            if (user is { IsActive: true, EmailNotificationsEnabled: true }) emails.Add(user.Email);
+            if (user is { IsActive: true, EmailNotificationsEnabled: true }) emails.Add(new EmailRecipient(user.Email, user.Language));
         }
         else if (notification.CompanyId is Guid companyId)
         {
             PagedResult<ApplicationUserInfo> users = await _identity.ListUsersAsync(null, companyId, 1, 100, null, cancellationToken);
             if (users.Items.Count > 0)
             {
-                emails.AddRange(users.Items.Where(u => u is { IsActive: true, EmailNotificationsEnabled: true }).Select(u => u.Email));
+                emails.AddRange(users.Items
+                    .Where(u => u is { IsActive: true, EmailNotificationsEnabled: true })
+                    .Select(u => new EmailRecipient(u.Email, u.Language)));
             }
             else
             {
@@ -190,14 +200,14 @@ public sealed class NotificationEmailDispatcher
                     .Where(c => c.CompanyId == companyId && c.Email != "")
                     .OrderByDescending(c => c.IsPrimary)
                     .FirstOrDefaultAsync(cancellationToken);
-                if (contact is not null) emails.Add(contact.Email);
+                if (contact is not null) emails.Add(new EmailRecipient(contact.Email, null));
             }
         }
 
         return emails
-            .Where(e => !string.IsNullOrWhiteSpace(e))
-            .Select(e => e.Trim())
-            .DistinctBy(e => e.ToLowerInvariant())
+            .Where(e => !string.IsNullOrWhiteSpace(e.Email))
+            .Select(e => e with { Email = e.Email.Trim() })
+            .DistinctBy(e => e.Email.ToLowerInvariant())
             .ToList();
     }
 

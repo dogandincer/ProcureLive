@@ -338,6 +338,30 @@ watch(unreadOnly, loadNotifications);
 // language switch needs a fresh fetch to re-render already-loaded notifications in the new language.
 watch(locale, loadNotifications);
 
+// Dil tercihi sunucuda da saklanır: bildirim e-postaları alıcının bu dilinde gönderilir. Aynı değer oturumda bir kez yazılır.
+const LANG_SYNC_KEY = "pl_lang_synced";
+async function syncLanguagePreference() {
+  const userId = currentUser.value?.userId;
+  if (!userId) return;
+  const marker = `${userId}:${locale.value}`;
+  try {
+    if (sessionStorage.getItem(LANG_SYNC_KEY) === marker) return;
+  } catch {
+    // depolama yoksa her seferinde yazılır (zararsız)
+  }
+  try {
+    await api.put("/api/auth/me/preferences", { language: locale.value });
+    try {
+      sessionStorage.setItem(LANG_SYNC_KEY, marker);
+    } catch {
+      // yok say
+    }
+  } catch {
+    // tercih kaydı başarısız olsa da arayüz çalışmaya devam eder
+  }
+}
+watch(locale, syncLanguagePreference);
+
 onMounted(async () => {
   try {
     collapsed.value = localStorage.getItem(SIDEBAR_KEY) === "1";
@@ -347,10 +371,16 @@ onMounted(async () => {
   if (isInternalRole()) loadContext();
   if (isSupplierRole()) refreshSubscription();
   await loadNotifications();
+  syncLanguagePreference();
 
   await connect((notification) => {
-    notifications.value = [notification, ...notifications.value].slice(0, 10);
-    unreadCount.value += 1;
+    // Anlık bildirim Türkçe (saklandığı dilde) gelir; başka dilde listeyi sunucudan çevrilmiş olarak yeniden al.
+    if (locale.value !== "tr") {
+      loadNotifications();
+    } else {
+      notifications.value = [notification, ...notifications.value].slice(0, 10);
+      unreadCount.value += 1;
+    }
     // Açık sayfalar (ihale detayı, talep paneli) ilgili kayıt için gelen bildirimle kendini yenileyebilir.
     lastNotification.value = notification;
   });

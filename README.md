@@ -85,9 +85,9 @@ Uygulama ilk açılışta `InitialAdminSeeder` ile idempotent şekilde bir Admin
 
 ## ERP (UyumERP) Entegrasyonu — Premium
 
-İsteğe bağlıdır; kapalıyken uygulama ERP'siz çalışır. İki anahtarı vardır:
+İsteğe bağlıdır; kapalıyken uygulama ERP'siz çalışır. **Şu an askıdadır:** kod yerinde durur ama anahtar geliştirmede de kapalıdır, menüde ve ekranlarda ERP görünmez. İki anahtarı vardır:
 
-1. **Lisans** (sunucu yapılandırması): `Features:ErpIntegration` (`appsettings.json`'da `false`, geliştirmede `true`). Kapalıysa ERP uçları `403 PremiumRequired` döner, menüde yalnızca tanıtım görünür.
+1. **Lisans** (sunucu yapılandırması): `Features:ErpIntegration` (`appsettings.json` ve `appsettings.Development.json`'da `false`). Kapalıysa ERP uçları `403 PremiumRequired` döner, hiçbir ERP işlemi yapılmaz; menüde ERP bağlantısı, ekranlarda aktarım düğmeleri ve ERP kartları görünmez (`/admin/erp` adresi yalnızca tanıtımı gösterir). Yeniden açmak için `true` yapın ya da API'yi `Features__ErpIntegration=true` ortam değişkeniyle başlatın.
 2. **Mod** (Admin → Sistem → ERP Entegrasyonu): *Kapalı* / *Simülasyon* (ERP'den okunur, yazılacak XML'ler kayda geçer ama gönderilmez) / *Canlı*.
 
 Ne yapar (UyumGetWebService / UyumSaveWebService SOAP servisleri):

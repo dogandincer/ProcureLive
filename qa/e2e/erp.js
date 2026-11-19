@@ -1,5 +1,5 @@
 // Premium ERP (UyumERP) entegrasyonu senaryoları — sahte ERP'ye karşı (qa/erp-fake/fake_erp.py, port 8099).
-// R-01 premium kapalıyken çalıştırılır (API Features__ErpIntegration=false), diğerleri açıkken.
+// R-01 premium kapalıyken (varsayılan), diğerleri API Features__ErpIntegration=true ortam değişkeniyle başlatılmışken çalıştırılır.
 // Kullanım: node e2e/erp.js <çıktı> [R-02,R-03,...]
 const { createRun, api, token, WEB } = require("./lib");
 const { execFileSync } = require("child_process");
@@ -37,11 +37,11 @@ async function until(fn, ms = 40000, step = 2000) {
       and exists (select 1 from "AuctionItems" i where i."AuctionId" = a."Id" and i."ProductId" is not null) order by a."Title" limit 1`);
   if (!liveAuction) throw new Error("Ege'nin katıldığı canlı ihale bulunamadı");
 
-  await scenario("R-01", "Premium kapalı: ERP yalnızca tanıtım olarak görünür, uygulama ERP'siz çalışır", async (t) => {
+  await scenario("R-01", "Premium kapalı: ERP menüde görünmez, uygulama ERP'siz çalışır", async (t) => {
     const p = await t.login("admin@procurelive.local", { password: "ChangeMe123!" });
-    const link = p.getByRole("link", { name: /ERP Entegrasyonu/ });
-    t.step("Menüde ERP bağlantısı Premium rozetli", /Premium/i.test(await link.innerText()), await link.innerText());
-    await link.click();
+    await t.settle(p);
+    t.step("Menüde ERP bağlantısı yok", (await p.getByRole("link", { name: /ERP Entegrasyonu/ }).count()) === 0);
+    await p.goto(WEB + "/admin/erp");
     await p.getByTestId("erp-premium").waitFor();
     t.step("Ekranda premium tanıtımı var, form yok", (await p.getByTestId("erp-form").count()) === 0);
     await t.shot(p, "premium");

@@ -162,7 +162,7 @@ const supplierSections: NavSection[] = [
   },
 ];
 
-// Premium özellikler (ERP): lisans yoksa menüdeki ERP bağlantısı "Premium" rozetiyle tanıtım sayfasına gider.
+// Premium özellikler (ERP): lisans yoksa menüde ERP bağlantısı hiç görünmez (ERP askıda; tanıtım sayfası yalnızca adresle açılır).
 const { ensure: ensureFeatures, erpLicensed } = useFeatures();
 onMounted(() => ensureFeatures());
 
@@ -190,7 +190,7 @@ const navSections = computed<NavSection[]>(() => {
         { to: "/admin/email-settings", labelKey: "nav.emailSettings", icon: EnvelopeIcon },
         { to: "/admin/erp", labelKey: "nav.erp", icon: ArrowsRightLeftIcon, premium: true },
         { to: "/admin/audit-log", labelKey: "nav.auditLog", icon: ClipboardDocumentCheckIcon },
-      ],
+      ].filter((l) => !l.premium || erpLicensed.value),
     },
     accountSection,
   ];
